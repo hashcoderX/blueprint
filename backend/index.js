@@ -634,7 +634,15 @@ app.get('/api/achievements/stats', authenticateToken, async (req, res) => {
 app.get('/api/tasks', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
-    db.query('SELECT * FROM tasks WHERE user_id = ?', [req.user.id], (err, results) => {
+    const { date } = req.query; // optional planned day filter YYYY-MM-DD
+    const params = [req.user.id];
+    let sql = 'SELECT * FROM tasks WHERE user_id = ?';
+    if (date) {
+      sql += ' AND planned_date = ?';
+      params.push(date);
+    }
+    sql += ' ORDER BY planned_date IS NULL, planned_date ASC, FIELD(status, "inProgress","todo","done"), priority DESC, created_at DESC';
+    db.query(sql, params, (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(results);
     });
@@ -646,7 +654,7 @@ app.get('/api/tasks', authenticateToken, async (req, res) => {
 app.post('/api/tasks', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
-    const { title, status, priority } = req.body;
+    const { title, status = 'todo', priority = 'medium', category = 'general', planned_date = null, allocated_hours = 0 } = req.body;
 
     // Verify user exists before inserting
     db.query('SELECT id FROM users WHERE id = ?', [req.user.id], (userErr, userResults) => {
@@ -654,10 +662,140 @@ app.post('/api/tasks', authenticateToken, async (req, res) => {
       if (userResults.length === 0) return res.status(401).json({ error: 'User not found' });
 
       // User exists, proceed with task insertion
-      db.query('INSERT INTO tasks (user_id, title, status, priority) VALUES (?, ?, ?, ?)', [req.user.id, title, status, priority], (err, result) => {
+      const sql = 'INSERT INTO tasks (user_id, title, status, priority, category, planned_date, allocated_hours) VALUES (?, ?, ?, ?, ?, ?, ?)';
+      const vals = [req.user.id, title, status, priority, category, planned_date, allocated_hours];
+      db.query(sql, vals, (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ id: result.insertId, title, status, priority });
+        res.json({ id: result.insertId, title, status, priority, category, planned_date, allocated_hours });
       });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Update task (status, priority, category, planned_date, allocated_hours, title)
+app.patch('/api/tasks/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    const allowed = ['title','status','priority','category','planned_date','allocated_hours'];
+    const fields = [];
+    const values = [];
+    allowed.forEach((k) => {
+      if (Object.prototype.hasOwnProperty.call(req.body, k)) {
+        fields.push(`${k} = ?`);
+        values.push(req.body[k]);
+      }
+    });
+    if (fields.length === 0) return res.status(400).json({ error: 'No fields to update' });
+
+    // Ensure ownership
+    db.query('SELECT id FROM tasks WHERE id = ? AND user_id = ?', [id, req.user.id], (chkErr, chk) => {
+      if (chkErr) return res.status(500).json({ error: chkErr.message });
+      if (chk.length === 0) return res.status(404).json({ error: 'Task not found' });
+
+      const sql = `UPDATE tasks SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`;
+      db.query(sql, [...values, id, req.user.id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Start tracking time for a task
+app.post('/api/tasks/:id/start', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    // Ensure task ownership
+    db.query('SELECT id FROM tasks WHERE id = ? AND user_id = ?', [id, req.user.id], (tErr, taskRows) => {
+      if (tErr) return res.status(500).json({ error: tErr.message });
+      if (taskRows.length === 0) return res.status(404).json({ error: 'Task not found' });
+
+      // Ensure no active log exists
+      db.query('SELECT id FROM task_time_logs WHERE user_id = ? AND task_id = ? AND end_time IS NULL', [req.user.id, id], (lErr, logs) => {
+        if (lErr) return res.status(500).json({ error: lErr.message });
+        if (logs.length > 0) return res.status(400).json({ error: 'Task already running' });
+
+        db.query('INSERT INTO task_time_logs (user_id, task_id, start_time) VALUES (?, ?, NOW())', [req.user.id, id], (insErr, result) => {
+          if (insErr) return res.status(500).json({ error: insErr.message });
+          // Optionally set status to inProgress
+          db.query('UPDATE tasks SET status = "inProgress", updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?', [id, req.user.id]);
+          res.json({ success: true, log_id: result.insertId });
+        });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Stop tracking time for a task
+app.post('/api/tasks/:id/stop', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    // Ensure task ownership
+    db.query('SELECT id FROM tasks WHERE id = ? AND user_id = ?', [id, req.user.id], (tErr, taskRows) => {
+      if (tErr) return res.status(500).json({ error: tErr.message });
+      if (taskRows.length === 0) return res.status(404).json({ error: 'Task not found' });
+
+      // Find open log
+      db.query('SELECT id, start_time FROM task_time_logs WHERE user_id = ? AND task_id = ? AND end_time IS NULL ORDER BY start_time DESC LIMIT 1', [req.user.id, id], (lErr, logs) => {
+        if (lErr) return res.status(500).json({ error: lErr.message });
+        if (logs.length === 0) return res.status(400).json({ error: 'No active timer for this task' });
+        const logId = logs[0].id;
+        const updateSql = 'UPDATE task_time_logs SET end_time = NOW(), duration_minutes = TIMESTAMPDIFF(MINUTE, start_time, NOW()) WHERE id = ?';
+        db.query(updateSql, [logId], (uErr) => {
+          if (uErr) return res.status(500).json({ error: uErr.message });
+          res.json({ success: true });
+        });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Active timers for current user
+app.get('/api/tasks/logs/active', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const sql = 'SELECT task_id, start_time FROM task_time_logs WHERE user_id = ? AND end_time IS NULL';
+    db.query(sql, [req.user.id], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Monthly summary of time per category: ?month=YYYY-MM
+app.get('/api/tasks/summary', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { month } = req.query; // format YYYY-MM
+    if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+      return res.status(400).json({ error: 'Invalid month format. Expected YYYY-MM' });
+    }
+    const start = `${month}-01`;
+    const end = `${month}-31`;
+    const sql = `
+      SELECT t.category, COALESCE(SUM(l.duration_minutes), 0) AS minutes
+      FROM tasks t
+      JOIN task_time_logs l ON l.task_id = t.id AND l.user_id = t.user_id
+      WHERE t.user_id = ? AND l.end_time IS NOT NULL AND l.start_time BETWEEN ? AND ?
+      GROUP BY t.category
+      ORDER BY minutes DESC`;
+    db.query(sql, [req.user.id, start, end], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const data = rows.map(r => ({ category: r.category, hours: Number((r.minutes / 60).toFixed(2)) }));
+      res.json({ month, data });
     });
   } catch (err) {
     res.status(500).json({ error: 'Database not ready' });

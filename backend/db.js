@@ -137,7 +137,25 @@ tempConnection.connect((err) => {
           title VARCHAR(255) NOT NULL,
           status ENUM('todo', 'inProgress', 'done') DEFAULT 'todo',
           priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
+          category VARCHAR(50) DEFAULT 'general',
+          planned_date DATE NULL,
+          allocated_hours DECIMAL(6,2) DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS task_time_logs (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          task_id INT NOT NULL,
+          start_time DATETIME NOT NULL,
+          end_time DATETIME NULL,
+          duration_minutes INT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id),
+          FOREIGN KEY (task_id) REFERENCES tasks(id)
         );
 
         CREATE TABLE IF NOT EXISTS vehicle_expenses (
@@ -217,6 +235,48 @@ tempConnection.connect((err) => {
             }
           });
 
+          // Ensure new planning/time fields exist on tasks
+          const alterTasksTable = `
+            ALTER TABLE tasks 
+              ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'general',
+              ADD COLUMN IF NOT EXISTS planned_date DATE NULL,
+              ADD COLUMN IF NOT EXISTS allocated_hours DECIMAL(6,2) DEFAULT 0,
+              ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+          `;
+
+          connection.query(alterTasksTable, (alterTasksErr) => {
+            if (alterTasksErr) {
+              console.error('Error altering tasks table:', alterTasksErr);
+            } else {
+              console.log('Tasks table altered successfully');
+            }
+          });
+
+          // Ensure task_time_logs table exists
+          const ensureLogsTable = `
+            CREATE TABLE IF NOT EXISTS task_time_logs (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              user_id INT NOT NULL,
+              task_id INT NOT NULL,
+              start_time DATETIME NOT NULL,
+              end_time DATETIME NULL,
+              duration_minutes INT NULL,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              FOREIGN KEY (user_id) REFERENCES users(id),
+              FOREIGN KEY (task_id) REFERENCES tasks(id)
+            );
+          `;
+
+          connection.query(ensureLogsTable, (logsErr) => {
+            if (logsErr) {
+              console.error('Error ensuring task_time_logs table:', logsErr);
+            } else {
+              console.log('task_time_logs table ensured');
+            }
+          });
+
           // Insert sample data if tables are empty
           const insertSampleData = `
             INSERT IGNORE INTO users (id, username, fullname, email, phone, address, country, currency, password, role, status, is_paid) VALUES
@@ -249,12 +309,12 @@ tempConnection.connect((err) => {
             (11, 1, 'Social Butterfly', 'Share achievements with friends', 'Users', 'Social', 'Share 5 achievements', '100 points', 2, 5, FALSE, NULL, 'common'),
             (12, 1, 'Financial Scholar', 'Complete financial education modules', 'BookOpen', 'Learning', 'Complete 10 learning modules', '300 points', 6, 10, FALSE, NULL, 'epic');
 
-            INSERT IGNORE INTO tasks (id, user_id, title, status, priority) VALUES
-            (1, 1, 'Review budget', 'todo', 'high'),
-            (2, 1, 'Plan meal prep', 'todo', 'medium'),
-            (3, 1, 'Update expense tracker', 'inProgress', 'high'),
-            (4, 1, 'Pay bills', 'done', 'low'),
-            (5, 1, 'Check savings account', 'done', 'medium');
+            INSERT IGNORE INTO tasks (id, user_id, title, status, priority, category, planned_date, allocated_hours) VALUES
+            (1, 1, 'Review budget', 'todo', 'high', 'job', CURRENT_DATE, 2.00),
+            (2, 1, 'Plan meal prep', 'todo', 'medium', 'personal', CURRENT_DATE, 1.00),
+            (3, 1, 'Update expense tracker', 'inProgress', 'high', 'job', CURRENT_DATE, 1.50),
+            (4, 1, 'Pay bills', 'done', 'low', 'personal', CURRENT_DATE, 0.50),
+            (5, 1, 'Check savings account', 'done', 'medium', 'job', CURRENT_DATE, 0.25);
 
             INSERT IGNORE INTO vehicle_expenses (id, user_id, description, amount, date, vehicle) VALUES
             (1, 1, 'Fuel', 60.00, '2023-10-01', 'Toyota Camry'),
