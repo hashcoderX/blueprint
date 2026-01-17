@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* PowerBI Color Palette */
+  --color-powerbi-primary: #0078D4;
+  --color-powerbi-secondary: #002050;
+  --color-powerbi-accent-light: #00BCF2;
+  --color-powerbi-accent-dark: #00188F;
+  --color-powerbi-success: #107C10;
+  --color-powerbi-warning: #FF8C00;
+  --color-powerbi-error: #D13438;
+  --color-powerbi-info: #0078D4;
+
+  /* Neutral Colors */
+  --color-powerbi-gray-50: #FAFAFA;
+  --color-powerbi-gray-100: #F3F2F1;
+  --color-powerbi-gray-200: #EDEBE9;
+  --color-powerbi-gray-300: #E1DFDD;
+  --color-powerbi-gray-400: #C8C6C4;
+  --color-powerbi-gray-500: #A19F9D;
+  --color-powerbi-gray-600: #605E5C;
+  --color-powerbi-gray-700: #323130;
+  --color-powerbi-gray-800: #201F1E;
+  --color-powerbi-gray-900: #000000;
+
+  /* Extended Palette */
+  --color-powerbi-blue-50: #EFF6FC;
+  --color-powerbi-blue-100: #DEECF9;
+  --color-powerbi-blue-200: #BEE3F8;
+  --color-powerbi-blue-300: #9DCAF7;
+  --color-powerbi-blue-400: #7DB3F5;
+  --color-powerbi-blue-500: #5C9CE6;
+  --color-powerbi-blue-600: #0078D4;
+  --color-powerbi-blue-700: #106EBE;
+  --color-powerbi-blue-800: #005A9E;
+  --color-powerbi-blue-900: #004578;
+
+  /* Data Visualization Colors */
+  --color-powerbi-data-1: #0078D4;
+  --color-powerbi-data-2: #00BCF2;
+  --color-powerbi-data-3: #107C10;
+  --color-powerbi-data-4: #FF8C00;
+  --color-powerbi-data-5: #D13438;
+  --color-powerbi-data-6: #800080;
+  --color-powerbi-data-7: #008272;
+  --color-powerbi-data-8: #FFB900;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.delay-1000 {
+  animation-delay: 1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+}
+
+.delay-600 {
+  animation-delay: 0.6s;
+}
+
+.delay-700 {
+  animation-delay: 0.7s;
+}
