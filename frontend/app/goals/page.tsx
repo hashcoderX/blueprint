@@ -93,6 +93,7 @@ export default function Goals() {
     priority: 'all',
     search: ''
   });
+  const [userCurrency, setUserCurrency] = useState('USD');
 
   const categories = ['Savings', 'Investment', 'Debt Payoff', 'Emergency Fund', 'Vacation', 'Car', 'Home', 'Education', 'Health', 'Other'];
   const priorities = ['low', 'medium', 'high'];
@@ -101,7 +102,30 @@ export default function Goals() {
   useEffect(() => {
     fetchGoals();
     fetchStats();
+    fetchUserProfile();
   }, [filters]);
+
+  const fetchUserProfile = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const response = await fetch('http://localhost:3001/api/user/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUserCurrency(userData.currency || 'USD');
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+    }
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: userCurrency }).format(amount);
+  };
 
   const fetchGoals = async () => {
     const token = localStorage.getItem('token');
@@ -440,7 +464,7 @@ export default function Goals() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Progress</span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    ${goal.current.toLocaleString()} / ${goal.target.toLocaleString()}
+                    {formatCurrency(goal.current)} / {formatCurrency(goal.target)}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
@@ -509,6 +533,7 @@ export default function Goals() {
               setViewingGoal(null);
               setEditingGoal(viewingGoal);
             }}
+            formatCurrency={formatCurrency}
           />
         )}
 
@@ -743,11 +768,12 @@ function GoalForm({ goal, onSave, onCancel, error }: {
 }
 
 // Goal Details Component
-function GoalDetails({ goal, onClose, onProgressUpdate, onEdit }: {
+function GoalDetails({ goal, onClose, onProgressUpdate, onEdit, formatCurrency }: {
   goal: Goal;
   onClose: () => void;
   onProgressUpdate: (goalId: number, amount: number, description: string) => void;
   onEdit: () => void;
+  formatCurrency: (amount: number) => string;
 }) {
   const [progressAmount, setProgressAmount] = useState(0);
   const [progressDescription, setProgressDescription] = useState('');
@@ -807,11 +833,11 @@ function GoalDetails({ goal, onClose, onProgressUpdate, onEdit }: {
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Current Amount</span>
-                    <span className="font-medium text-gray-900 dark:text-white">${goal.current.toLocaleString()}</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{formatCurrency(goal.current)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Target Amount</span>
-                    <span className="font-medium text-gray-900 dark:text-white">${goal.target.toLocaleString()}</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{formatCurrency(goal.target)}</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
                     <div
@@ -824,7 +850,7 @@ function GoalDetails({ goal, onClose, onProgressUpdate, onEdit }: {
                       {Math.round(goal.progress_percentage)}% Complete
                     </span>
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                      ${(goal.target - goal.current).toLocaleString()} remaining
+                      {formatCurrency(goal.target - goal.current)} remaining
                     </span>
                   </div>
                 </div>

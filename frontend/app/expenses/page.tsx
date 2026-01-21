@@ -163,17 +163,21 @@ export default function Expenses() {
     if (!token) return;
 
     try {
-      const [expensesRes, incomeRes] = await Promise.all([
+      const [expensesRes, incomeRes, vehicleRes] = await Promise.all([
         fetch('http://localhost:3001/api/expenses', {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
         fetch('http://localhost:3001/api/income', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('http://localhost:3001/api/vehicle-expenses', {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
 
       const expensesData = await expensesRes.json();
       const incomeData = await incomeRes.json();
+      const vehicleData = await vehicleRes.json();
 
       let validExpenses = [];
       let validIncome = [];
@@ -186,6 +190,31 @@ export default function Expenses() {
       if (!incomeData.error && Array.isArray(incomeData)) {
         setIncome(incomeData);
         validIncome = incomeData;
+      }
+
+      // Add vehicle expenses and income to the respective arrays
+      if (!vehicleData.error && Array.isArray(vehicleData)) {
+        const vehicleExpenses = vehicleData.filter((v: any) => v.type === 'expense').map((v: any) => ({
+          id: v.id,
+          description: `${v.description} (${v.vehicle})`,
+          amount: v.amount,
+          date: v.date,
+          category: 'Vehicle'
+        }));
+        const vehicleIncome = vehicleData.filter((v: any) => v.type === 'income').map((v: any) => ({
+          id: v.id,
+          description: `${v.description} (${v.vehicle})`,
+          amount: v.amount,
+          date: v.date,
+          category: 'Vehicle'
+        }));
+
+        validExpenses = [...validExpenses, ...vehicleExpenses];
+        validIncome = [...validIncome, ...vehicleIncome];
+
+        // Update state to include vehicle data for display
+        setExpenses([...expensesData, ...vehicleExpenses]);
+        setIncome([...incomeData, ...vehicleIncome]);
       }
 
       calculateSummary(validExpenses, validIncome);
@@ -227,17 +256,8 @@ export default function Expenses() {
         throw new Error(data.error || 'Failed to add transaction');
       }
 
-      // Update the appropriate state
-      if (formType === 'income') {
-        setIncome(prev => [data, ...prev]);
-      } else {
-        setExpenses(prev => [data, ...prev]);
-      }
-
-      // Recalculate summary
-      const newExpenses = formType === 'expense' ? [data, ...expenses] : expenses;
-      const newIncome = formType === 'income' ? [data, ...income] : income;
-      calculateSummary(newExpenses, newIncome);
+      // Refresh all data to include vehicle expenses
+      await fetchData();
 
       setShowAddForm(false);
     } catch (err: any) {

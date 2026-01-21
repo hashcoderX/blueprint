@@ -42,22 +42,6 @@ tempConnection.connect((err) => {
 
       // Create tables if they don't exist
       const createTables = `
-        SET FOREIGN_KEY_CHECKS = 0;
-        DROP TABLE IF EXISTS subscriptions;
-        DROP TABLE IF EXISTS payment_methods;
-        DROP TABLE IF EXISTS notes;
-        DROP TABLE IF EXISTS vehicle_expenses;
-        DROP TABLE IF EXISTS tasks;
-        DROP TABLE IF EXISTS achievements;
-        DROP TABLE IF EXISTS goals;
-        DROP TABLE IF EXISTS expenses;
-        DROP TABLE IF EXISTS users;
-        SET FOREIGN_KEY_CHECKS = 1;
-        DROP TABLE IF EXISTS subscriptions;
-        DROP TABLE IF EXISTS payment_methods;
-        DROP TABLE IF EXISTS users;
-        SET FOREIGN_KEY_CHECKS = 1;
-
         CREATE TABLE IF NOT EXISTS users (
           id INT AUTO_INCREMENT PRIMARY KEY,
           username VARCHAR(50) UNIQUE NOT NULL,
@@ -74,12 +58,13 @@ tempConnection.connect((err) => {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        CREATE TABLE expenses (
+        CREATE TABLE IF NOT EXISTS expenses (
           id INT AUTO_INCREMENT PRIMARY KEY,
           user_id INT,
           description VARCHAR(255) NOT NULL,
           amount DECIMAL(10,2) NOT NULL,
           date DATE NOT NULL,
+          category VARCHAR(50) DEFAULT 'general',
           FOREIGN KEY (user_id) REFERENCES users(id)
         );
 
@@ -168,6 +153,18 @@ tempConnection.connect((err) => {
           FOREIGN KEY (user_id) REFERENCES users(id)
         );
 
+        CREATE TABLE IF NOT EXISTS vehicles (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          make VARCHAR(100),
+          model VARCHAR(100),
+          year INT,
+          vehicle_no VARCHAR(50),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
         CREATE TABLE IF NOT EXISTS notes (
           id INT AUTO_INCREMENT PRIMARY KEY,
           user_id INT,
@@ -250,6 +247,20 @@ tempConnection.connect((err) => {
               console.error('Error altering tasks table:', alterTasksErr);
             } else {
               console.log('Tasks table altered successfully');
+            }
+          });
+
+          // Add vehicle_no column to vehicles table if it doesn't exist
+          const alterVehiclesTable = `
+            ALTER TABLE vehicles 
+            ADD COLUMN IF NOT EXISTS vehicle_no VARCHAR(50);
+          `;
+
+          connection.query(alterVehiclesTable, (alterVehiclesErr) => {
+            if (alterVehiclesErr) {
+              console.error('Error altering vehicles table:', alterVehiclesErr);
+            } else {
+              console.log('Vehicles table altered successfully');
             }
           });
 

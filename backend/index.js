@@ -706,6 +706,33 @@ app.patch('/api/tasks/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Delete task
+app.delete('/api/tasks/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+
+    // Ensure ownership and task exists
+    db.query('SELECT id FROM tasks WHERE id = ? AND user_id = ?', [id, req.user.id], (chkErr, chk) => {
+      if (chkErr) return res.status(500).json({ error: chkErr.message });
+      if (chk.length === 0) return res.status(404).json({ error: 'Task not found' });
+
+      // Delete associated time logs first
+      db.query('DELETE FROM task_time_logs WHERE task_id = ? AND user_id = ?', [id, req.user.id], (logErr) => {
+        if (logErr) return res.status(500).json({ error: logErr.message });
+
+        // Then delete the task
+        db.query('DELETE FROM tasks WHERE id = ? AND user_id = ?', [id, req.user.id], (err) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ success: true });
+        });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
 // Start tracking time for a task
 app.post('/api/tasks/:id/start', authenticateToken, async (req, res) => {
   try {
@@ -775,6 +802,25 @@ app.get('/api/tasks/logs/active', authenticateToken, async (req, res) => {
   }
 });
 
+// Accumulated completed time per task (in minutes)
+app.get('/api/tasks/time/summary', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const sql = `
+      SELECT task_id, COALESCE(SUM(duration_minutes), 0) AS minutes
+      FROM task_time_logs
+      WHERE user_id = ? AND end_time IS NOT NULL
+      GROUP BY task_id
+    `;
+    db.query(sql, [req.user.id], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
 // Monthly summary of time per category: ?month=YYYY-MM
 app.get('/api/tasks/summary', authenticateToken, async (req, res) => {
   try {
@@ -802,13 +848,55 @@ app.get('/api/tasks/summary', authenticateToken, async (req, res) => {
   }
 });
 
+// Time logs for a specific task
+app.get('/api/tasks/:id/logs', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    console.log('Fetching logs for task:', id, 'user:', req.user.id);
+
+    // Ensure task ownership
+    db.query('SELECT id FROM tasks WHERE id = ? AND user_id = ?', [id, req.user.id], (chkErr, chk) => {
+      if (chkErr) {
+        console.error('Database error checking task ownership:', chkErr);
+        return res.status(500).json({ error: chkErr.message });
+      }
+      if (chk.length === 0) {
+        console.log('Task not found or not owned by user');
+        return res.status(404).json({ error: 'Task not found' });
+      }
+
+      const sql = 'SELECT id, start_time, end_time, duration_minutes FROM task_time_logs WHERE task_id = ? AND user_id = ? ORDER BY start_time DESC';
+      db.query(sql, [id, req.user.id], (err, rows) => {
+        if (err) {
+          console.error('Database error fetching time logs:', err);
+          return res.status(500).json({ error: err.message });
+        }
+        console.log('Found', rows.length, 'time log entries');
+        res.json(rows);
+      });
+    });
+  } catch (err) {
+    console.error('Server error in task logs route:', err);
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
 // Vehicle Expenses API
 app.get('/api/vehicle-expenses', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
-    db.query('SELECT * FROM vehicle_expenses WHERE user_id = ?', [req.user.id], (err, results) => {
+    db.query('SELECT id, user_id, description, amount, date, vehicle FROM vehicle_expenses WHERE user_id = ?', [req.user.id], (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json(results);
+      const mapped = results.map(r => ({
+        id: r.id,
+        description: r.description,
+        amount: Math.abs(Number(r.amount)),
+        date: r.date,
+        vehicle: r.vehicle,
+        type: Number(r.amount) < 0 ? 'income' : 'expense',
+      }));
+      res.json(mapped);
     });
   } catch (err) {
     res.status(500).json({ error: 'Database not ready' });
@@ -818,7 +906,7 @@ app.get('/api/vehicle-expenses', authenticateToken, async (req, res) => {
 app.post('/api/vehicle-expenses', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
-    const { description, amount, date, vehicle } = req.body;
+    let { description, amount, date, vehicle, type } = req.body;
 
     // Verify user exists before inserting
     db.query('SELECT id FROM users WHERE id = ?', [req.user.id], (userErr, userResults) => {
@@ -826,9 +914,149 @@ app.post('/api/vehicle-expenses', authenticateToken, async (req, res) => {
       if (userResults.length === 0) return res.status(401).json({ error: 'User not found' });
 
       // User exists, proceed with vehicle expense insertion
-      db.query('INSERT INTO vehicle_expenses (user_id, description, amount, date, vehicle) VALUES (?, ?, ?, ?, ?)', [req.user.id, description, amount, date, vehicle], (err, result) => {
+      const signedAmount = (type === 'income') ? -Math.abs(Number(amount)) : Math.abs(Number(amount));
+      db.query('INSERT INTO vehicle_expenses (user_id, description, amount, date, vehicle) VALUES (?, ?, ?, ?, ?)', [req.user.id, description, signedAmount, date, vehicle], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ id: result.insertId, description, amount, date, vehicle });
+        res.json({ id: result.insertId, description, amount: Math.abs(Number(amount)), date, vehicle, type: type === 'income' ? 'income' : 'expense' });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Update vehicle expense/income
+app.patch('/api/vehicle-expenses/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    const { description, amount, date, vehicle, type } = req.body;
+
+    // Ensure ownership and get current row
+    db.query('SELECT id, amount FROM vehicle_expenses WHERE id = ? AND user_id = ?', [id, req.user.id], (chkErr, rows) => {
+      if (chkErr) return res.status(500).json({ error: chkErr.message });
+      if (rows.length === 0) return res.status(404).json({ error: 'Entry not found' });
+
+      const fields = [];
+      const vals = [];
+      if (description !== undefined) { fields.push('description = ?'); vals.push(description); }
+      if (date !== undefined) { fields.push('date = ?'); vals.push(date); }
+      if (vehicle !== undefined) { fields.push('vehicle = ?'); vals.push(vehicle); }
+      if (amount !== undefined) {
+        const signed = (type === 'income') ? -Math.abs(Number(amount)) : (type === 'expense') ? Math.abs(Number(amount)) : (Number(rows[0].amount) < 0 ? -Math.abs(Number(amount)) : Math.abs(Number(amount)));
+        fields.push('amount = ?'); vals.push(signed);
+      } else if (type !== undefined) {
+        // flip sign based on type if only type changes
+        const current = Number(rows[0].amount);
+        const newVal = type === 'income' ? -Math.abs(current) : Math.abs(current);
+        fields.push('amount = ?'); vals.push(newVal);
+      }
+      if (fields.length === 0) return res.status(400).json({ error: 'No fields to update' });
+
+      const sql = `UPDATE vehicle_expenses SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?`;
+      db.query(sql, [...vals, id, req.user.id], (uErr) => {
+        if (uErr) return res.status(500).json({ error: uErr.message });
+        res.json({ success: true });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Delete vehicle expense/income
+app.delete('/api/vehicle-expenses/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    db.query('DELETE FROM vehicle_expenses WHERE id = ? AND user_id = ?', [id, req.user.id], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Entry not found' });
+      res.json({ success: true });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Vehicles API
+app.get('/api/vehicles', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    db.query('SELECT id, name, make, model, year, vehicle_no FROM vehicles WHERE user_id = ? ORDER BY created_at DESC', [req.user.id], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/vehicles', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { name, make, model, year, vehicle_no } = req.body;
+
+    // Verify user exists before inserting
+    db.query('SELECT id FROM users WHERE id = ?', [req.user.id], (userErr, userResults) => {
+      if (userErr) return res.status(500).json({ error: 'Database error' });
+      if (userResults.length === 0) return res.status(401).json({ error: 'User not found' });
+
+      // User exists, proceed with vehicle insertion
+      db.query('INSERT INTO vehicles (user_id, name, make, model, year, vehicle_no) VALUES (?, ?, ?, ?, ?, ?)', [req.user.id, name, make, model, year, vehicle_no], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ id: result.insertId, name, make, model, year, vehicle_no });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.patch('/api/vehicles/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    const { name, make, model, year, vehicle_no } = req.body;
+
+    const fields = [];
+    const vals = [];
+    if (name !== undefined) { fields.push('name = ?'); vals.push(name); }
+    if (make !== undefined) { fields.push('make = ?'); vals.push(make); }
+    if (model !== undefined) { fields.push('model = ?'); vals.push(model); }
+    if (year !== undefined) { fields.push('year = ?'); vals.push(year); }
+    if (vehicle_no !== undefined) { fields.push('vehicle_no = ?'); vals.push(vehicle_no); }
+    if (fields.length === 0) return res.status(400).json({ error: 'No fields to update' });
+
+    // Ensure ownership
+    db.query('SELECT id FROM vehicles WHERE id = ? AND user_id = ?', [id, req.user.id], (chkErr, chk) => {
+      if (chkErr) return res.status(500).json({ error: chkErr.message });
+      if (chk.length === 0) return res.status(404).json({ error: 'Vehicle not found' });
+
+      const sql = `UPDATE vehicles SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`;
+      db.query(sql, [...vals, id, req.user.id], (uErr) => {
+        if (uErr) return res.status(500).json({ error: uErr.message });
+        res.json({ success: true });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.delete('/api/vehicles/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+
+    // Ensure ownership
+    db.query('SELECT id FROM vehicles WHERE id = ? AND user_id = ?', [id, req.user.id], (chkErr, chk) => {
+      if (chkErr) return res.status(500).json({ error: chkErr.message });
+      if (chk.length === 0) return res.status(404).json({ error: 'Vehicle not found' });
+
+      db.query('DELETE FROM vehicles WHERE id = ? AND user_id = ?', [id, req.user.id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
       });
     });
   } catch (err) {

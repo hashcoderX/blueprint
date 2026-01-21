@@ -46,6 +46,18 @@ CREATE TABLE IF NOT EXISTS vehicle_expenses (
   vehicle VARCHAR(255) NOT NULL
 );
 
+-- Vehicles table
+CREATE TABLE IF NOT EXISTS vehicles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  make VARCHAR(100),
+  model VARCHAR(100),
+  year INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Notes table
 CREATE TABLE IF NOT EXISTS notes (
   id INT AUTO_INCREMENT PRIMARY KEY,

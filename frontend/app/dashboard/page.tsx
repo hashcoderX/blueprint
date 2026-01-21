@@ -60,6 +60,7 @@ export default function Dashboard() {
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [userCurrency, setUserCurrency] = useState('USD');
 
   // Simulate real-time data updates
   useEffect(() => {
@@ -106,7 +107,7 @@ export default function Dashboard() {
       <div className="space-y-1">
         <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400">{title}</p>
         <p className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">
-          {prefix}{typeof value === 'number' ? value.toLocaleString() : value}{suffix}
+          {prefix === '$' ? new Intl.NumberFormat(undefined, { style: 'currency', currency: userCurrency }).format(typeof value === 'number' ? value : 0) : `${prefix}${typeof value === 'number' ? value.toLocaleString() : value}`}{suffix}
         </p>
       </div>
     </div>
