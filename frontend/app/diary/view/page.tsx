@@ -62,25 +62,43 @@ export default function DiaryList() {
         {loading ? (
           <div className="text-gray-500">Loading entries...</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((e) => (
-              <div key={e.id} className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    {new Date(e.date).toLocaleDateString()}
+          <div className="relative">
+            {filtered.map((e, index) => (
+              <div
+                key={e.id}
+                className="relative mb-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
+                style={{
+                  backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0)',
+                  backgroundSize: '20px 20px',
+                  transform: `translateY(${index * 2}px) rotate(${Math.random() * 2 - 1}deg)`,
+                  zIndex: filtered.length - index,
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900 dark:text-white text-lg">
+                    {new Date(e.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </div>
                   {e.mood && (
-                    <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">{e.mood}</span>
+                    <span className="text-xs px-3 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300 font-medium">
+                      {e.mood}
+                    </span>
                   )}
                 </div>
                 {e.one_sentence && (
-                  <div className="text-sm mt-1 text-gray-600 dark:text-gray-400">{e.one_sentence}</div>
+                  <div className="text-base mt-2 text-gray-700 dark:text-gray-300 italic">
+                    "{e.one_sentence}"
+                  </div>
                 )}
-                <div className="text-sm mt-2 line-clamp-4 text-gray-600 dark:text-gray-400">{e.content}</div>
+                <div className="text-sm mt-4 text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-6">
+                  {e.content}
+                </div>
+                <div className="absolute bottom-2 right-2 text-xs text-gray-400 opacity-50">
+                  Page {filtered.length - index}
+                </div>
               </div>
             ))}
             {filtered.length === 0 && (
-              <div className="text-gray-500">No entries found.</div>
+              <div className="text-gray-500 text-center py-20">No entries found. Start writing in your diary.</div>
             )}
           </div>
         )}

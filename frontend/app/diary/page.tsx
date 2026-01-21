@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Moon, Sun, Cloud, CloudRain, Zap, Heart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import DashboardLayout from '../../components/DashboardLayout';
 import DashboardLayout from '../../components/DashboardLayout';
 
 interface DiaryEntry {
@@ -14,6 +16,7 @@ interface DiaryEntry {
 }
 
 export default function Diary() {
+  const router = useRouter();
   const [entry, setEntry] = useState<DiaryEntry | null>(null);
   const [content, setContent] = useState('');
   const [oneSentence, setOneSentence] = useState('');
@@ -127,6 +130,12 @@ export default function Diary() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push('/diary/view')}
+              className="px-4 py-2 rounded-xl shadow bg-gray-600 text-white hover:bg-gray-700"
+            >
+              View Diary
+            </button>
             <button
               onClick={() => setIsNightMode(!isNightMode)}
               className={`p-2 rounded-full ${
