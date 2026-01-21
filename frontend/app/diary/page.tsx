@@ -122,14 +122,25 @@ export default function Diary() {
             day: 'numeric'
           })}
         </div>
-        <button
-          onClick={() => setIsNightMode(!isNightMode)}
-          className={`p-2 rounded-full ${
-            isNightMode ? 'bg-amber-800 text-amber-200' : 'bg-amber-200 text-amber-800'
-          }`}
-        >
-          {isNightMode ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsNightMode(!isNightMode)}
+            className={`p-2 rounded-full ${
+              isNightMode ? 'bg-amber-800 text-amber-200' : 'bg-amber-200 text-amber-800'
+            }`}
+            title="Toggle Night Mode"
+          >
+            {isNightMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <button
+            onClick={() => void saveEntry()}
+            className={`px-4 py-2 rounded-lg shadow ${
+              isNightMode ? 'bg-amber-700 text-amber-100 hover:bg-amber-600' : 'bg-amber-600 text-white hover:bg-amber-700'
+            }`}
+          >
+            Save
+          </button>
+        </div>
       </div>
 
       {/* Mood Selector */}

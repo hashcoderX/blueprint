@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
 import {
   TrendingUp,
@@ -41,6 +42,7 @@ interface RecentActivity {
 }
 
 export default function Dashboard() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalExpenses: 12450,
     monthlyChange: 5.2,
@@ -62,6 +64,17 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [userCurrency, setUserCurrency] = useState('USD');
 
+  type DiaryEntry = {
+    id: number;
+    title: string;
+    content: string;
+    date: string;
+    mood?: string;
+    one_sentence?: string;
+  };
+  const [diary, setDiary] = useState<DiaryEntry[]>([]);
+  const [diaryLoading, setDiaryLoading] = useState<boolean>(false);
+
   // Simulate real-time data updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -73,6 +86,25 @@ export default function Dashboard() {
     }, 5000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Load recent diary entries (like tasks list)
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) return;
+    setDiaryLoading(true);
+    fetch('http://localhost:3001/api/diary', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          // sort by date desc
+          const sorted = data.sort((a: DiaryEntry, b: DiaryEntry) => (a.date < b.date ? 1 : -1));
+          setDiary(sorted);
+        }
+      })
+      .finally(() => setDiaryLoading(false));
   }, []);
 
   const StatCard = ({
@@ -299,6 +331,58 @@ export default function Dashboard() {
               color="purple"
             />
           </div>
+        </div>
+
+        {/* Diary Section */}
+        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Your Diary</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => router.push('/diary')}
+                className="px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                Write Today
+              </button>
+              <button
+                onClick={() => router.push('/diary/view')}
+                className="px-3 py-2 rounded-lg bg-powerbi-gray-900 hover:bg-black text-white dark:bg-powerbi-gray-700 dark:hover:bg-powerbi-gray-600"
+              >
+                View Diary
+              </button>
+            </div>
+          </div>
+          {diaryLoading ? (
+            <div className="text-powerbi-gray-500">Loading your recent entries...</div>
+          ) : (
+            <div className="space-y-3">
+              {diary.slice(0, 4).map((d) => (
+                <div key={d.id} className="p-4 rounded-xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-800">
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium text-powerbi-gray-900 dark:text-white">
+                      {new Date(d.date).toLocaleDateString()}
+                    </div>
+                    {d.mood && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+                        {d.mood}
+                      </span>
+                    )}
+                  </div>
+                  {d.one_sentence && (
+                    <div className="text-sm mt-1 text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                      {d.one_sentence}
+                    </div>
+                  )}
+                  <div className="text-sm mt-2 line-clamp-2 text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                    {d.content}
+                  </div>
+                </div>
+              ))}
+              {diary.length === 0 && (
+                <div className="text-powerbi-gray-500">No entries yet. Start with “Write Today”.</div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Bottom Row */}
