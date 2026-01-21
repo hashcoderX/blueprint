@@ -61,9 +61,13 @@ CREATE TABLE IF NOT EXISTS vehicles (
 -- Notes table
 CREATE TABLE IF NOT EXISTS notes (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
   title VARCHAR(255) NOT NULL,
   content TEXT,
-  date DATE NOT NULL
+  date DATE NOT NULL,
+  mood VARCHAR(50),
+  one_sentence VARCHAR(255),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Insert sample data

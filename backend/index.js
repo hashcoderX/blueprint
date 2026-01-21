@@ -1077,10 +1077,26 @@ app.get('/api/diary', authenticateToken, async (req, res) => {
   }
 });
 
+app.put('/api/diary/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    const { title, content, date, mood, one_sentence } = req.body;
+
+    db.query('UPDATE notes SET title = ?, content = ?, date = ?, mood = ?, one_sentence = ? WHERE id = ? AND user_id = ?', [title, content, date, mood, one_sentence, id, req.user.id], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Note not found' });
+      res.json({ id, title, content, date, mood, one_sentence });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
 app.post('/api/diary', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
-    const { title, content, date } = req.body;
+    const { title, content, date, mood, one_sentence } = req.body;
 
     // Verify user exists before inserting
     db.query('SELECT id FROM users WHERE id = ?', [req.user.id], (userErr, userResults) => {
@@ -1088,9 +1104,9 @@ app.post('/api/diary', authenticateToken, async (req, res) => {
       if (userResults.length === 0) return res.status(401).json({ error: 'User not found' });
 
       // User exists, proceed with diary entry insertion
-      db.query('INSERT INTO notes (user_id, title, content, date) VALUES (?, ?, ?, ?)', [req.user.id, title, content, date], (err, result) => {
+      db.query('INSERT INTO notes (user_id, title, content, date, mood, one_sentence) VALUES (?, ?, ?, ?, ?, ?)', [req.user.id, title, content, date, mood, one_sentence], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ id: result.insertId, title, content, date });
+        res.json({ id: result.insertId, title, content, date, mood, one_sentence });
       });
     });
   } catch (err) {
