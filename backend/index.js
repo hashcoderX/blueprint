@@ -1103,10 +1103,32 @@ app.post('/api/diary', authenticateToken, async (req, res) => {
       if (userErr) return res.status(500).json({ error: 'Database error' });
       if (userResults.length === 0) return res.status(401).json({ error: 'User not found' });
 
-      // User exists, proceed with diary entry insertion
-      db.query('INSERT INTO notes (user_id, title, content, date, mood, one_sentence) VALUES (?, ?, ?, ?, ?, ?)', [req.user.id, title, content, date, mood, one_sentence], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ id: result.insertId, title, content, date, mood, one_sentence });
+      // Check if a note for this date already exists for the user
+      db.query('SELECT id FROM notes WHERE user_id = ? AND date = ?', [req.user.id, date], (findErr, findResults) => {
+        if (findErr) return res.status(500).json({ error: findErr.message });
+
+        if (findResults.length > 0) {
+          const noteId = findResults[0].id;
+          // Update existing note
+          db.query(
+            'UPDATE notes SET title = ?, content = ?, mood = ?, one_sentence = ? WHERE id = ? AND user_id = ?',
+            [title, content, mood, one_sentence, noteId, req.user.id],
+            (updErr) => {
+              if (updErr) return res.status(500).json({ error: updErr.message });
+              res.json({ id: noteId, title, content, date, mood, one_sentence });
+            }
+          );
+        } else {
+          // Insert new note
+          db.query(
+            'INSERT INTO notes (user_id, title, content, date, mood, one_sentence) VALUES (?, ?, ?, ?, ?, ?)',
+            [req.user.id, title, content, date, mood, one_sentence],
+            (insErr, result) => {
+              if (insErr) return res.status(500).json({ error: insErr.message });
+              res.json({ id: result.insertId, title, content, date, mood, one_sentence });
+            }
+          );
+        }
       });
     });
   } catch (err) {

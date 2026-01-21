@@ -20,6 +20,7 @@ export default function Diary() {
   const [mood, setMood] = useState('');
   const [isNightMode, setIsNightMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -54,6 +55,7 @@ export default function Diary() {
     if (!token || !entry) return;
 
     try {
+      setIsSaving(true);
       const method = entry.id > 0 ? 'PUT' : 'POST';
       const url = entry.id > 0 ? `http://localhost:3001/api/diary/${entry.id}` : 'http://localhost:3001/api/diary';
 
@@ -78,6 +80,8 @@ export default function Diary() {
       }
     } catch (err) {
       console.error('Error saving:', err);
+    } finally {
+      setIsSaving(false);
     }
   }, [entry, content, mood, oneSentence, today]);
 
@@ -131,14 +135,6 @@ export default function Diary() {
               title="Toggle Night Mode"
             >
               {isNightMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            <button
-              onClick={() => void saveEntry()}
-              className={`px-4 py-2 rounded-xl shadow ${
-                isNightMode ? 'bg-amber-700 text-amber-100 hover:bg-amber-600' : 'bg-amber-600 text-white hover:bg-amber-700'
-              }`}
-            >
-              Save
             </button>
           </div>
         </div>
@@ -211,6 +207,17 @@ export default function Diary() {
                   caretColor: isNightMode ? '#fbbf24' : '#374151'
                 }}
               />
+              <div className="mt-3 flex justify-end">
+                <button
+                  onClick={() => void saveEntry()}
+                  disabled={isSaving}
+                  className={`px-4 py-2 rounded-xl shadow ${
+                    isNightMode ? 'bg-amber-700 text-amber-100 hover:bg-amber-600' : 'bg-amber-600 text-white hover:bg-amber-700'
+                  } ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
+                >
+                  {isSaving ? 'Saving…' : 'Save'}
+                </button>
+              </div>
             </div>
 
             {/* Footer */}
