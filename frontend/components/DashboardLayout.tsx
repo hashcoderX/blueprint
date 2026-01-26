@@ -2,8 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import Sidebar from './Sidebar';
-import Header from './Header';
+const Header = dynamic(() => import('./Header'), { ssr: false });
 
 interface DashboardLayoutProps {
   children: React.ReactNode;

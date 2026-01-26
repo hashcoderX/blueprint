@@ -50,7 +50,8 @@ export default function Login() {
       } else {
         setError(data.error);
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Login error:', error);
       setError('Login failed. Please check your connection.');
     } finally {
       setIsLoading(false);
@@ -223,7 +224,7 @@ export default function Login() {
 
             <div className="mt-8 text-center animate-fade-in-up delay-700">
               <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link href="/signup" className="text-powerbi-primary hover:text-powerbi-secondary font-bold transition-colors">
                   Create one here
                 </Link>

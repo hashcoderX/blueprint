@@ -1,22 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
 import {
   Plus,
-  Clock,
   DollarSign,
-  Calendar,
   ShoppingCart,
   Edit,
-  Trash2,
   CheckCircle,
-  AlertCircle,
   FolderOpen,
   BarChart3,
-  Users,
-  Target,
   TrendingUp
 } from 'lucide-react';
 
@@ -94,7 +88,7 @@ export default function ManageProjects() {
 
   // Effects are declared after functions to satisfy lint rules
 
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -113,7 +107,7 @@ export default function ManageProjects() {
     } catch (error) {
       console.error('Error loading user profile:', error);
     }
-  };
+  }, []);
 
   const getCurrencySymbol = (currency: string) => {
     const symbols: { [key: string]: string } = {
@@ -210,22 +204,7 @@ export default function ManageProjects() {
     return map[key] || Intl.DateTimeFormat().resolvedOptions().timeZone;
   };
 
-  const formatDateTimeInUserTZ = (iso: string) => {
-    const tz = getTimeZoneForCountry(userCountry);
-    try {
-      return new Intl.DateTimeFormat(undefined, {
-        timeZone: tz,
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      }).format(new Date(iso));
-    } catch (e) {
-      return new Date(iso).toLocaleString();
-    }
-  };
+  // removed unused formatDateTimeInUserTZ to satisfy lint
 
   // Robust currency formatter using Intl with safe fallback
   const formatCurrency = (amount: number) => {
@@ -236,13 +215,13 @@ export default function ManageProjects() {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }).format(amount);
-    } catch (e) {
-      // Fallback when currency code is unknown or Intl fails
+    } catch (error) {
+      console.error('Currency format error:', error);
       return `${getCurrencySymbol(userCurrency)}${amount.toFixed(2)}`;
     }
   };
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:3001/api/projects', {
@@ -255,9 +234,9 @@ export default function ManageProjects() {
     } catch (error) {
       console.error('Error loading projects:', error);
     }
-  };
+  }, []);
 
-  const loadPurchases = async () => {
+  const loadPurchases = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:3001/api/project-purchases', {
@@ -270,9 +249,9 @@ export default function ManageProjects() {
     } catch (error) {
       console.error('Error loading purchases:', error);
     }
-  };
+  }, []);
 
-  const loadIncome = async () => {
+  const loadIncome = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:3001/api/project-income', {
@@ -285,7 +264,7 @@ export default function ManageProjects() {
     } catch (error) {
       console.error('Error loading income:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -295,7 +274,7 @@ export default function ManageProjects() {
       loadUserProfile();
     }, 0);
     return () => clearTimeout(t);
-  }, []);
+  }, [loadProjects, loadPurchases, loadIncome, loadUserProfile]);
 
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -837,7 +816,7 @@ export default function ManageProjects() {
                             {formatCurrency(purchase.cost)}
                           </p>
                           <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                            {new Date(purchase.date).toLocaleDateString()}
+                            {new Intl.DateTimeFormat(undefined, { timeZone: getTimeZoneForCountry(userCountry) }).format(new Date(purchase.date))}
                           </p>
                         </div>
                       </div>
@@ -954,7 +933,7 @@ export default function ManageProjects() {
                             +{formatCurrency(incomeItem.amount)}
                           </p>
                           <p className="text-sm text-green-700 dark:text-green-300">
-                            {new Date(incomeItem.date).toLocaleDateString()}
+                            {new Intl.DateTimeFormat(undefined, { timeZone: getTimeZoneForCountry(userCountry) }).format(new Date(incomeItem.date))}
                           </p>
                         </div>
                       </div>

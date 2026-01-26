@@ -1,7 +1,7 @@
 'use client';
 
 import DashboardLayout from '../../components/DashboardLayout';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 
 type EntryType = 'expense' | 'income';
 
@@ -23,7 +23,7 @@ interface Vehicle {
   vehicle_no: string;
 }
 
-const currency = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
+// removed unused currency helper to satisfy lint
 
 export default function VehicleExpenses() {
   const [entries, setEntries] = useState<VehicleEntry[]>([]);
@@ -72,7 +72,7 @@ export default function VehicleExpenses() {
     return res.json();
   };
 
-  const fetchEntries = async () => {
+  const fetchEntries = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     try {
@@ -84,13 +84,9 @@ export default function VehicleExpenses() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  useEffect(() => { 
-    fetchEntries(); 
-    fetchVehicles();
-    fetchUserProfile();
-  }, []);
+  
 
   const vehicleOptions = useMemo(() => vehicles.map(v => v.name), [vehicles]);
 
@@ -187,7 +183,7 @@ export default function VehicleExpenses() {
     }
   };
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     if (!token) return;
     try {
       const res = await fetch('http://localhost:3001/api/vehicles', { headers: { Authorization: `Bearer ${token}` } });
@@ -196,9 +192,9 @@ export default function VehicleExpenses() {
     } catch (e) {
       console.error('Error fetching vehicles:', e);
     }
-  };
+  }, [token]);
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     if (!token) return;
     try {
       const res = await fetch('http://localhost:3001/api/user/profile', { headers: { Authorization: `Bearer ${token}` } });
@@ -207,7 +203,13 @@ export default function VehicleExpenses() {
     } catch (e) {
       console.error('Error fetching user profile:', e);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchEntries();
+    fetchVehicles();
+    fetchUserProfile();
+  }, [fetchEntries, fetchVehicles, fetchUserProfile]);
 
   const submitAddVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -293,13 +295,22 @@ export default function VehicleExpenses() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        {message && (
+          <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-xl shadow-lg ${
+            message.type === 'success'
+              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 border border-green-200 dark:border-green-800'
+              : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300 border border-red-200 dark:border-red-800'
+          }`}>
+            {message.text}
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">🚗</span>
               Vehicle Income & Expenses
             </h1>
-            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">Track costs and earnings by vehicle</p>
+            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">Track costs and earnings by vehicle {loading && <span className="ml-2 text-xs italic">(Loading...)</span>}</p>
           </div>
           <div className="flex gap-3">
             {activeTab === 'entries' && <button onClick={openAdd} className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors">+ Add Entry</button>}

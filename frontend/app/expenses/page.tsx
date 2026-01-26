@@ -1,16 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import {
-  DollarSign,
   TrendingUp,
   TrendingDown,
   Plus,
   Download,
-  Calendar,
   PiggyBank,
-  CreditCard,
   Wallet,
   FileText,
   Calculator,
@@ -56,6 +53,17 @@ interface Income {
   category: string;
 }
 
+interface VehicleEntry {
+  id: number;
+  type: 'income' | 'expense';
+  description: string;
+  vehicle: string;
+  amount: number;
+  date: string;
+}
+
+type ActiveTabType = 'overview' | 'income' | 'expenses' | 'analytics';
+
 interface FinancialSummary {
   totalIncome: number;
   totalExpenses: number;
@@ -72,12 +80,12 @@ export default function Expenses() {
     netIncome: 0,
     savingsRate: 0
   });
-  const [activeTab, setActiveTab] = useState<'overview' | 'income' | 'expenses' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<ActiveTabType>('overview');
   const [showAddForm, setShowAddForm] = useState(false);
   const [formType, setFormType] = useState<'income' | 'expense'>('expense');
   const [userCurrency, setUserCurrency] = useState<string>('USD');
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -93,12 +101,9 @@ export default function Expenses() {
     } catch (err) {
       console.error('Error fetching user profile:', err);
     }
-  };
-
-  useEffect(() => {
-    fetchData();
-    fetchUserProfile();
   }, []);
+
+  // Effect moved below fetchData to avoid TDZ on first render
 
   const formatCurrency = (amount: number): string => {
     const currencySymbols: { [key: string]: string } = {
@@ -158,7 +163,7 @@ export default function Expenses() {
     return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -194,14 +199,14 @@ export default function Expenses() {
 
       // Add vehicle expenses and income to the respective arrays
       if (!vehicleData.error && Array.isArray(vehicleData)) {
-        const vehicleExpenses = vehicleData.filter((v: any) => v.type === 'expense').map((v: any) => ({
+        const vehicleExpenses = vehicleData.filter((v: VehicleEntry) => v.type === 'expense').map((v: VehicleEntry) => ({
           id: v.id,
           description: `${v.description} (${v.vehicle})`,
           amount: v.amount,
           date: v.date,
           category: 'Vehicle'
         }));
-        const vehicleIncome = vehicleData.filter((v: any) => v.type === 'income').map((v: any) => ({
+        const vehicleIncome = vehicleData.filter((v: VehicleEntry) => v.type === 'income').map((v: VehicleEntry) => ({
           id: v.id,
           description: `${v.description} (${v.vehicle})`,
           amount: v.amount,
@@ -221,7 +226,12 @@ export default function Expenses() {
     } catch (err) {
       console.error('Error fetching data:', err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+    fetchUserProfile();
+  }, [fetchData, fetchUserProfile]);
 
   const handleAddTransaction = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -260,19 +270,17 @@ export default function Expenses() {
       await fetchData();
 
       setShowAddForm(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error adding transaction:', err);
-      
-      // Provide user-friendly error messages
       let errorMessage = 'Failed to add transaction';
-      if (err.message?.includes('User not found')) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('User not found')) {
         errorMessage = 'Session expired. Please log in again.';
-      } else if (err.message?.includes('Access token required')) {
+      } else if (msg.includes('Access token required')) {
         errorMessage = 'Please log in to add transactions.';
-      } else if (err.message) {
-        errorMessage = err.message;
+      } else if (msg) {
+        errorMessage = msg;
       }
-      
       alert(errorMessage);
     }
   };
@@ -517,7 +525,7 @@ export default function Expenses() {
     };
   };
 
-  const TransactionTable = ({ data, type }: { data: any[], type: 'income' | 'expense' }) => (
+  const TransactionTable = ({ data, type }: { data: Income[] | Expense[], type: 'income' | 'expense' }) => (
     <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 overflow-hidden">
       <div className="px-6 py-4 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
         <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white flex items-center">
@@ -662,7 +670,7 @@ export default function Expenses() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as ActiveTabType)}
                   className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
                     activeTab === tab.id
                       ? 'bg-powerbi-primary text-white shadow-lg'

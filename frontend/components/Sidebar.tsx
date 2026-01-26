@@ -12,21 +12,11 @@ import {
   BarChart3,
   Settings,
   HelpCircle,
-  LogOut,
   Key,
   FolderOpen
 } from 'lucide-react';
 
-const navItems = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home, description: 'Overview & insights' },
-  { name: 'Goals', href: '/goals', icon: Target, description: 'Financial targets' },
-  { name: 'Achievements', href: '/achievements', icon: Trophy, description: 'Milestones & rewards' },
-  { name: 'Income & Expenses', href: '/expenses', icon: DollarSign, description: 'Track Income & spending' },
-  { name: 'Tasks', href: '/tasks', icon: CheckSquare, description: 'To-do list' },
-  { name: 'Vehicle Maintains', href: '/vehicle-expenses', icon: Car, description: 'Car costs' },
-  { name: 'Diary', href: '/diary', icon: BookOpen, description: 'Personal notes' },
-  { name: 'Manage Password', href: '/manage-password', icon: Key, description: 'Update your password' },
-];
+// Removed legacy navItems; using dynamic items via getNavItems()
 
 const secondaryItems = [
   { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Detailed reports' },
@@ -87,7 +77,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-white dark:bg-powerbi-gray-800 shadow-2xl h-screen fixed left-0 top-0 z-10 border-r border-powerbi-gray-200 dark:border-powerbi-gray-700">
+    <div className="w-64 bg-white dark:bg-powerbi-gray-800 shadow-2xl h-screen fixed left-0 top-0 z-10 border-r border-powerbi-gray-200 dark:border-powerbi-gray-700 flex flex-col">
       {/* Logo Section */}
       <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
         <div className="flex items-center space-x-3">
@@ -108,7 +98,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 mt-6">
+      <nav className="flex-1 mt-6 overflow-y-auto">
         {/* Main Navigation */}
         <div className="px-4 mb-6">
           <h3 className="text-xs font-semibold text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider mb-3">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '../../../components/DashboardLayout';
 import { DollarSign, ShoppingCart, TrendingUp, BarChart3, FileText, Wallet, Upload, Download, File, Eye } from 'lucide-react';
@@ -67,7 +67,7 @@ export default function ProjectDetailsPage() {
   const [userCurrency, setUserCurrency] = useState<string>('USD');
   const [userCountry, setUserCountry] = useState<string>('');
 
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -82,9 +82,9 @@ export default function ProjectDetailsPage() {
     } catch (e) {
       console.error('Error loading user profile:', e);
     }
-  };
+  }, []);
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:3001/api/projects', { headers: { Authorization: `Bearer ${token}` } });
@@ -96,9 +96,9 @@ export default function ProjectDetailsPage() {
     } catch (e) {
       console.error('Error loading project:', e);
     }
-  };
+  }, [projectId]);
 
-  const loadPurchases = async () => {
+  const loadPurchases = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:3001/api/project-purchases', { headers: { Authorization: `Bearer ${token}` } });
@@ -109,9 +109,9 @@ export default function ProjectDetailsPage() {
     } catch (e) {
       console.error('Error loading purchases:', e);
     }
-  };
+  }, [projectId]);
 
-  const loadIncome = async () => {
+  const loadIncome = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:3001/api/project-income', { headers: { Authorization: `Bearer ${token}` } });
@@ -122,9 +122,9 @@ export default function ProjectDetailsPage() {
     } catch (e) {
       console.error('Error loading income:', e);
     }
-  };
+  }, [projectId]);
 
-  const loadDocuments = async () => {
+  const loadDocuments = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:3001/api/project-documents', { headers: { Authorization: `Bearer ${token}` } });
@@ -135,7 +135,7 @@ export default function ProjectDetailsPage() {
     } catch (e) {
       console.error('Error loading documents:', e);
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
     if (!projectId || Number.isNaN(projectId)) {
@@ -150,7 +150,7 @@ export default function ProjectDetailsPage() {
       loadDocuments();
     }, 0);
     return () => clearTimeout(t);
-  }, [projectId]);
+  }, [projectId, router, loadUserProfile, loadProjects, loadPurchases, loadIncome, loadDocuments]);
 
   const getCurrencySymbol = (currency: string) => {
     const symbols: { [key: string]: string } = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: 'C$', AUD: 'A$', CHF: 'CHF', CNY: '¥', INR: '₹', KRW: '₩' };
@@ -286,7 +286,7 @@ export default function ProjectDetailsPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-powerbi-gray-900 dark:text-white">{formatCurrency(purchase.cost)}</p>
-                      <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{new Date(purchase.date).toLocaleDateString()}</p>
+                      <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{formatDateTimeInUserTZ(purchase.date)}</p>
                     </div>
                   </div>
                 ))}
@@ -313,7 +313,7 @@ export default function ProjectDetailsPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-powerbi-gray-900 dark:text-white">{formatCurrency(inc.amount)}</p>
-                      <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{new Date(inc.date).toLocaleDateString()}</p>
+                      <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{formatDateTimeInUserTZ(inc.date)}</p>
                     </div>
                   </div>
                 ))}
@@ -555,7 +555,7 @@ export default function ProjectDetailsPage() {
                         <p className="font-medium text-powerbi-gray-900 dark:text-white">{doc.original_name}</p>
                         <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{doc.description}</p>
                         <p className="text-xs text-powerbi-gray-500 dark:text-powerbi-gray-500">
-                          {(doc.file_size / 1024).toFixed(1)} KB • {new Date(doc.uploaded_at).toLocaleDateString()}
+                          {(doc.file_size / 1024).toFixed(1)} KB • {formatDateTimeInUserTZ(doc.uploaded_at)}
                         </p>
                       </div>
                     </div>

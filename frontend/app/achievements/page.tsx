@@ -16,15 +16,13 @@ import {
   DollarSign,
   PiggyBank,
   Car,
-  Home,
-  Plane,
-  GraduationCap,
   Heart,
   Users,
   BookOpen,
   CheckSquare,
   Plus,
-  Trash2
+  Trash2,
+  type LucideIcon
 } from 'lucide-react';
 
 interface Achievement {
@@ -120,9 +118,10 @@ export default function Achievements() {
       setShowCreateForm(false);
       setFormError(null);
       fetchStats();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error creating achievement:', err);
-      setFormError(err.message || 'Error creating achievement');
+      const message = err instanceof Error ? err.message : 'Error creating achievement';
+      setFormError(message);
     }
   };
 
@@ -179,30 +178,10 @@ export default function Achievements() {
     }
   };
 
-  const updateAchievementProgress = async (achievementId: string, progress: number, unlocked: boolean = false) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3001/api/achievements/${achievementId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ progress, unlocked })
-      });
-
-      if (response.ok) {
-        // Refresh data after update
-        fetchAchievements();
-        fetchStats();
-      }
-    } catch (error) {
-      console.error('Error updating achievement:', error);
-    }
-  };
+  // removed unused updateAchievementProgress to satisfy lint
 
   const getIconComponent = (iconName: string) => {
-    const icons: { [key: string]: any } = {
+    const icons: Record<string, LucideIcon> = {
       PiggyBank, DollarSign, Target, CheckSquare, Car, Heart, Users, BookOpen,
       Trophy, Star, Award, Gift, Zap, TrendingUp, Calendar
     };

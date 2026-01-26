@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '../../../components/DashboardLayout';
 import { Search, ChevronLeft, ChevronRight, Cloud, CloudRain, Sun, Zap, Heart } from 'lucide-react';
 
@@ -32,10 +32,22 @@ export default function DiaryList() {
     [e.title, e.content, e.one_sentence].join(' ').toLowerCase().includes(query.toLowerCase())
   );
 
+  const handlePageTurn = useCallback((direction: 'prev' | 'next') => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setTimeout(() => {
+      if (direction === 'next' && currentPage < filtered.length - 1) {
+        setCurrentPage(currentPage + 1);
+      } else if (direction === 'prev' && currentPage > 0) {
+        setCurrentPage(currentPage - 1);
+      }
+      setIsAnimating(false);
+    }, 300);
+  }, [isAnimating, currentPage, filtered.length]);
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      setLoading(false);
       return;
     }
     fetch('http://localhost:3001/api/diary', {
@@ -63,20 +75,7 @@ export default function DiaryList() {
     };
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentPage, filtered.length, isAnimating]);
-
-  const handlePageTurn = (direction: 'prev' | 'next') => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setTimeout(() => {
-      if (direction === 'next' && currentPage < filtered.length - 1) {
-        setCurrentPage(currentPage + 1);
-      } else if (direction === 'prev' && currentPage > 0) {
-        setCurrentPage(currentPage - 1);
-      }
-      setIsAnimating(false);
-    }, 300);
-  };
+  }, [handlePageTurn]);
 
   const currentEntry = filtered[currentPage];
 
@@ -107,7 +106,9 @@ export default function DiaryList() {
         {/* Diary Book */}
         <div className="flex justify-center">
           <div className="relative w-full max-w-2xl">
-            {loading ? (
+            {(!localStorage.getItem('token')) ? (
+              <div className="text-gray-500 text-center py-20">Log in to view your diary.</div>
+            ) : loading ? (
               <div className="text-gray-500 text-center py-20">Loading your diary...</div>
             ) : filtered.length === 0 ? (
               <div className="text-gray-500 text-center py-20">No entries found. Start writing in your diary.</div>
@@ -150,7 +151,7 @@ export default function DiaryList() {
 
                   {currentEntry.one_sentence && (
                     <div className="text-lg text-gray-700 dark:text-gray-300 italic mb-6" style={{ fontFamily: 'var(--font-kalam)' }}>
-                      "{currentEntry.one_sentence}"
+                      &ldquo;{currentEntry.one_sentence}&rdquo;
                     </div>
                   )}
 

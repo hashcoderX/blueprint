@@ -1,8 +1,8 @@
 'use client';
 
 import DashboardLayout from '../../components/DashboardLayout';
-import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Target, Calendar, TrendingUp, Filter, Search, Eye, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Plus, Edit, Trash2, Target, Calendar, Search, Eye, AlertTriangle } from 'lucide-react';
 
 interface Goal {
   id: number;
@@ -99,35 +99,7 @@ export default function Goals() {
   const priorities = ['low', 'medium', 'high'];
   const statuses = ['active', 'completed', 'paused'];
 
-  useEffect(() => {
-    fetchGoals();
-    fetchStats();
-    fetchUserProfile();
-  }, [filters]);
-
-  const fetchUserProfile = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
-    try {
-      const response = await fetch('http://localhost:3001/api/user/profile', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUserCurrency(userData.currency || 'USD');
-      }
-    } catch (err) {
-      console.error('Error fetching user profile:', err);
-    }
-  };
-
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: userCurrency }).format(amount);
-  };
-
-  const fetchGoals = async () => {
+  const fetchGoals = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -154,7 +126,37 @@ export default function Goals() {
     } finally {
       setLoading(false);
     }
+  }, [filters]);
+
+  useEffect(() => {
+    fetchGoals();
+    fetchStats();
+    fetchUserProfile();
+  }, [filters, fetchGoals]);
+
+  const fetchUserProfile = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const response = await fetch('http://localhost:3001/api/user/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUserCurrency(userData.currency || 'USD');
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+    }
   };
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: userCurrency }).format(amount);
+  };
+
+  // fetchGoals wrapped in useCallback above
 
   // formatDate is defined at module scope for reuse
 
@@ -321,78 +323,88 @@ export default function Goals() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Goals Management</h1>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            New Goal
-          </button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
+              <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">🎯</span>
+              Goals Management
+            </h1>
+            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
+              Track, prioritize, and achieve your financial goals
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              New Goal
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-              <div className="flex items-center gap-3">
-                <Target className="w-8 h-8 text-blue-600" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Goals</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total_goals}</p>
+                  <p className="text-blue-100 text-sm font-medium">Total Goals</p>
+                  <p className="text-3xl font-bold">{stats.total_goals}</p>
                 </div>
+                <span className="text-blue-200">📋</span>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.completed_goals}</p>
+                  <p className="text-green-100 text-sm font-medium">Completed</p>
+                  <p className="text-3xl font-bold">{stats.completed_goals}</p>
                 </div>
+                <span className="text-green-200">✅</span>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="w-8 h-8 text-purple-600" />
+            <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Avg Progress</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{Math.round(stats.avg_progress || 0)}%</p>
+                  <p className="text-purple-100 text-sm font-medium">Avg Progress</p>
+                  <p className="text-3xl font-bold">{Math.round(stats.avg_progress || 0)}%</p>
                 </div>
+                <span className="text-purple-200">📈</span>
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="w-8 h-8 text-red-600" />
+            <div className="bg-gradient-to-br from-rose-400 to-rose-600 rounded-2xl p-6 text-white">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Overdue</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.overdue_goals}</p>
+                  <p className="text-rose-100 text-sm font-medium">Overdue</p>
+                  <p className="text-3xl font-bold">{stats.overdue_goals}</p>
                 </div>
+                <span className="text-rose-200">⏰</span>
               </div>
             </div>
           </div>
         )}
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex items-center gap-2">
-              <Search className="w-5 h-5 text-gray-500" />
+              <Search className="w-5 h-5 text-powerbi-gray-500" />
               <input
                 type="text"
                 placeholder="Search goals..."
                 value={filters.search}
                 onChange={(e) => setFilters({...filters, search: e.target.value})}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
               />
             </div>
             <select
               value={filters.category}
               onChange={(e) => setFilters({...filters, category: e.target.value})}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
             >
               <option value="all">All Categories</option>
               {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -400,7 +412,7 @@ export default function Goals() {
             <select
               value={filters.status}
               onChange={(e) => setFilters({...filters, status: e.target.value})}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
             >
               <option value="all">All Status</option>
               {statuses.map(status => <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>)}
@@ -408,7 +420,7 @@ export default function Goals() {
             <select
               value={filters.priority}
               onChange={(e) => setFilters({...filters, priority: e.target.value})}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
             >
               <option value="all">All Priorities</option>
               {priorities.map(priority => <option key={priority} value={priority}>{priority.charAt(0).toUpperCase() + priority.slice(1)}</option>)}
@@ -419,10 +431,10 @@ export default function Goals() {
         {/* Goals Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {goals.map((goal) => (
-            <div key={goal.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div key={goal.id} className="bg-white dark:bg-powerbi-gray-800 p-6 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 hover:shadow-xl transition-shadow">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{goal.name}</h3>
+                  <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-1">{goal.name}</h3>
                   <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getCategoryColor(goal.category).bg} ${getCategoryColor(goal.category).text}`}>
                     {goal.category}
                   </span>
@@ -438,21 +450,21 @@ export default function Goals() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setViewingGoal(goal)}
-                    className="p-2 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="p-2 text-powerbi-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     title="View Details"
                   >
                     <Eye className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setEditingGoal(goal)}
-                    className="p-2 text-gray-500 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                    className="p-2 text-powerbi-gray-500 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                     title="Edit Goal"
                   >
                     <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteGoal(goal.id)}
-                    className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    className="p-2 text-powerbi-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                     title="Delete Goal"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -462,19 +474,19 @@ export default function Goals() {
 
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Progress</span>
-                  <span className="font-medium text-gray-900 dark:text-white">
+                  <span className="text-powerbi-gray-600 dark:text-powerbi-gray-400">Progress</span>
+                  <span className="font-medium text-powerbi-gray-900 dark:text-white">
                     {formatCurrency(goal.current)} / {formatCurrency(goal.target)}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div className="w-full bg-powerbi-gray-200 dark:bg-powerbi-gray-700 rounded-full h-3">
                   <div
                     className={`bg-gradient-to-r ${getCategoryColor(goal.category).progress} h-3 rounded-full transition-all duration-300`}
                     style={{ width: `${Math.min(goal.progress_percentage, 100)}%` }}
                   ></div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  <span className="text-sm font-medium text-powerbi-gray-900 dark:text-white">
                     {Math.round(goal.progress_percentage)}% Complete
                   </span>
                   {isOverdue(goal.target_date, goal.status) && (
@@ -482,7 +494,7 @@ export default function Goals() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                   <Calendar className="w-4 h-4" />
                   <span>Target: {formatDate(goal.target_date)}</span>
                 </div>
@@ -493,16 +505,16 @@ export default function Goals() {
 
         {goals.length === 0 && (
           <div className="text-center py-12">
-            <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No goals found</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <Target className="w-16 h-16 text-powerbi-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-powerbi-gray-900 dark:text-white mb-2">No goals found</h3>
+            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-4">
               {filters.search || filters.category !== 'all' || filters.status !== 'all' || filters.priority !== 'all'
                 ? 'Try adjusting your filters or search terms.'
                 : 'Start by creating your first financial goal.'}
             </p>
             <button
               onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+              className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl transition-colors"
             >
               Create Your First Goal
             </button>
@@ -540,22 +552,22 @@ export default function Goals() {
         {/* Confirmation Modal */}
         {showConfirmDelete.show && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Confirm Delete</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Confirm Delete</h3>
+                <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-6">
                   Are you sure you want to delete this goal? This action cannot be undone.
                 </p>
                 <div className="flex justify-end gap-4">
                   <button
                     onClick={() => setShowConfirmDelete({ show: false, goalId: null })}
-                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                    className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={confirmDeleteGoal}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition-colors"
                   >
                     Delete
                   </button>
@@ -568,16 +580,16 @@ export default function Goals() {
         {/* Error Modal */}
         {showErrorModal.show && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Error</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Error</h3>
+                <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-6">
                   {showErrorModal.message}
                 </p>
                 <div className="flex justify-end">
                   <button
                     onClick={() => setShowErrorModal({ show: false, message: '' })}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    className="bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors"
                   >
                     OK
                   </button>

@@ -6,25 +6,37 @@ import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  interface UserData {
+    fullname?: string;
+    username?: string;
+    email?: string;
+  }
+  const [user, setUser] = useState<UserData | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('darkMode') === 'true';
+    }
+    return false;
+  });
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [notifications] = useState(3); // Mock notification count
 
   useEffect(() => {
-    // Get user data from localStorage
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
+    // Load user data on client after mount to avoid hydration mismatch
+    try {
+      const data = localStorage.getItem('user');
+      if (data) {
+        const parsed = JSON.parse(data);
+        setTimeout(() => setUser(parsed), 0);
+      }
+    } catch {}
 
-    // Check for dark mode preference
-    const darkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDarkMode(darkMode);
-    if (darkMode) {
+    if (isDarkMode) {
       document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
-  }, []);
+  }, [isDarkMode]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');

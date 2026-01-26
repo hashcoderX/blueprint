@@ -153,7 +153,8 @@ export default function ManagePassword() {
         setMessage({ type: 'error', text: errorData.error || 'Failed to save.' });
         setTimeout(() => setMessage(null), 3000);
       }
-    } catch (e) {
+    } catch (error) {
+      console.error('Save password error:', error);
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
       setTimeout(() => setMessage(null), 3000);
     } finally {
@@ -265,7 +266,8 @@ export default function ManagePassword() {
         setMessage({ type: 'error', text: errorData.error || 'Failed to save.' });
         setTimeout(() => setMessage(null), 3000);
       }
-    } catch (e) {
+    } catch (error) {
+      console.error('Save API key error:', error);
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
       setTimeout(() => setMessage(null), 3000);
     } finally {

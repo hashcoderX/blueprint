@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
 import {
   TrendingUp,
-  TrendingDown,
   DollarSign,
   Target,
   CheckSquare,
@@ -19,7 +18,8 @@ import {
   PieChart,
   BarChart3,
   Users,
-  CreditCard
+  CreditCard,
+  type LucideIcon
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -41,6 +41,135 @@ interface RecentActivity {
   status: 'completed' | 'pending' | 'overdue';
 }
 
+// removed unused top-level getActivityColor
+
+const ActivityIconEl = ({ type, className }: { type: string; className?: string }) => {
+  switch (type) {
+    case 'expense':
+      return <DollarSign className={className || ''} />;
+    case 'goal':
+      return <Target className={className || ''} />;
+    case 'task':
+      return <CheckSquare className={className || ''} />;
+    case 'payment':
+      return <CreditCard className={className || ''} />;
+    default:
+      return <Activity className={className || ''} />;
+  }
+};
+
+const StatCard = ({
+  title,
+  value,
+  change,
+  icon: Icon,
+  color,
+  prefix = '',
+  suffix = '',
+  currency
+}: {
+  title: string;
+  value: number | string;
+  change?: number;
+  icon: LucideIcon;
+  color: string;
+  prefix?: string;
+  suffix?: string;
+  currency?: string;
+}) => (
+  <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+    <div className="flex items-center justify-between mb-4">
+      <div className={`p-3 rounded-xl bg-${color}-100 dark:bg-${color}-900/20`}>
+        <Icon className={`w-6 h-6 text-${color}-600 dark:text-${color}-400`} />
+      </div>
+      {change !== undefined && (
+        <div className={`flex items-center ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          {change >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+          <span className="text-sm font-semibold">{Math.abs(change)}%</span>
+        </div>
+      )}
+    </div>
+    <div className="space-y-1">
+      <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400">{title}</p>
+      <p className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">
+        {prefix === '$'
+          ? new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'USD' }).format(
+              typeof value === 'number' ? value : 0
+            )
+          : `${prefix}${typeof value === 'number' ? value.toLocaleString() : value}`}
+        {suffix}
+      </p>
+    </div>
+  </div>
+);
+
+const QuickAction = ({ icon: Icon, title, description, onClick, color }: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  onClick: () => void;
+  color: string;
+}) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center p-4 bg-white dark:bg-powerbi-gray-800 rounded-xl shadow-md border border-powerbi-gray-200 dark:border-powerbi-gray-700 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 hover:bg-${color}-50 dark:hover:bg-${color}-900/10 group`}
+  >
+    <div className={`p-2 rounded-lg bg-${color}-100 dark:bg-${color}-900/20 mr-3 group-hover:bg-${color}-200 dark:group-hover:bg-${color}-900/30 transition-colors`}>
+      <Icon className={`w-5 h-5 text-${color}-600 dark:text-${color}-400`} />
+    </div>
+    <div className="text-left">
+      <h3 className="font-semibold text-powerbi-gray-900 dark:text-white">{title}</h3>
+      <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{description}</p>
+    </div>
+  </button>
+);
+
+const ActivityItem = ({ activity }: { activity: RecentActivity }) => {
+  // removed unused getActivityIcon in favor of ActivityIconEl
+
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'expense': return 'red';
+      case 'goal': return 'green';
+      case 'task': return 'blue';
+      case 'payment': return 'purple';
+      default: return 'gray';
+    }
+  };
+
+  const color = getActivityColor(activity.type);
+
+  return (
+    <div className="flex items-center p-4 bg-white dark:bg-powerbi-gray-800 rounded-xl shadow-sm border border-powerbi-gray-200 dark:border-powerbi-gray-700 hover:shadow-md transition-all duration-200">
+      <div className={`p-2 rounded-lg bg-${color}-100 dark:bg-${color}-900/20 mr-3`}>
+        <ActivityIconEl type={activity.type} className={`w-4 h-4 text-${color}-600 dark:text-${color}-400`} />
+      </div>
+      <div className="flex-1">
+        <p className="font-medium text-powerbi-gray-900 dark:text-white">{activity.description}</p>
+        <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
+          {new Date(activity.date).toLocaleDateString()}
+        </p>
+      </div>
+      {activity.amount && (
+        <div className="text-right">
+          <p className={`font-semibold ${activity.type === 'expense' ? 'text-red-600' : 'text-green-600'}`}>
+            {activity.type === 'expense' ? '-' : '+'}${activity.amount.toFixed(2)}
+          </p>
+        </div>
+      )}
+      <div className={`ml-3 px-2 py-1 rounded-full text-xs font-medium ${
+        activity.status === 'completed'
+          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+          : activity.status === 'overdue'
+          ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+      }`}>
+        {activity.status}
+      </div>
+    </div>
+  );
+};
+
 export default function Dashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
@@ -53,7 +182,7 @@ export default function Dashboard() {
     budgetUtilization: 78
   });
 
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([
+  const [recentActivities] = useState<RecentActivity[]>([
     { id: '1', type: 'expense', description: 'Grocery shopping at Whole Foods', amount: 127.50, date: '2024-01-15', status: 'completed' },
     { id: '2', type: 'goal', description: 'Emergency fund goal progress', amount: 250, date: '2024-01-15', status: 'completed' },
     { id: '3', type: 'task', description: 'Review monthly budget', date: '2024-01-16', status: 'pending' },
@@ -61,8 +190,7 @@ export default function Dashboard() {
     { id: '5', type: 'expense', description: 'Gas station fill-up', amount: 65.20, date: '2024-01-13', status: 'completed' }
   ]);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [userCurrency, setUserCurrency] = useState('USD');
+  const [userCurrency] = useState('USD');
 
   type DiaryEntry = {
     id: number;
@@ -73,7 +201,7 @@ export default function Dashboard() {
     one_sentence?: string;
   };
   const [diary, setDiary] = useState<DiaryEntry[]>([]);
-  const [diaryLoading, setDiaryLoading] = useState<boolean>(false);
+  const [diaryLoading, setDiaryLoading] = useState<boolean>(true);
 
   // Simulate real-time data updates
   useEffect(() => {
@@ -88,20 +216,22 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  const hasToken = typeof window !== 'undefined' ? !!localStorage.getItem('token') : false;
+
   // Load recent diary entries (like tasks list)
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (!token) return;
-    setDiaryLoading(true);
+    if (!token) {
+      return;
+    }
     fetch('http://localhost:3001/api/diary', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          // sort by date desc
           const sorted = data
-            .filter(e => e.date) // Filter out entries without dates
+            .filter(e => e.date)
             .sort((a: DiaryEntry, b: DiaryEntry) => (a.date! < b.date! ? 1 : -1));
           setDiary(sorted);
         }
@@ -109,119 +239,7 @@ export default function Dashboard() {
       .finally(() => setDiaryLoading(false));
   }, []);
 
-  const StatCard = ({
-    title,
-    value,
-    change,
-    icon: Icon,
-    color,
-    prefix = '',
-    suffix = ''
-  }: {
-    title: string;
-    value: number | string;
-    change?: number;
-    icon: any;
-    color: string;
-    prefix?: string;
-    suffix?: string;
-  }) => (
-    <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-xl bg-${color}-100 dark:bg-${color}-900/20`}>
-          <Icon className={`w-6 h-6 text-${color}-600 dark:text-${color}-400`} />
-        </div>
-        {change !== undefined && (
-          <div className={`flex items-center ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {change >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-            <span className="text-sm font-semibold">{Math.abs(change)}%</span>
-          </div>
-        )}
-      </div>
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400">{title}</p>
-        <p className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">
-          {prefix === '$' ? new Intl.NumberFormat(undefined, { style: 'currency', currency: userCurrency }).format(typeof value === 'number' ? value : 0) : `${prefix}${typeof value === 'number' ? value.toLocaleString() : value}`}{suffix}
-        </p>
-      </div>
-    </div>
-  );
-
-  const QuickAction = ({ icon: Icon, title, description, onClick, color }: {
-    icon: any;
-    title: string;
-    description: string;
-    onClick: () => void;
-    color: string;
-  }) => (
-    <button
-      onClick={onClick}
-      className={`flex items-center p-4 bg-white dark:bg-powerbi-gray-800 rounded-xl shadow-md border border-powerbi-gray-200 dark:border-powerbi-gray-700 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 hover:bg-${color}-50 dark:hover:bg-${color}-900/10 group`}
-    >
-      <div className={`p-2 rounded-lg bg-${color}-100 dark:bg-${color}-900/20 mr-3 group-hover:bg-${color}-200 dark:group-hover:bg-${color}-900/30 transition-colors`}>
-        <Icon className={`w-5 h-5 text-${color}-600 dark:text-${color}-400`} />
-      </div>
-      <div className="text-left">
-        <h3 className="font-semibold text-powerbi-gray-900 dark:text-white">{title}</h3>
-        <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{description}</p>
-      </div>
-    </button>
-  );
-
-  const ActivityItem = ({ activity }: { activity: RecentActivity }) => {
-    const getActivityIcon = (type: string) => {
-      switch (type) {
-        case 'expense': return DollarSign;
-        case 'goal': return Target;
-        case 'task': return CheckSquare;
-        case 'payment': return CreditCard;
-        default: return Activity;
-      }
-    };
-
-    const getActivityColor = (type: string) => {
-      switch (type) {
-        case 'expense': return 'red';
-        case 'goal': return 'green';
-        case 'task': return 'blue';
-        case 'payment': return 'purple';
-        default: return 'gray';
-      }
-    };
-
-    const Icon = getActivityIcon(activity.type);
-    const color = getActivityColor(activity.type);
-
-    return (
-      <div className="flex items-center p-4 bg-white dark:bg-powerbi-gray-800 rounded-xl shadow-sm border border-powerbi-gray-200 dark:border-powerbi-gray-700 hover:shadow-md transition-all duration-200">
-        <div className={`p-2 rounded-lg bg-${color}-100 dark:bg-${color}-900/20 mr-3`}>
-          <Icon className={`w-4 h-4 text-${color}-600 dark:text-${color}-400`} />
-        </div>
-        <div className="flex-1">
-          <p className="font-medium text-powerbi-gray-900 dark:text-white">{activity.description}</p>
-          <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
-            {new Date(activity.date).toLocaleDateString()}
-          </p>
-        </div>
-        {activity.amount && (
-          <div className="text-right">
-            <p className={`font-semibold ${activity.type === 'expense' ? 'text-red-600' : 'text-green-600'}`}>
-              {activity.type === 'expense' ? '-' : '+'}${activity.amount.toFixed(2)}
-            </p>
-          </div>
-        )}
-        <div className={`ml-3 px-2 py-1 rounded-full text-xs font-medium ${
-          activity.status === 'completed'
-            ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-            : activity.status === 'overdue'
-            ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-        }`}>
-          {activity.status}
-        </div>
-      </div>
-    );
-  };
+  
 
   return (
     <DashboardLayout>
@@ -231,7 +249,7 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">Dashboard</h1>
             <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
-              Welcome back! Here's your financial overview.
+              Welcome back! Here&apos;s your financial overview.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -254,6 +272,7 @@ export default function Dashboard() {
             icon={DollarSign}
             color="red"
             prefix="$"
+            currency={userCurrency}
           />
           <StatCard
             title="Goals Progress"
@@ -274,6 +293,7 @@ export default function Dashboard() {
             icon={Car}
             color="purple"
             prefix="$"
+            currency={userCurrency}
           />
         </div>
 
@@ -354,36 +374,40 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-          {diaryLoading ? (
-            <div className="text-powerbi-gray-500">Loading your recent entries...</div>
-          ) : (
-            <div className="space-y-3">
-              {diary.slice(0, 4).map((d) => (
-                <div key={d.id} className="p-4 rounded-xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium text-powerbi-gray-900 dark:text-white">
-                      {d.date ? new Date(d.date).toLocaleDateString() : 'No date'}
+          {hasToken ? (
+            diaryLoading ? (
+              <div className="text-powerbi-gray-500">Loading your recent entries...</div>
+            ) : (
+              <div className="space-y-3">
+                {diary.slice(0, 4).map((d) => (
+                  <div key={d.id} className="p-4 rounded-xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-800">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium text-powerbi-gray-900 dark:text-white">
+                        {d.date ? new Date(d.date).toLocaleDateString() : 'No date'}
+                      </div>
+                      {d.mood && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+                          {d.mood}
+                        </span>
+                      )}
                     </div>
-                    {d.mood && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-                        {d.mood}
-                      </span>
+                    {d.one_sentence && (
+                      <div className="text-sm mt-1 text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                        {d.one_sentence}
+                      </div>
                     )}
-                  </div>
-                  {d.one_sentence && (
-                    <div className="text-sm mt-1 text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                      {d.one_sentence}
+                    <div className="text-sm mt-2 line-clamp-2 text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                      {d.content}
                     </div>
-                  )}
-                  <div className="text-sm mt-2 line-clamp-2 text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                    {d.content}
                   </div>
-                </div>
-              ))}
-              {diary.length === 0 && (
-                <div className="text-powerbi-gray-500">No entries yet. Start with “Write Today”.</div>
-              )}
-            </div>
+                ))}
+                {diary.length === 0 && (
+                  <div className="text-powerbi-gray-500">No entries yet. Start with “Write Today”.</div>
+                )}
+              </div>
+            )
+          ) : (
+            <div className="text-powerbi-gray-500">Log in to view your diary.</div>
           )}
         </div>
 

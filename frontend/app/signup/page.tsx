@@ -138,7 +138,8 @@ export default function Signup() {
       } else {
         setError(data.error);
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Registration error:', error);
       setError('Registration failed');
     }
   };
@@ -626,7 +627,7 @@ export default function Signup() {
                     <option value="FJD">🇫🇯 FJD - Fijian Dollar</option>
                     <option value="PGK">🇵🇬 PGK - Papua New Guinean Kina</option>
                     <option value="SBD">🇸🇧 SBD - Solomon Islands Dollar</option>
-                    <option value="TOP">🇹🇴 TOP - Tongan Pa'anga</option>
+                    <option value="TOP">🇹🇴 TOP - Tongan Pa&apos;anga</option>
                     <option value="VUV">🇻🇺 VUV - Vanuatu Vatu</option>
                     <option value="WST">🇼🇸 WST - Samoan Tala</option>
                     <option value="KID">🇰🇮 KID - Kiribati Dollar</option>
@@ -787,7 +788,7 @@ export default function Signup() {
                     <option value="FJD">🇫🇯 FJD - Fijian Dollar</option>
                     <option value="PGK">🇵🇬 PGK - Papua New Guinean Kina</option>
                     <option value="SBD">🇸🇧 SBD - Solomon Islands Dollar</option>
-                    <option value="TOP">🇹🇴 TOP - Tongan Pa'anga</option>
+                    <option value="TOP">🇹🇴 TOP - Tongan Pa&apos;anga</option>
                     <option value="VUV">🇻🇺 VUV - Vanuatu Vatu</option>
                     <option value="WST">🇼🇸 WST - Samoan Tala</option>
                     <option value="KID">🇰🇮 KID - Kiribati Dollar</option>

@@ -1,7 +1,7 @@
 'use client';
 
 import DashboardLayout from '../../components/DashboardLayout';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -27,6 +27,8 @@ interface Task {
 }
 
 interface ActiveLog { task_id: number; start_time: string; }
+type ActiveTabType = 'overview' | 'planner' | 'kanban' | 'analytics';
+interface TaskTimeLog { task_id: number; start_time: string; end_time?: string | null; minutes?: number; }
 
 const formatDate = (dateStr: string | null | undefined): string => {
   if (!dateStr) return '-';
@@ -56,14 +58,14 @@ export default function Tasks() {
     allocated_hours: 1,
   });
   const [summary, setSummary] = useState<{ month: string; data: { category: string; hours: number }[] }>({ month: '', data: [] });
-  const [activeTab, setActiveTab] = useState<'overview' | 'planner' | 'kanban' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<ActiveTabType>('overview');
   const [showAddForm, setShowAddForm] = useState(false);
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
   const [showTaskDetailModal, setShowTaskDetailModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [taskTimeLogs, setTaskTimeLogs] = useState<any[]>([]);
+  const [taskTimeLogs, setTaskTimeLogs] = useState<TaskTimeLog[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -182,7 +184,7 @@ export default function Tasks() {
   };
 
   const getTotalTimeSpent = () => {
-    return taskTimeLogs.reduce((total, log) => total + (log.duration_minutes || 0), 0);
+    return taskTimeLogs.reduce((total, log) => total + (log.minutes || 0), 0);
   };
 
   const formatTimeSpent = (totalMinutes: number) => {
@@ -195,11 +197,11 @@ export default function Tasks() {
   };
 
   // Pagination logic
-  const getPaginatedData = (data: Task[]) => {
+  const getPaginatedData = useCallback((data: Task[]) => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return data.slice(startIndex, endIndex);
-  };
+  }, [currentPage, itemsPerPage]);
 
   const getTotalPages = (data: Task[]) => {
     return Math.ceil(data.length / itemsPerPage);
@@ -290,7 +292,7 @@ export default function Tasks() {
       inProgress: paginatedTasks.filter(t => t.status === 'inProgress'),
       done: paginatedTasks.filter(t => t.status === 'done'),
     };
-  }, [tasks, currentPage, itemsPerPage]);
+  }, [tasks, getPaginatedData]);
 
   const priorityColors: Record<Task['priority'], string> = {
     high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
@@ -626,7 +628,7 @@ export default function Tasks() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as ActiveTabType)}
                 className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
                   activeTab === tab.id
                     ? 'bg-powerbi-primary text-white shadow-lg'
@@ -940,8 +942,8 @@ export default function Tasks() {
                   <h4 className="text-lg font-medium text-powerbi-gray-900 dark:text-white mb-4">Time Sessions</h4>
                   {taskTimeLogs.length > 0 ? (
                     <div className="space-y-3 max-h-60 overflow-y-auto">
-                      {taskTimeLogs.map((log) => (
-                        <div key={log.id} className="bg-powerbi-gray-50 dark:bg-powerbi-gray-700 p-3 rounded-lg">
+                      {taskTimeLogs.map((log, idx) => (
+                        <div key={`${log.task_id}-${log.start_time}-${idx}`} className="bg-powerbi-gray-50 dark:bg-powerbi-gray-700 p-3 rounded-lg">
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-300">
@@ -955,11 +957,11 @@ export default function Tasks() {
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">
-                                {log.duration_minutes ? formatTimeSpent(log.duration_minutes) : 'Running...'}
+                                {log.minutes ? formatTimeSpent(log.minutes) : 'Running...'}
                               </p>
-                              {log.duration_minutes && (
+                              {log.minutes && (
                                 <p className="text-xs text-powerbi-gray-500 dark:text-powerbi-gray-400">
-                                  {(log.duration_minutes / 60).toFixed(2)} hours
+                                  {(log.minutes / 60).toFixed(2)} hours
                                 </p>
                               )}
                             </div>
