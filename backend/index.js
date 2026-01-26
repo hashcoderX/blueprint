@@ -31,7 +31,7 @@ app.post('/api/register', async (req, res) => {
 
   try {
     const {
-      username, fullname, email, phone, address, country, currency, password,
+      username, fullname, email, phone, address, country, currency, job_type, job_subcategory, password,
       subscription_plan, payment_method, card_number, expiry_month, expiry_year, cvv, billing_address
     } = req.body;
 
@@ -47,8 +47,8 @@ app.post('/api/register', async (req, res) => {
           // Insert user
           const userResult = await new Promise((resolve, reject) => {
             db.query(
-              'INSERT INTO users (username, fullname, email, phone, address, country, currency, password, is_paid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              [username, fullname, email, phone, address, country, currency || 'USD', hashedPassword, subscription_plan !== 'free'],
+              'INSERT INTO users (username, fullname, email, phone, address, country, currency, job_type, job_subcategory, password, is_paid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [username, fullname, email, phone, address, country, currency || 'USD', job_type, job_subcategory, hashedPassword, subscription_plan !== 'free'],
               (err, result) => err ? reject(err) : resolve(result)
             );
           });
@@ -181,7 +181,7 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
     db.query(
-      'SELECT id, username, fullname, email, phone, address, country, currency, role, status, is_paid, created_at FROM users WHERE id = ?',
+      'SELECT id, username, fullname, email, phone, address, country, currency, job_type, job_subcategory, role, status, is_paid, created_at FROM users WHERE id = ?',
       [req.user.id],
       (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -1068,10 +1068,102 @@ app.delete('/api/vehicles/:id', authenticateToken, async (req, res) => {
 app.get('/api/diary', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
-    db.query('SELECT * FROM notes WHERE user_id = ?', [req.user.id], (err, results) => {
+    db.query('SELECT id, user_id, title, content, DATE_FORMAT(date, "%Y-%m-%d") as date, mood, one_sentence FROM notes WHERE user_id = ?', [req.user.id], (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(results);
     });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Password Manager APIs
+app.get('/api/passwords', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    db.query(
+      'SELECT id, platform, email, username, encrypted_password, notes, created_at, updated_at FROM password_entries WHERE user_id = ?',
+      [req.user.id],
+      (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        // Decrypt passwords for display to the authenticated user
+        const rows = results.map(r => ({
+          id: r.id,
+          platform: r.platform,
+          email: r.email,
+          username: r.username,
+          password: EncryptionService.decrypt(r.encrypted_password) || '',
+          notes: r.notes,
+          created_at: r.created_at,
+          updated_at: r.updated_at,
+        }));
+        res.json(rows);
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/passwords', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { platform, email, username, password, notes } = req.body;
+    if (!platform) return res.status(400).json({ error: 'Platform is required' });
+    const enc = EncryptionService.encrypt(password || '');
+    if (password && !enc) {
+      console.error('Encryption returned null for password');
+    }
+    db.query(
+      'INSERT INTO password_entries (user_id, platform, email, username, encrypted_password, notes) VALUES (?, ?, ?, ?, ?, ?)',
+      [req.user.id, platform, email, username, enc, notes || null],
+      (err, result) => {
+        if (err) {
+          console.error('Insert password entry failed:', err.message);
+          return res.status(500).json({ error: err.message });
+        }
+        res.json({ id: result.insertId, platform, email, username, password, notes });
+      }
+    );
+  } catch (err) {
+    console.error('POST /api/passwords error:', err.message);
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.put('/api/passwords/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    const { platform, email, username, password, notes } = req.body;
+    const enc = EncryptionService.encrypt(password || '');
+    db.query(
+      'UPDATE password_entries SET platform = ?, email = ?, username = ?, encrypted_password = ?, notes = ? WHERE id = ? AND user_id = ?',
+      [platform, email, username, enc, notes || null, id, req.user.id],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Entry not found' });
+        res.json({ id, platform, email, username, password, notes });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.delete('/api/passwords/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    db.query(
+      'DELETE FROM password_entries WHERE id = ? AND user_id = ?',
+      [id, req.user.id],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Entry not found' });
+        res.json({ success: true });
+      }
+    );
   } catch (err) {
     res.status(500).json({ error: 'Database not ready' });
   }
@@ -1111,8 +1203,8 @@ app.post('/api/diary', authenticateToken, async (req, res) => {
           const noteId = findResults[0].id;
           // Update existing note
           db.query(
-            'UPDATE notes SET title = ?, content = ?, mood = ?, one_sentence = ? WHERE id = ? AND user_id = ?',
-            [title, content, mood, one_sentence, noteId, req.user.id],
+            'UPDATE notes SET title = ?, content = ?, date = ?, mood = ?, one_sentence = ? WHERE id = ? AND user_id = ?',
+            [title, content, date, mood, one_sentence, noteId, req.user.id],
             (updErr) => {
               if (updErr) return res.status(500).json({ error: updErr.message });
               res.json({ id: noteId, title, content, date, mood, one_sentence });
@@ -1184,6 +1276,662 @@ app.get('/api/subscription', authenticateToken, async (req, res) => {
         res.json(results[0]);
       }
     );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// API Keys APIs
+app.get('/api/api-keys', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    db.query(
+      'SELECT id, name, api_key, api_secret, project_name, provider, environment, notes, created_at, updated_at FROM api_keys WHERE user_id = ?',
+      [req.user.id],
+      (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        // Decrypt API keys and secrets for display to the authenticated user
+        const rows = results.map(r => ({
+          id: r.id,
+          name: r.name,
+          api_key: EncryptionService.decrypt(r.api_key) || '',
+          api_secret: r.api_secret ? EncryptionService.decrypt(r.api_secret) : null,
+          project_name: r.project_name,
+          provider: r.provider,
+          environment: r.environment,
+          notes: r.notes,
+          created_at: r.created_at,
+          updated_at: r.updated_at,
+        }));
+        res.json(rows);
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/api-keys', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { name, api_key, api_secret, project_name, provider, environment, notes } = req.body;
+    if (!name || !api_key || !project_name) return res.status(400).json({ error: 'Name, API key, and project name are required' });
+    const encApiKey = EncryptionService.encrypt(api_key);
+    const encApiSecret = api_secret ? EncryptionService.encrypt(api_secret) : null;
+    if (!encApiKey) {
+      console.error('Encryption returned null for API key');
+    }
+    db.query(
+      'INSERT INTO api_keys (user_id, name, api_key, api_secret, project_name, provider, environment, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [req.user.id, name, encApiKey, encApiSecret, project_name, provider || null, environment || 'development', notes || null],
+      (err, result) => {
+        if (err) {
+          console.error('Insert API key failed:', err.message);
+          return res.status(500).json({ error: err.message });
+        }
+        res.json({ id: result.insertId, name, api_key, api_secret, project_name, provider, environment, notes });
+      }
+    );
+  } catch (err) {
+    console.error('POST /api/api-keys error:', err.message);
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.put('/api/api-keys/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    const { name, api_key, api_secret, project_name, provider, environment, notes } = req.body;
+    const encApiKey = EncryptionService.encrypt(api_key);
+    const encApiSecret = api_secret ? EncryptionService.encrypt(api_secret) : null;
+    db.query(
+      'UPDATE api_keys SET name = ?, api_key = ?, api_secret = ?, project_name = ?, provider = ?, environment = ?, notes = ? WHERE id = ? AND user_id = ?',
+      [name, encApiKey, encApiSecret, project_name, provider || null, environment || 'development', notes || null, id, req.user.id],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'API key not found' });
+        res.json({ id, name, api_key, api_secret, project_name, provider, environment, notes });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.delete('/api/api-keys/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    db.query(
+      'DELETE FROM api_keys WHERE id = ? AND user_id = ?',
+      [id, req.user.id],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'API key not found' });
+        res.json({ success: true });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Projects API
+app.get('/api/projects', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    db.query('SELECT * FROM projects WHERE user_id = ? ORDER BY created_at DESC', [userId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/projects', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    const { name, description, budget, start_date, end_date, client_name, priority } = req.body;
+
+    db.query(
+      'INSERT INTO projects (user_id, name, description, budget, start_date, end_date, client_name, priority) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [userId, name, description, budget || 0, start_date, end_date, client_name, priority || 'medium'],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({
+          id: result.insertId,
+          name,
+          description,
+          budget: budget || 0,
+          start_date,
+          end_date,
+          client_name,
+          priority: priority || 'medium',
+          status: 'planning'
+        });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.put('/api/projects/:id', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    const projectId = req.params.id;
+    const { name, description, budget, start_date, end_date, client_name, priority, status } = req.body;
+
+    db.query(
+      'UPDATE projects SET name = ?, description = ?, budget = ?, start_date = ?, end_date = ?, client_name = ?, priority = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
+      [name, description, budget, start_date, end_date, client_name, priority, status, projectId, userId],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Project not found' });
+        res.json({ success: true });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    const projectId = req.params.id;
+
+    db.query('DELETE FROM projects WHERE id = ? AND user_id = ?', [projectId, userId], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Project not found' });
+      res.json({ success: true });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Time Entries API
+app.get('/api/project-time-entries', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    db.query('SELECT * FROM project_time_entries WHERE user_id = ? ORDER BY created_at DESC', [userId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/project-time-entries', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    const { project_id, description, start_time, is_running } = req.body;
+
+    db.query(
+      'INSERT INTO project_time_entries (user_id, project_id, description, start_time, is_running) VALUES (?, ?, ?, ?, ?)',
+      [userId, project_id, description, start_time, is_running || false],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({
+          id: result.insertId,
+          project_id,
+          description,
+          start_time,
+          is_running: is_running || false
+        });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.put('/api/project-time-entries/:id', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    const entryId = req.params.id;
+    const { end_time, is_running } = req.body;
+
+    let query, params;
+    if (end_time) {
+      // Calculate duration in minutes
+      const startTime = new Date((await new Promise((resolve, reject) => {
+        db.query('SELECT start_time FROM project_time_entries WHERE id = ? AND user_id = ?', [entryId, userId], (err, results) => {
+          if (err) reject(err);
+          else resolve(results[0]?.start_time);
+        });
+      })));
+      const endTime = new Date(end_time);
+      const duration = Math.floor((endTime - startTime) / (1000 * 60)); // minutes
+
+      query = 'UPDATE project_time_entries SET end_time = ?, duration = ?, is_running = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?';
+      params = [end_time, duration, is_running || false, entryId, userId];
+    } else {
+      query = 'UPDATE project_time_entries SET is_running = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?';
+      params = [is_running || false, entryId, userId];
+    }
+
+    db.query(query, params, (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Time entry not found' });
+      res.json({ success: true });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Purchases API
+app.get('/api/project-purchases', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    db.query('SELECT * FROM project_purchases WHERE user_id = ? ORDER BY date DESC', [userId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/project-purchases', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    const { project_id, item_name, cost, category, vendor, date } = req.body;
+
+    db.query(
+      'INSERT INTO project_purchases (user_id, project_id, item_name, cost, category, vendor, date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [userId, project_id, item_name, cost, category, vendor, date],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        // Update project spent amount
+        db.query('UPDATE projects SET spent = spent + ? WHERE id = ? AND user_id = ?', [cost, project_id, userId]);
+
+        res.status(201).json({
+          id: result.insertId,
+          project_id,
+          item_name,
+          cost,
+          category,
+          vendor,
+          date
+        });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.put('/api/project-purchases/:id', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    const purchaseId = req.params.id;
+    const { item_name, cost, category, vendor, date } = req.body;
+
+    // Get old cost for updating project spent
+    const oldPurchase = await new Promise((resolve, reject) => {
+      db.query('SELECT cost, project_id FROM project_purchases WHERE id = ? AND user_id = ?', [purchaseId, userId], (err, results) => {
+        if (err) reject(err);
+        else resolve(results[0]);
+      });
+    });
+
+    if (!oldPurchase) return res.status(404).json({ error: 'Purchase not found' });
+
+    const costDifference = cost - oldPurchase.cost;
+
+    db.query(
+      'UPDATE project_purchases SET item_name = ?, cost = ?, category = ?, vendor = ?, date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
+      [item_name, cost, category, vendor, date, purchaseId, userId],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Purchase not found' });
+
+        // Update project spent amount
+        db.query('UPDATE projects SET spent = spent + ? WHERE id = ? AND user_id = ?', [costDifference, oldPurchase.project_id, userId]);
+
+        res.json({ success: true });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.delete('/api/project-purchases/:id', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  try {
+    const userId = req.user.id;
+    const purchaseId = req.params.id;
+
+    // Get purchase details before deleting
+    const purchase = await new Promise((resolve, reject) => {
+      db.query('SELECT cost, project_id FROM project_purchases WHERE id = ? AND user_id = ?', [purchaseId, userId], (err, results) => {
+        if (err) reject(err);
+        else resolve(results[0]);
+      });
+    });
+
+    if (!purchase) return res.status(404).json({ error: 'Purchase not found' });
+
+    db.query('DELETE FROM project_purchases WHERE id = ? AND user_id = ?', [purchaseId, userId], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Purchase not found' });
+
+      // Update project spent amount
+      db.query('UPDATE projects SET spent = spent - ? WHERE id = ? AND user_id = ?', [purchase.cost, purchase.project_id, userId]);
+
+      res.json({ success: true });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Project Income endpoints
+app.get('/api/project-income', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  const userId = req.user.id;
+
+  try {
+    db.query('SELECT * FROM project_income WHERE user_id = ? ORDER BY date DESC', [userId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/project-income', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  const userId = req.user.id;
+  const { project_id, description, amount, category, date } = req.body;
+
+  if (!project_id || !description || !amount || !date) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    db.query(
+      'INSERT INTO project_income (user_id, project_id, description, amount, category, date) VALUES (?, ?, ?, ?, ?, ?)',
+      [userId, project_id, description, amount, category || 'project_revenue', date],
+      (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        // Update project budget (income increases available budget)
+        db.query('UPDATE projects SET budget = budget + ? WHERE id = ? AND user_id = ?', [amount, project_id, userId]);
+
+        res.json({
+          id: result.insertId,
+          user_id: userId,
+          project_id,
+          description,
+          amount,
+          category: category || 'project_revenue',
+          date
+        });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.put('/api/project-income/:id', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  const userId = req.user.id;
+  const incomeId = req.params.id;
+  const { description, amount, category, date } = req.body;
+
+  try {
+    // Get current income record
+    db.query('SELECT * FROM project_income WHERE id = ? AND user_id = ?', [incomeId, userId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0) return res.status(404).json({ error: 'Income record not found' });
+
+      const currentIncome = results[0];
+      const oldAmount = currentIncome.amount;
+      const newAmount = amount || oldAmount;
+
+      // Update income record
+      db.query(
+        'UPDATE project_income SET description = ?, amount = ?, category = ?, date = ? WHERE id = ? AND user_id = ?',
+        [description || currentIncome.description, newAmount, category || currentIncome.category, date || currentIncome.date, incomeId, userId],
+        (err, result) => {
+          if (err) return res.status(500).json({ error: err.message });
+
+          // Update project budget (adjust by the difference)
+          const amountDifference = newAmount - oldAmount;
+          db.query('UPDATE projects SET budget = budget + ? WHERE id = ? AND user_id = ?', [amountDifference, currentIncome.project_id, userId]);
+
+          res.json({ success: true });
+        }
+      );
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.delete('/api/project-income/:id', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  const userId = req.user.id;
+  const incomeId = req.params.id;
+
+  try {
+    // Get income record before deletion
+    db.query('SELECT * FROM project_income WHERE id = ? AND user_id = ?', [incomeId, userId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0) return res.status(404).json({ error: 'Income record not found' });
+
+      const income = results[0];
+
+      // Delete income record
+      db.query('DELETE FROM project_income WHERE id = ? AND user_id = ?', [incomeId, userId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        // Update project budget (subtract the income amount)
+        db.query('UPDATE projects SET budget = budget - ? WHERE id = ? AND user_id = ?', [income.amount, income.project_id, userId]);
+
+        res.json({ success: true });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Project Documents API
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow common file types
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain', 'text/csv',
+      'application/zip', 'application/x-rar-compressed'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'), false);
+    }
+  }
+});
+
+app.get('/api/project-documents', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  const userId = req.user.id;
+
+  try {
+    db.query('SELECT * FROM project_documents WHERE user_id = ? ORDER BY uploaded_at DESC', [userId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/project-documents', authenticateToken, upload.single('file'), async (req, res) => {
+  const db = await dbPromise;
+  const userId = req.user.id;
+  const { project_id, description } = req.body;
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  if (!project_id) {
+    return res.status(400).json({ error: 'Project ID is required' });
+  }
+
+  try {
+    db.query(
+      'INSERT INTO project_documents (user_id, project_id, file_name, original_name, description, file_size, mime_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [userId, project_id, file.filename, file.originalname, description || '', file.size, file.mimetype],
+      (err, result) => {
+        if (err) {
+          // Clean up uploaded file if database insert fails
+          fs.unlinkSync(file.path);
+          return res.status(500).json({ error: err.message });
+        }
+
+        res.status(201).json({
+          id: result.insertId,
+          user_id: userId,
+          project_id: parseInt(project_id),
+          file_name: file.filename,
+          original_name: file.originalname,
+          description: description || '',
+          file_size: file.size,
+          mime_type: file.mimetype,
+          uploaded_at: new Date()
+        });
+      }
+    );
+  } catch (err) {
+    // Clean up uploaded file if error occurs
+    if (file && fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.get('/api/project-documents/:id/download', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  const userId = req.user.id;
+  const documentId = req.params.id;
+
+  try {
+    // First verify the document belongs to the user
+    db.query('SELECT * FROM project_documents WHERE id = ? AND user_id = ?', [documentId, userId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0) return res.status(404).json({ error: 'Document not found' });
+
+      const document = results[0];
+      const filePath = path.join(__dirname, 'uploads', document.file_name);
+
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'File not found on server' });
+      }
+
+      // Set appropriate headers
+      res.setHeader('Content-Type', document.mime_type);
+      res.setHeader('Content-Disposition', `attachment; filename="${document.original_name}"`);
+
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+
+      fileStream.on('error', (error) => {
+        console.error('Error streaming file:', error);
+        res.status(500).json({ error: 'Error downloading file' });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.delete('/api/project-documents/:id', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  const userId = req.user.id;
+  const documentId = req.params.id;
+
+  try {
+    // First get document details to delete the file
+    db.query('SELECT file_name FROM project_documents WHERE id = ? AND user_id = ?', [documentId, userId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0) return res.status(404).json({ error: 'Document not found' });
+
+      const document = results[0];
+
+      // Delete from database
+      db.query('DELETE FROM project_documents WHERE id = ? AND user_id = ?', [documentId, userId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'Document not found' });
+
+        // Delete the file from filesystem
+        const filePath = path.join(__dirname, 'uploads', document.file_name);
+        if (fs.existsSync(filePath)) {
+          try {
+            fs.unlinkSync(filePath);
+          } catch (fileErr) {
+            console.error('Error deleting file:', fileErr);
+            // Don't return error for file deletion failure
+          }
+        }
+
+        res.json({ success: true });
+      });
+    });
   } catch (err) {
     res.status(500).json({ error: 'Database not ready' });
   }

@@ -68,7 +68,7 @@ export default function Dashboard() {
     id: number;
     title: string;
     content: string;
-    date: string;
+    date?: string;
     mood?: string;
     one_sentence?: string;
   };
@@ -100,7 +100,9 @@ export default function Dashboard() {
       .then((data) => {
         if (Array.isArray(data)) {
           // sort by date desc
-          const sorted = data.sort((a: DiaryEntry, b: DiaryEntry) => (a.date < b.date ? 1 : -1));
+          const sorted = data
+            .filter(e => e.date) // Filter out entries without dates
+            .sort((a: DiaryEntry, b: DiaryEntry) => (a.date! < b.date! ? 1 : -1));
           setDiary(sorted);
         }
       })
@@ -360,7 +362,7 @@ export default function Dashboard() {
                 <div key={d.id} className="p-4 rounded-xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-800">
                   <div className="flex items-center justify-between">
                     <div className="font-medium text-powerbi-gray-900 dark:text-white">
-                      {new Date(d.date).toLocaleDateString()}
+                      {d.date ? new Date(d.date).toLocaleDateString() : 'No date'}
                     </div>
                     {d.mood && (
                       <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">

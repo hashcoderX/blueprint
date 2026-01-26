@@ -9,6 +9,8 @@ export default function Signup() {
     fullname: '',
     email: '',
     password: '',
+    job_type: '',
+    job_subcategory: '',
     country: '',
     currency: 'USD',
     phone: '',
@@ -19,16 +21,67 @@ export default function Signup() {
   const [currentStep, setCurrentStep] = useState(1);
   const router = useRouter();
 
+  // Job subcategories mapping
+  const jobSubcategories = {
+    freelancer: [
+      'Software & Web Development',
+      'AI',
+      'Data & Automation',
+      'Design & Creative',
+      'Writing & Content',
+      'Digital Marketing',
+      'Cloud, DevOps & Security',
+      'E-commerce',
+      'Business, Finance & Support',
+      'Other'
+    ],
+    businessman: [
+      'Technology',
+      'Manufacturing',
+      'Retail & E-commerce',
+      'Healthcare',
+      'Finance & Banking',
+      'Real Estate',
+      'Consulting',
+      'Marketing & Advertising',
+      'Construction',
+      'Food & Hospitality',
+      'Other'
+    ],
+    employee: [
+      'Software Development',
+      'Data Analysis',
+      'Design',
+      'Marketing',
+      'Sales',
+      'Human Resources',
+      'Finance & Accounting',
+      'Operations',
+      'Customer Service',
+      'Management',
+      'Other'
+    ]
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
     const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      };
+
+      // Reset subcategory when job type changes
+      if (name === 'job_type' && value !== prev.job_type) {
+        newData.job_subcategory = '';
+      }
+
+      return newData;
+    });
   };
 
   const nextStep = () => {
@@ -40,7 +93,17 @@ export default function Signup() {
         return;
       }
     } else if (currentStep === 2) {
-      // Validate step 2: phone, country, currency
+      // Validate step 2: job_type and job_subcategory
+      if (!formData.job_type) {
+        setError('Please select your job type');
+        return;
+      }
+      if (!formData.job_subcategory) {
+        setError('Please select your job subcategory');
+        return;
+      }
+    } else if (currentStep === 3) {
+      // Validate step 3: phone, country, currency
       if (!formData.phone || !formData.country || !formData.currency) {
         setError('Please fill in all required fields');
         return;
@@ -120,6 +183,8 @@ export default function Signup() {
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${currentStep >= 2 ? 'bg-powerbi-primary text-white' : 'bg-powerbi-gray-200 dark:bg-powerbi-gray-600 text-powerbi-gray-600 dark:text-powerbi-gray-300'}`}>2</div>
                   <div className={`w-8 h-1 ${currentStep >= 3 ? 'bg-powerbi-primary' : 'bg-powerbi-gray-200 dark:bg-powerbi-gray-600'}`}></div>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${currentStep >= 3 ? 'bg-powerbi-primary text-white' : 'bg-powerbi-gray-200 dark:bg-powerbi-gray-600 text-powerbi-gray-600 dark:text-powerbi-gray-300'}`}>3</div>
+                  <div className={`w-8 h-1 ${currentStep >= 4 ? 'bg-powerbi-primary' : 'bg-powerbi-gray-200 dark:bg-powerbi-gray-600'}`}></div>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${currentStep >= 4 ? 'bg-powerbi-primary text-white' : 'bg-powerbi-gray-200 dark:bg-powerbi-gray-600 text-powerbi-gray-600 dark:text-powerbi-gray-300'}`}>4</div>
                 </div>
               </div>
 
@@ -180,8 +245,52 @@ export default function Signup() {
                 </div>
               )}
 
-              {/* Step 2: Contact & Location */}
+              {/* Step 2: Job Details */}
               {currentStep === 2 && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white border-b border-powerbi-gray-200 dark:border-powerbi-gray-600 pb-2">Job Details</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">What best describes your profession?</label>
+                      <select
+                        name="job_type"
+                        value={formData.job_type}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white transition-all duration-200 hover:shadow-md"
+                      >
+                        <option value="">Select your profession</option>
+                        <option value="freelancer">👨‍💻 Freelancer</option>
+                        <option value="businessman">💼 Business</option>
+                        <option value="employee">🏢 Employee</option>
+                      </select>
+                    </div>
+
+                    {formData.job_type && (
+                      <div>
+                        <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">What is your specialization?</label>
+                        <select
+                          name="job_subcategory"
+                          value={formData.job_subcategory}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white transition-all duration-200 hover:shadow-md"
+                        >
+                          <option value="">Select your specialization</option>
+                          {jobSubcategories[formData.job_type as keyof typeof jobSubcategories]?.map((subcategory) => (
+                            <option key={subcategory} value={subcategory}>
+                              {subcategory}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Contact & Location */}
+              {currentStep === 3 && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white border-b border-powerbi-gray-200 dark:border-powerbi-gray-600 pb-2">Contact & Location</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -723,8 +832,8 @@ export default function Signup() {
                 </div>
               )}
 
-              {/* Step 3: Plan & Terms */}
-              {currentStep === 3 && (
+              {/* Step 4: Plan & Terms */}
+              {currentStep === 4 && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white border-b border-powerbi-gray-200 dark:border-powerbi-gray-600 pb-2">Plan & Terms</h3>
                 <div>
@@ -781,7 +890,7 @@ export default function Signup() {
                     Back
                   </button>
                 )}
-                {currentStep < 3 && (
+                {currentStep < 4 && (
                   <button
                     type="button"
                     onClick={nextStep}
@@ -790,7 +899,7 @@ export default function Signup() {
                     Next
                   </button>
                 )}
-                {currentStep === 3 && (
+                {currentStep === 4 && (
                   <button
                     type="submit"
                     className="px-6 py-3 bg-gradient-to-r from-powerbi-primary to-powerbi-secondary hover:from-powerbi-secondary hover:to-powerbi-primary text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:ring-offset-2 shadow-lg hover:shadow-xl border-0 ml-auto"

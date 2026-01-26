@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import {
   Home,
   DollarSign,
@@ -11,7 +12,9 @@ import {
   BarChart3,
   Settings,
   HelpCircle,
-  LogOut
+  LogOut,
+  Key,
+  FolderOpen
 } from 'lucide-react';
 
 const navItems = [
@@ -22,6 +25,7 @@ const navItems = [
   { name: 'Tasks', href: '/tasks', icon: CheckSquare, description: 'To-do list' },
   { name: 'Vehicle Maintains', href: '/vehicle-expenses', icon: Car, description: 'Car costs' },
   { name: 'Diary', href: '/diary', icon: BookOpen, description: 'Personal notes' },
+  { name: 'Manage Password', href: '/manage-password', icon: Key, description: 'Update your password' },
 ];
 
 const secondaryItems = [
@@ -32,6 +36,55 @@ const secondaryItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [userJobType, setUserJobType] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Get user job type from API
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const response = await fetch('http://localhost:3001/api/user/profile', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const userData = await response.json();
+            setUserJobType(userData.job_type);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  // Dynamic nav items based on user type
+  const getNavItems = () => {
+    const baseItems = [
+      { name: 'Dashboard', href: '/dashboard', icon: Home, description: 'Overview & insights' },
+      { name: 'Goals', href: '/goals', icon: Target, description: 'Financial targets' },
+      { name: 'Achievements', href: '/achievements', icon: Trophy, description: 'Milestones & rewards' },
+      { name: 'Income & Expenses', href: '/expenses', icon: DollarSign, description: 'Track Income & spending' },
+      { name: 'Tasks', href: '/tasks', icon: CheckSquare, description: 'To-do list' },
+      { name: 'Vehicle Maintains', href: '/vehicle-expenses', icon: Car, description: 'Car costs' },
+      { name: 'Diary', href: '/diary', icon: BookOpen, description: 'Personal notes' },
+      { name: 'Manage Password', href: '/manage-password', icon: Key, description: 'Update your password' },
+    ];
+
+    // Add Manage My Projects for freelancers
+    if (userJobType === 'freelancer') {
+      baseItems.splice(7, 0, {
+        name: 'Manage My Projects',
+        href: '/manage-projects',
+        icon: FolderOpen,
+        description: 'Project management & tracking'
+      });
+    }
+
+    return baseItems;
+  };
 
   return (
     <div className="w-64 bg-white dark:bg-powerbi-gray-800 shadow-2xl h-screen fixed left-0 top-0 z-10 border-r border-powerbi-gray-200 dark:border-powerbi-gray-700">
@@ -62,7 +115,7 @@ export default function Sidebar() {
             Main
           </h3>
           <ul className="space-y-1">
-            {navItems.map((item) => {
+            {getNavItems().map((item) => {
               const isActive = pathname === item.href;
               return (
                 <li key={item.name}>
