@@ -479,8 +479,11 @@ app.post('/api/goals/:id/progress', authenticateToken, async (req, res) => {
       if (results.length === 0) return res.status(404).json({ error: 'Goal not found' });
 
       const goal = results[0];
-      const newCurrent = goal.current + amount;
-      const newProgress = goal.target > 0 ? (newCurrent / goal.target) * 100 : 0;
+      const cur = Number(goal.current) || 0;
+      const amt = Number(amount) || 0;
+      const tgt = Number(goal.target) || 0;
+      const newCurrent = cur + amt;
+      const newProgress = tgt > 0 ? (newCurrent / tgt) * 100 : 0;
       const newStatus = newCurrent >= goal.target ? 'completed' : goal.status;
       const completed_at = newStatus === 'completed' ? new Date() : goal.completed_at;
 

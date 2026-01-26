@@ -280,7 +280,9 @@ export default function Goals() {
       if (data.error) {
         setShowErrorModal({ show: true, message: 'Error updating progress: ' + data.error });
       } else {
+        // Update goals list and currently viewing goal to reflect changes immediately
         setGoals(goals.map(g => g.id === goalId ? data.goal : g));
+        setViewingGoal(data.goal);
         fetchStats();
       }
     } catch (err) {
