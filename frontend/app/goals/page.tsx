@@ -785,19 +785,29 @@ function GoalForm({ goal, onSave, onCancel, error }: {
 function GoalDetails({ goal, onClose, onProgressUpdate, onEdit, formatCurrency }: {
   goal: Goal;
   onClose: () => void;
-  onProgressUpdate: (goalId: number, amount: number, description: string) => void;
+  onProgressUpdate: (goalId: number, amount: number, description: string) => Promise<void> | void;
   onEdit: () => void;
   formatCurrency: (amount: number) => string;
 }) {
   const [progressAmount, setProgressAmount] = useState(0);
   const [progressDescription, setProgressDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleProgressSubmit = (e: React.FormEvent) => {
+  const handleProgressSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     if (progressAmount > 0) {
-      onProgressUpdate(goal.id, progressAmount, progressDescription);
-      setProgressAmount(0);
-      setProgressDescription('');
+      try {
+        setIsSubmitting(true);
+        await onProgressUpdate(goal.id, progressAmount, progressDescription);
+        setProgressAmount(0);
+        setProgressDescription('');
+      } catch (err) {
+        setSubmitError('Failed to add progress');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -901,12 +911,15 @@ function GoalDetails({ goal, onClose, onProgressUpdate, onEdit, formatCurrency }
                         placeholder="e.g., Monthly savings deposit"
                       />
                     </div>
+                    {submitError && (
+                      <div className="text-red-600 text-sm">{submitError}</div>
+                    )}
                     <button
                       type="submit"
-                      disabled={progressAmount <= 0}
+                      disabled={isSubmitting || progressAmount <= 0}
                       className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
                     >
-                      Add Progress
+                      {isSubmitting ? 'Adding...' : 'Add Progress'}
                     </button>
                   </form>
                 </div>

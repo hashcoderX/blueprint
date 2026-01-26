@@ -473,6 +473,11 @@ app.post('/api/goals/:id/progress', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { amount, description } = req.body;
 
+    const amt = Number(amount);
+    if (!Number.isFinite(amt) || amt <= 0) {
+      return res.status(400).json({ error: 'Progress amount must be a positive number' });
+    }
+
     // First get current goal data
     db.query('SELECT * FROM goals WHERE id = ? AND user_id = ?', [id, req.user.id], (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -480,11 +485,10 @@ app.post('/api/goals/:id/progress', authenticateToken, async (req, res) => {
 
       const goal = results[0];
       const cur = Number(goal.current) || 0;
-      const amt = Number(amount) || 0;
       const tgt = Number(goal.target) || 0;
       const newCurrent = cur + amt;
       const newProgress = tgt > 0 ? (newCurrent / tgt) * 100 : 0;
-      const newStatus = newCurrent >= goal.target ? 'completed' : goal.status;
+      const newStatus = newCurrent >= tgt ? 'completed' : goal.status;
       const completed_at = newStatus === 'completed' ? new Date() : goal.completed_at;
 
       // Update goal progress
