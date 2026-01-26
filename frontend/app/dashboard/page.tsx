@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
 import {
@@ -124,7 +124,7 @@ const QuickAction = ({ icon: Icon, title, description, onClick, color }: {
   </button>
 );
 
-const ActivityItem = ({ activity }: { activity: RecentActivity }) => {
+const ActivityItem = ({ activity, currency }: { activity: RecentActivity; currency: string }) => {
   // removed unused getActivityIcon in favor of ActivityIconEl
 
   const getActivityColor = (type: string) => {
@@ -153,7 +153,8 @@ const ActivityItem = ({ activity }: { activity: RecentActivity }) => {
       {activity.amount && (
         <div className="text-right">
           <p className={`font-semibold ${activity.type === 'expense' ? 'text-red-600' : 'text-green-600'}`}>
-            {activity.type === 'expense' ? '-' : '+'}${activity.amount.toFixed(2)}
+            {activity.type === 'expense' ? '-' : '+'}
+            {new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(activity.amount)}
           </p>
         </div>
       )}
@@ -173,24 +174,182 @@ const ActivityItem = ({ activity }: { activity: RecentActivity }) => {
 export default function Dashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
-    totalExpenses: 12450,
-    monthlyChange: 5.2,
-    goalsProgress: 75,
-    pendingTasks: 8,
-    vehicleExpenses: 2100,
-    savingsRate: 23.5,
-    budgetUtilization: 78
+    totalExpenses: 0,
+    monthlyChange: 0,
+    goalsProgress: 0,
+    pendingTasks: 0,
+    vehicleExpenses: 0,
+    savingsRate: 0,
+    budgetUtilization: 0
   });
 
-  const [recentActivities] = useState<RecentActivity[]>([
-    { id: '1', type: 'expense', description: 'Grocery shopping at Whole Foods', amount: 127.50, date: '2024-01-15', status: 'completed' },
-    { id: '2', type: 'goal', description: 'Emergency fund goal progress', amount: 250, date: '2024-01-15', status: 'completed' },
-    { id: '3', type: 'task', description: 'Review monthly budget', date: '2024-01-16', status: 'pending' },
-    { id: '4', type: 'payment', description: 'Credit card payment', amount: 450, date: '2024-01-14', status: 'completed' },
-    { id: '5', type: 'expense', description: 'Gas station fill-up', amount: 65.20, date: '2024-01-13', status: 'completed' }
-  ]);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
-  const [userCurrency] = useState('USD');
+  const [userCurrency, setUserCurrency] = useState('USD');
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+  const fetchUserProfile = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:3001/api/user/profile', { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const user = await res.json();
+        setUserCurrency(user.currency || 'USD');
+      }
+    } catch (e) {
+      console.error('Error loading user profile:', e);
+    }
+  }, [token]);
+
+  const computeMonthlyChange = (expenses: Array<{ amount: number; date: string }>, vehicle: Array<{ amount: number; date: string; type: string }>) => {
+    // Calculate month-over-month percentage change in total expenses
+    const now = new Date();
+    const curMonth = now.getMonth(), curYear = now.getFullYear();
+    const lastMonthDate = new Date(curYear, curMonth - 1, 1);
+    const lastMonth = lastMonthDate.getMonth(), lastYear = lastMonthDate.getFullYear();
+
+    const inMonth = (d: string, m: number, y: number) => {
+      const dt = new Date(d);
+      return dt.getMonth() === m && dt.getFullYear() === y;
+    };
+
+    const curExp = expenses.filter(e => inMonth(e.date, curMonth, curYear)).reduce((s, e) => s + (Number(e.amount) || 0), 0)
+      + vehicle.filter(v => v.type === 'expense' && inMonth(v.date, curMonth, curYear)).reduce((s, v) => s + (Number(v.amount) || 0), 0);
+
+    const lastExp = expenses.filter(e => inMonth(e.date, lastMonth, lastYear)).reduce((s, e) => s + (Number(e.amount) || 0), 0)
+      + vehicle.filter(v => v.type === 'expense' && inMonth(v.date, lastMonth, lastYear)).reduce((s, v) => s + (Number(v.amount) || 0), 0);
+
+    if (lastExp <= 0) return 0;
+    return Number((((curExp - lastExp) / lastExp) * 100).toFixed(1));
+  };
+
+  const loadDashboardData = useCallback(async () => {
+    if (!token) return;
+    try {
+      const [expRes, incRes, vehRes, taskRes, goalRes] = await Promise.all([
+        fetch('http://localhost:3001/api/expenses', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('http://localhost:3001/api/income', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('http://localhost:3001/api/vehicle-expenses', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('http://localhost:3001/api/tasks', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('http://localhost:3001/api/goals', { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+
+      const [expenses, income, vehicle, tasks, goals] = await Promise.all([
+        expRes.json(), incRes.json(), vehRes.json(), taskRes.json(), goalRes.json()
+      ]);
+
+      const validExpenses: Array<{ amount: number; date: string }> = Array.isArray(expenses) ? expenses : [];
+      const validIncome: Array<{ amount: number; date: string }> = Array.isArray(income) ? income : [];
+      const validVehicle: Array<{ amount: number; date: string; type: string }> = Array.isArray(vehicle) ? vehicle : [];
+      const validTasks: Array<{ status: string }> = Array.isArray(tasks) ? tasks : [];
+      const validGoals: Array<{ status?: string; completed?: boolean }> = Array.isArray(goals) ? goals : [];
+
+      const vehicleExp = validVehicle.filter(v => v.type === 'expense').reduce((s, v) => s + (Number(v.amount) || 0), 0);
+      const totalExp = validExpenses.reduce((s, e) => s + (Number(e.amount) || 0), 0) + vehicleExp;
+      const totalInc = validIncome.reduce((s, i) => s + (Number(i.amount) || 0), 0);
+      const netIncome = totalInc - totalExp;
+      const savingsRate = totalInc > 0 ? Number(((netIncome / totalInc) * 100).toFixed(1)) : 0;
+      const budgetUtilization = totalInc > 0 ? Number(((totalExp / totalInc) * 100).toFixed(1)) : 0;
+      const monthlyChange = computeMonthlyChange(validExpenses, validVehicle);
+      const pendingTasks = validTasks.filter(t => t.status !== 'done').length;
+      const goalsProgress = (() => {
+        const total = validGoals.length;
+        if (!total) return 0;
+        const completed = validGoals.filter(g => g.completed === true || g.status === 'completed').length;
+        return Number(((completed / total) * 100).toFixed(1));
+      })();
+
+      setStats({
+        totalExpenses: totalExp,
+        monthlyChange,
+        goalsProgress,
+        pendingTasks,
+        vehicleExpenses: vehicleExp,
+        savingsRate,
+        budgetUtilization
+      });
+
+      // Build recent activities from latest financial records
+      const expenseActivities: RecentActivity[] = validExpenses
+        .filter(e => !!(e as any).date)
+        .map((e, idx) => ({
+          id: `exp-${idx}-${(e as any).date}`,
+          type: 'expense',
+          description: (e as any).description || (e as any).category || 'Expense',
+          amount: Number((e as any).amount) || 0,
+          date: (e as any).date,
+          status: 'completed'
+        }));
+
+      const incomeActivities: RecentActivity[] = validIncome
+        .filter(i => !!(i as any).date)
+        .map((i, idx) => ({
+          id: `inc-${idx}-${(i as any).date}`,
+          type: 'payment',
+          description: (i as any).description || (i as any).source || 'Income',
+          amount: Number((i as any).amount) || 0,
+          date: (i as any).date,
+          status: 'completed'
+        }));
+
+      const vehicleActivities: RecentActivity[] = validVehicle
+        .filter(v => v.type === 'expense' && !!(v as any).date)
+        .map((v, idx) => ({
+          id: `veh-${idx}-${(v as any).date}`,
+          type: 'expense',
+          description: (v as any).description || 'Vehicle expense',
+          amount: Number((v as any).amount) || 0,
+          date: (v as any).date,
+          status: 'completed'
+        }));
+
+      // Tasks -> recent items with status and dates
+      const now = new Date();
+      const taskActivities: RecentActivity[] = validTasks
+        .map((t: any, idx: number) => {
+          const planned = t.planned_date ? new Date(t.planned_date) : null;
+          const updated = t.updated_at ? new Date(t.updated_at) : null;
+          const created = t.created_at ? new Date(t.created_at) : null;
+          const bestDate = (updated || planned || created || now).toISOString();
+          const isOverdue = planned && planned < now && t.status !== 'done';
+          const status: RecentActivity['status'] = t.status === 'done' ? 'completed' : (isOverdue ? 'overdue' : 'pending');
+          return {
+            id: `task-${t.id || idx}-${bestDate}`,
+            type: 'task',
+            description: t.title || 'Task update',
+            date: bestDate,
+            status
+          };
+        });
+
+      // Goals -> recent items; include current as amount for quick view
+      const goalActivities: RecentActivity[] = validGoals
+        .map((g: any, idx: number) => {
+          const updated = g.updated_at ? new Date(g.updated_at) : null;
+          const created = g.created_at ? new Date(g.created_at) : null;
+          const completed = g.completed_at ? new Date(g.completed_at) : null;
+          const target = g.target_date ? new Date(g.target_date) : null;
+          const bestDate = (completed || updated || created || now).toISOString();
+          const isOverdue = target && target < now && g.status !== 'completed';
+          const status: RecentActivity['status'] = g.status === 'completed' ? 'completed' : (isOverdue ? 'overdue' : 'pending');
+          return {
+            id: `goal-${g.id || idx}-${bestDate}`,
+            type: 'goal',
+            description: g.name || 'Goal progress',
+            amount: typeof g.current === 'number' ? g.current : undefined,
+            date: bestDate,
+            status
+          };
+        });
+
+      const combined = [...expenseActivities, ...incomeActivities, ...vehicleActivities, ...taskActivities, ...goalActivities]
+        .sort((a, b) => (new Date(a.date) < new Date(b.date) ? 1 : -1))
+        .slice(0, 20);
+      setRecentActivities(combined);
+    } catch (e) {
+      console.error('Error loading dashboard data:', e);
+    }
+  }, [token]);
 
   type DiaryEntry = {
     id: number;
@@ -203,18 +362,11 @@ export default function Dashboard() {
   const [diary, setDiary] = useState<DiaryEntry[]>([]);
   const [diaryLoading, setDiaryLoading] = useState<boolean>(true);
 
-  // Simulate real-time data updates
+  // Initial data load
   useEffect(() => {
-    const interval = setInterval(() => {
-      setStats(prev => ({
-        ...prev,
-        totalExpenses: prev.totalExpenses + Math.random() * 10 - 5,
-        goalsProgress: Math.min(100, prev.goalsProgress + Math.random() * 2 - 1)
-      }));
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+    fetchUserProfile();
+    loadDashboardData();
+  }, [fetchUserProfile, loadDashboardData]);
 
   const hasToken = typeof window !== 'undefined' ? !!localStorage.getItem('token') : false;
 
@@ -423,7 +575,7 @@ export default function Dashboard() {
             </div>
             <div className="space-y-3 max-h-80 overflow-y-auto">
               {recentActivities.map((activity) => (
-                <ActivityItem key={activity.id} activity={activity} />
+                <ActivityItem key={activity.id} activity={activity} currency={userCurrency} />
               ))}
             </div>
           </div>

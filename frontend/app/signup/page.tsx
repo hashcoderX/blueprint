@@ -46,6 +46,7 @@ export default function Signup() {
       'Marketing & Advertising',
       'Construction',
       'Food & Hospitality',
+      'Gem Business',
       'Other'
     ],
     employee: [
