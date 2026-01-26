@@ -452,15 +452,7 @@ export default function Dashboard() {
               Welcome back! Here&apos;s your financial overview.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="flex items-center px-4 py-2 bg-powerbi-primary hover:bg-powerbi-secondary text-white rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl">
-              <Plus className="w-4 h-4 mr-2" />
-              Quick Add
-            </button>
-            <button className="p-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white transition-colors">
-              <Bell className="w-5 h-5" />
-            </button>
-          </div>
+          {/* Removed Quick Add and Bell action buttons */}
         </div>
 
         {/* Stats Grid */}
