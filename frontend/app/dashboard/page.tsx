@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Pie } from 'react-chartjs-2';
 import {
   TrendingUp,
   DollarSign,
@@ -187,6 +189,7 @@ export default function Dashboard() {
 
   const [userCurrency, setUserCurrency] = useState('USD');
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const [spendingByCategory, setSpendingByCategory] = useState<Record<string, number>>({});
 
   const fetchUserProfile = useCallback(async () => {
     if (!token) return;
@@ -238,7 +241,7 @@ export default function Dashboard() {
         expRes.json(), incRes.json(), vehRes.json(), taskRes.json(), goalRes.json()
       ]);
 
-      const validExpenses: Array<{ amount: number; date: string }> = Array.isArray(expenses) ? expenses : [];
+      const validExpenses: Array<{ amount: number; date: string; category?: string; description?: string }> = Array.isArray(expenses) ? expenses : [];
       const validIncome: Array<{ amount: number; date: string }> = Array.isArray(income) ? income : [];
       const validVehicle: Array<{ amount: number; date: string; type: string }> = Array.isArray(vehicle) ? vehicle : [];
       const validTasks: Array<{ status: string }> = Array.isArray(tasks) ? tasks : [];
@@ -268,6 +271,20 @@ export default function Dashboard() {
         savingsRate,
         budgetUtilization
       });
+
+      // Build spending by category for chart
+      const catTotals: Record<string, number> = {};
+      validExpenses.forEach((e: any) => {
+        const cat = e.category || 'General';
+        const amt = Number(e.amount) || 0;
+        catTotals[cat] = (catTotals[cat] || 0) + amt;
+      });
+      validVehicle.filter(v => v.type === 'expense').forEach((v: any) => {
+        const cat = v.vehicle ? `Vehicle: ${v.vehicle}` : 'Vehicle';
+        const amt = Number(v.amount) || 0;
+        catTotals[cat] = (catTotals[cat] || 0) + amt;
+      });
+      setSpendingByCategory(catTotals);
 
       // Build recent activities from latest financial records
       const expenseActivities: RecentActivity[] = validExpenses
@@ -368,6 +385,11 @@ export default function Dashboard() {
     loadDashboardData();
   }, [fetchUserProfile, loadDashboardData]);
 
+  // Register Chart.js on client
+  useEffect(() => {
+    ChartJS.register(ArcElement, Tooltip, Legend);
+  }, []);
+
   const hasToken = typeof window !== 'undefined' ? !!localStorage.getItem('token') : false;
 
   // Load recent diary entries (like tasks list)
@@ -390,6 +412,24 @@ export default function Dashboard() {
       })
       .finally(() => setDiaryLoading(false));
   }, []);
+
+  // Merge diary into recent activities
+  useEffect(() => {
+    if (!diary || diary.length === 0) return;
+    setRecentActivities((prev) => {
+      const diaryActs: RecentActivity[] = diary.slice(0, 10).map((d) => ({
+        id: `diary-${d.id}-${d.date || ''}`,
+        type: 'task',
+        description: d.title || d.one_sentence || 'Diary entry',
+        date: d.date || new Date().toISOString(),
+        status: 'completed'
+      }));
+      const merged = [...diaryActs, ...prev]
+        .sort((a, b) => (new Date(a.date) < new Date(b.date) ? 1 : -1))
+        .slice(0, 20);
+      return merged;
+    });
+  }, [diary]);
 
   
 
@@ -464,12 +504,45 @@ export default function Dashboard() {
                 </select>
               </div>
             </div>
-            <div className="h-64 flex items-center justify-center bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-xl">
-              <div className="text-center">
-                <PieChart className="w-12 h-12 text-powerbi-gray-400 mx-auto mb-2" />
-                <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400">Interactive chart will be implemented</p>
-                <p className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-500 mt-1">Showing spending by category</p>
-              </div>
+            <div className="h-64 flex items-center justify-center bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-xl p-4">
+              {Object.keys(spendingByCategory).length === 0 ? (
+                <div className="text-center">
+                  <PieChart className="w-12 h-12 text-powerbi-gray-400 mx-auto mb-2" />
+                  <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400">No spending data yet</p>
+                  <p className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-500 mt-1">Add expenses to see category breakdown</p>
+                </div>
+              ) : (
+                <Pie
+                  data={{
+                    labels: Object.keys(spendingByCategory),
+                    datasets: [{
+                      data: Object.keys(spendingByCategory).map(k => spendingByCategory[k]),
+                      backgroundColor: [
+                        '#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899','#22c55e','#14b8a6','#f97316','#64748b'
+                      ],
+                      borderColor: '#ffffff',
+                      borderWidth: 2,
+                    }]
+                  }}
+                  options={{
+                    plugins: {
+                      legend: { position: 'bottom', labels: { color: '#374151' } },
+                      tooltip: {
+                        callbacks: {
+                          label: (ctx) => {
+                            const val = ctx.parsed as number;
+                            try {
+                              return new Intl.NumberFormat(undefined, { style: 'currency', currency: userCurrency }).format(val);
+                            } catch {
+                              return `${val.toFixed(2)} ${userCurrency}`;
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
+              )}
             </div>
           </div>
 
