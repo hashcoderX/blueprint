@@ -390,14 +390,22 @@ export default function Dashboard() {
     ChartJS.register(ArcElement, Tooltip, Legend);
   }, []);
 
-  const hasToken = typeof window !== 'undefined' ? !!localStorage.getItem('token') : false;
+  const [hasToken, setHasToken] = useState<boolean | null>(null);
+  useEffect(() => {
+    // Initialize token status on client to avoid SSR mismatch
+    const t = typeof window !== 'undefined' ? !!localStorage.getItem('token') : false;
+    setHasToken(t);
+  }, []);
 
   // Load recent diary entries (like tasks list)
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (!token) {
+    // Wait for client token status to avoid hydration mismatch
+    if (hasToken !== true) {
+      // If not logged in, stop loading state
+      setDiaryLoading(false);
       return;
     }
+    const token = localStorage.getItem('token');
     fetch('http://localhost:3001/api/diary', {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -411,7 +419,7 @@ export default function Dashboard() {
         }
       })
       .finally(() => setDiaryLoading(false));
-  }, []);
+  }, [hasToken]);
 
   // Merge diary into recent activities
   useEffect(() => {
@@ -599,7 +607,9 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-          {hasToken ? (
+          {hasToken === null ? (
+            <div className="text-powerbi-gray-500">Loading your recent entries...</div>
+          ) : hasToken ? (
             diaryLoading ? (
               <div className="text-powerbi-gray-500">Loading your recent entries...</div>
             ) : (
