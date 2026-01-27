@@ -27,6 +27,7 @@ const secondaryItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [userJobType, setUserJobType] = useState<string | null>(null);
+  const [userJobSubcategory, setUserJobSubcategory] = useState<string | null>(null);
 
   useEffect(() => {
     // Get user job type from API
@@ -39,7 +40,8 @@ export default function Sidebar() {
           });
           if (response.ok) {
             const userData = await response.json();
-            setUserJobType(userData.job_type);
+            setUserJobType(userData.job_type || null);
+            setUserJobSubcategory(userData.job_subcategory || null);
           }
         }
       } catch (error) {
@@ -70,6 +72,16 @@ export default function Sidebar() {
         href: '/manage-projects',
         icon: FolderOpen,
         description: 'Project management & tracking'
+      });
+    }
+
+    // Add Manage My Gem Business for businessmen with Gem Business subcategory
+    if (userJobType === 'businessman' && (userJobSubcategory || '').toLowerCase() === 'gem business') {
+      baseItems.splice(7, 0, {
+        name: 'Manage My Gem Business',
+        href: '/manage-projects',
+        icon: FolderOpen,
+        description: 'Manage inventory, purchases, and income'
       });
     }
 
