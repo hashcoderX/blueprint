@@ -79,7 +79,7 @@ export default function Sidebar() {
     if (userJobType === 'businessman' && (userJobSubcategory || '').toLowerCase() === 'gem business') {
       baseItems.splice(7, 0, {
         name: 'Manage My Gem Business',
-        href: '/manage-projects',
+        href: '/manage-gembusiness',
         icon: FolderOpen,
         description: 'Manage inventory, purchases, and income'
       });
