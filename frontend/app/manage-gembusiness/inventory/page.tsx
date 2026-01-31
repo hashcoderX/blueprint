@@ -35,6 +35,7 @@ export default function GemInventory() {
   const [items, setItems] = useState<GemInventoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showAdd, setShowAdd] = useState<boolean>(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
   
   // Filters
   const [gemNameFilter, setGemNameFilter] = useState('');
@@ -105,7 +106,25 @@ export default function GemInventory() {
     }
   };
   
-  useEffect(() => { loadInventory(); }, [page, gemNameFilter, weightMinFilter, weightMaxFilter, colorFilter, statusFilter]);
+  const fetchUserProfile = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:3001/api/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserProfile(data);
+      }
+    } catch (e) {
+      console.error('Failed to load user profile', e);
+    }
+  };
+  
+  useEffect(() => { 
+    fetchUserProfile();
+    loadInventory(); 
+  }, [page, gemNameFilter, weightMinFilter, weightMaxFilter, colorFilter, statusFilter]);
   
   const handleAddItem = async () => {
     setSubmitError(null);
@@ -212,7 +231,7 @@ export default function GemInventory() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Total Valuation</p>
-                <p className="text-3xl font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(totalValuation)}</p>
+                <p className="text-3xl font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(totalValuation)}</p>
               </div>
               <Gem className="w-8 h-8 text-purple-200" />
             </div>
@@ -355,10 +374,10 @@ export default function GemInventory() {
                         {item.color || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(item.purchase_price)}
+                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(item.purchase_price)}
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(item.current_value || item.purchase_price)}
+                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(item.current_value || item.purchase_price)}
                       </td>
                       <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                         {item.quantity}
