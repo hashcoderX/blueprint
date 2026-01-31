@@ -96,8 +96,17 @@ export default function GemInventory() {
       });
       if (res.ok) {
         const data = await res.json();
-        setItems(Array.isArray(data.items) ? data.items : []);
-        setTotal(data.total || 0);
+        const normalized = Array.isArray(data.items)
+          ? data.items.map((i: any) => ({
+              ...i,
+              weight: Number(i.weight ?? 0),
+              purchase_price: Number(i.purchase_price ?? 0),
+              current_value: i.current_value != null ? Number(i.current_value) : null,
+              quantity: Number(i.quantity ?? 1)
+            }))
+          : [];
+        setItems(normalized);
+        setTotal(Number(data.total) || 0);
       }
     } catch (e) {
       console.error('Failed to load inventory', e);
@@ -368,16 +377,16 @@ export default function GemInventory() {
                         {item.gem_name}
                       </td>
                       <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                        {item.weight.toFixed(3)}
+                        {Number(item.weight).toFixed(3)}
                       </td>
                       <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                         {item.color || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(item.purchase_price)}
+                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(item.purchase_price) || 0)}
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(item.current_value || item.purchase_price)}
+                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(item.current_value ?? item.purchase_price) || 0)}
                       </td>
                       <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                         {item.quantity}

@@ -30,7 +30,10 @@ tempConnection.connect((err) => {
       user: 'root',
       password: '',
       database: 'blueprint',
-      multipleStatements: true
+      multipleStatements: true,
+      // Ensure DECIMAL fields are returned as Numbers
+      decimalNumbers: true,
+      supportBigNumbers: true
     });
 
     connection.connect((err) => {
