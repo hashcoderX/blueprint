@@ -27,14 +27,7 @@ export default function ManageGemBusiness() {
   const router = useRouter();
   const [purchases, setPurchases] = useState<GemPurchase[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [showAdd, setShowAdd] = useState<boolean>(false);
-  const [desc, setDesc] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState('');
-  const [vendor, setVendor] = useState('');
-  const [files, setFiles] = useState<FileList | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -67,51 +60,27 @@ export default function ManageGemBusiness() {
     }
   };
 
-  useEffect(() => { loadPurchases(); }, []);
-
-  const handleAddPurchase = async () => {
-    setSubmitError(null);
-    const amt = Number(amount);
-    if (!Number.isFinite(amt) || amt <= 0) {
-      setSubmitError('Enter a valid positive amount');
-      return;
-    }
-    if (!files || files.length === 0) {
-      setSubmitError('Please add at least one image');
-      return;
-    }
-    setIsSubmitting(true);
+  const fetchUserProfile = async () => {
+    if (!token) return;
     try {
-      const fd = new FormData();
-      fd.append('description', desc);
-      fd.append('amount', String(amt));
-      if (date) fd.append('date', date);
-      if (vendor) fd.append('vendor', vendor);
-      Array.from(files).forEach(f => fd.append('images', f));
-
-      const res = await fetch('http://localhost:3001/api/gem/purchases', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd
+      const res = await fetch('http://localhost:3001/api/profile', {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to add purchase');
+      if (res.ok) {
+        const data = await res.json();
+        setUserProfile(data);
       }
-      await loadPurchases();
-      // reset and close
-      setDesc('');
-      setAmount('');
-      setDate('');
-      setVendor('');
-      setFiles(null);
-      setShowAdd(false);
-    } catch (e: any) {
-      setSubmitError(e.message || 'Unexpected error');
-    } finally {
-      setIsSubmitting(false);
+    } catch (e) {
+      console.error('Failed to load user profile', e);
     }
   };
+
+  useEffect(() => { 
+    fetchUserProfile();
+    loadPurchases(); 
+  }, []);
+
+
 
   return (
     <DashboardLayout>
@@ -144,7 +113,7 @@ export default function ManageGemBusiness() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-emerald-100 text-sm font-medium">Purchases (Month)</p>
-                <p className="text-3xl font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(monthTotal)}</p>
+                <p className="text-3xl font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(monthTotal)}</p>
               </div>
               <ShoppingCart className="w-6 h-6 text-emerald-200" />
             </div>
@@ -182,78 +151,12 @@ export default function ManageGemBusiness() {
                 <ShoppingCart className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mr-2" />
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">Purchases</h3>
               </div>
-              <button onClick={() => setShowAdd(true)} className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">Add Purchase</button>
+              <button onClick={() => router.push('/manage-gembusiness/purchases')} className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">View Purchases</button>
             </div>
             <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Record gemstone purchases and suppliers.</p>
+            <div className="mt-4 text-powerbi-gray-500 dark:text-powerbi-gray-400 text-sm">Click &quot;View Purchases&quot; to manage your purchases.</div>
 
-            {loading ? (
-              <div className="mt-4 text-powerbi-gray-500 dark:text-powerbi-gray-400 text-sm">Loading...</div>
-            ) : purchases.length === 0 ? (
-              <div className="mt-4 text-powerbi-gray-500 dark:text-powerbi-gray-400 text-sm">No purchases yet.</div>
-            ) : (
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {purchases.map(p => (
-                  <div key={p.id} className="border border-powerbi-gray-200 dark:border-powerbi-gray-700 rounded-xl p-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold text-powerbi-gray-900 dark:text-white">{p.description || 'Purchase'}</p>
-                        <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{new Date(p.date).toLocaleDateString()}</p>
-                      </div>
-                      <div className="text-emerald-700 dark:text-emerald-400 font-bold">
-                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(Number(p.amount) || 0)}
-                      </div>
-                    </div>
-                    {p.images && p.images.length > 0 && (
-                      <div className="mt-3 grid grid-cols-3 gap-2">
-                        {p.images.slice(0,3).map(img => (
-                          <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-full h-20 object-cover rounded-md border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
 
-            {/* Add Purchase Modal */}
-            {showAdd && (
-              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg p-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-                  <h4 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Purchase</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Description</label>
-                      <input value={desc} onChange={e => setDesc(e.target.value)} className="mt-1 w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 3ct Sapphire rough" />
-                    </div>
-                    <div>
-                      <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Amount</label>
-                      <input value={amount} onChange={e => setAmount(e.target.value)} type="number" min="0" step="0.01" className="mt-1 w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 250.00" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Date</label>
-                        <input value={date} onChange={e => setDate(e.target.value)} type="date" className="mt-1 w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" />
-                      </div>
-                      <div>
-                        <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Vendor (optional)</label>
-                        <input value={vendor} onChange={e => setVendor(e.target.value)} className="mt-1 w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Local trader" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Images</label>
-                      <input onChange={e => setFiles(e.target.files)} type="file" multiple accept="image/*,.jpg,.jpeg,.png,.webp" className="mt-1 w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" />
-                    </div>
-                  </div>
-                  {submitError && <div className="mt-3 text-sm text-red-600">{submitError}</div>}
-                  <div className="mt-5 flex justify-end gap-2">
-                    <button onClick={() => setShowAdd(false)} className="px-3 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white">Cancel</button>
-                    <button onClick={handleAddPurchase} disabled={isSubmitting} className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">
-                      {isSubmitting ? 'Saving...' : 'Save Purchase'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Sales/Income */}
