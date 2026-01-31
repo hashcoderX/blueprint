@@ -109,7 +109,7 @@ export default function GemInventory() {
   const fetchUserProfile = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/profile', {
+      const res = await fetch('http://localhost:3001/api/user/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
