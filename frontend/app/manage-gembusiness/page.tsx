@@ -28,6 +28,7 @@ export default function ManageGemBusiness() {
   const [purchases, setPurchases] = useState<GemPurchase[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [inventoryCount, setInventoryCount] = useState<number>(0);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -60,6 +61,21 @@ export default function ManageGemBusiness() {
     }
   };
 
+  const loadInventoryCount = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch('http://localhost:3001/api/gem/inventory?limit=1', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInventoryCount(data.total || 0);
+      }
+    } catch (e) {
+      console.error('Failed to load inventory count', e);
+    }
+  };
+
   const fetchUserProfile = async () => {
     if (!token) return;
     try {
@@ -78,6 +94,7 @@ export default function ManageGemBusiness() {
   useEffect(() => { 
     fetchUserProfile();
     loadPurchases(); 
+    loadInventoryCount();
   }, []);
 
 
@@ -104,7 +121,7 @@ export default function ManageGemBusiness() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Inventory Items</p>
-                <p className="text-3xl font-bold">0</p>
+                <p className="text-3xl font-bold">{inventoryCount}</p>
               </div>
               <Layers className="w-6 h-6 text-purple-200" />
             </div>

@@ -36,6 +36,15 @@ export default function GemPurchases() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   
+  // Inventory fields
+  const [gemName, setGemName] = useState('');
+  const [weight, setWeight] = useState('');
+  const [color, setColor] = useState('');
+  const [clarity, setClarity] = useState('');
+  const [cut, setCut] = useState('');
+  const [shape, setShape] = useState('');
+  const [origin, setOrigin] = useState('');
+  
   const [userProfile, setUserProfile] = useState<any>(null);
   
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -94,8 +103,17 @@ export default function GemPurchases() {
   const handleAddPurchase = async () => {
     setSubmitError(null);
     const amt = Number(amount);
+    const wt = Number(weight);
+    if (!gemName.trim()) {
+      setSubmitError('Gem name is required');
+      return;
+    }
     if (!Number.isFinite(amt) || amt <= 0) {
       setSubmitError('Enter a valid positive amount');
+      return;
+    }
+    if (!Number.isFinite(wt) || wt <= 0) {
+      setSubmitError('Enter a valid positive weight');
       return;
     }
     if (!files || files.length === 0) {
@@ -110,6 +128,15 @@ export default function GemPurchases() {
       if (date) fd.append('date', date);
       if (vendor) fd.append('vendor', vendor);
       Array.from(files).forEach(f => fd.append('images', f));
+      
+      // Inventory fields
+      fd.append('gem_name', gemName.trim());
+      fd.append('weight', String(wt));
+      if (color) fd.append('color', color.trim());
+      if (clarity) fd.append('clarity', clarity.trim());
+      if (cut) fd.append('cut', cut.trim());
+      if (shape) fd.append('shape', shape.trim());
+      if (origin) fd.append('origin', origin.trim());
       
       const res = await fetch('http://localhost:3001/api/gem/purchases', {
         method: 'POST',
@@ -127,6 +154,13 @@ export default function GemPurchases() {
       setDate('');
       setVendor('');
       setFiles(null);
+      setGemName('');
+      setWeight('');
+      setColor('');
+      setClarity('');
+      setCut('');
+      setShape('');
+      setOrigin('');
       setShowAdd(false);
     } catch (e: any) {
       setSubmitError(e.message || 'Unexpected error');
@@ -282,12 +316,46 @@ export default function GemPurchases() {
               </div>
               <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
                 <div>
+                  <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Gem Name *</label>
+                  <input value={gemName} onChange={e => setGemName(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Sapphire" />
+                </div>
+                <div>
                   <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Description</label>
                   <input value={desc} onChange={e => setDesc(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 3ct Sapphire rough" />
                 </div>
-                <div>
-                  <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Amount *</label>
-                  <input value={amount} onChange={e => setAmount(e.target.value)} type="number" min="0" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 250.00" />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Weight (ct) *</label>
+                    <input value={weight} onChange={e => setWeight(e.target.value)} type="number" min="0" step="0.001" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 3.250" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Amount *</label>
+                    <input value={amount} onChange={e => setAmount(e.target.value)} type="number" min="0" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 250.00" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Color</label>
+                    <input value={color} onChange={e => setColor(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Blue" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Clarity</label>
+                    <input value={clarity} onChange={e => setClarity(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. VS" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Cut</label>
+                    <input value={cut} onChange={e => setCut(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Round" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Shape</label>
+                    <input value={shape} onChange={e => setShape(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Oval" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Origin</label>
+                    <input value={origin} onChange={e => setOrigin(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Sri Lanka" />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>

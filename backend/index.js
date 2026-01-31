@@ -2055,17 +2055,34 @@ app.post('/api/gem/purchases', authenticateToken, upload.array('images', 5), asy
   try {
     const db = await dbPromise;
     const files = req.files || [];
-    const { description, amount, date, vendor } = req.body;
+    const { description, amount, date, vendor, gem_name, weight, color, clarity, cut, shape, origin } = req.body;
     const amt = Number(amount);
+    const wt = Number(weight);
+    if (!gem_name || !gem_name.trim()) {
+      // Cleanup uploaded temp files when validation fails
+      files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });
+      return res.status(400).json({ error: 'Gem name is required' });
+    }
     if (!Number.isFinite(amt) || amt <= 0) {
       // Cleanup uploaded temp files when validation fails
       files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });
       return res.status(400).json({ error: 'Amount must be a positive number' });
     }
+    if (!Number.isFinite(wt) || wt <= 0) {
+      // Cleanup uploaded temp files when validation fails
+      files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });
+      return res.status(400).json({ error: 'Weight must be a positive number' });
+    }
 
     const safeDesc = typeof description === 'string' ? description.trim() : '';
     const safeVendor = typeof vendor === 'string' ? vendor.trim() : null;
     const safeDate = (typeof date === 'string' && date.trim()) ? date.trim() : new Date().toISOString().slice(0,10);
+    const safeGemName = gem_name.trim();
+    const safeColor = typeof color === 'string' && color.trim() ? color.trim() : null;
+    const safeClarity = typeof clarity === 'string' && clarity.trim() ? clarity.trim() : null;
+    const safeCut = typeof cut === 'string' && cut.trim() ? cut.trim() : null;
+    const safeShape = typeof shape === 'string' && shape.trim() ? shape.trim() : null;
+    const safeOrigin = typeof origin === 'string' && origin.trim() ? origin.trim() : null;
 
     // Verify user exists
     db.query('SELECT id FROM users WHERE id = ?', [req.user.id], (userErr, userRows) => {
@@ -2080,25 +2097,55 @@ app.post('/api/gem/purchases', authenticateToken, upload.array('images', 5), asy
           return res.status(500).json({ error: insErr.message });
         }
         const purchaseId = result.insertId;
-        if (!files || files.length === 0) {
-          return res.status(201).json({ id: purchaseId, user_id: req.user.id, description: safeDesc, amount: amt, date: safeDate, vendor: safeVendor, images: [] });
-        }
-        const values = files.map(f => [purchaseId, f.filename, f.originalname, f.size, f.mimetype]);
-        db.query(
-          'INSERT INTO gem_purchase_images (purchase_id, file_name, original_name, file_size, mime_type) VALUES ?',
-          [values],
-          (imgErr) => {
-            if (imgErr) return res.status(500).json({ error: imgErr.message });
-            const images = files.map(f => ({
-              file_name: f.filename,
-              original_name: f.originalname,
-              file_size: f.size,
-              mime_type: f.mimetype,
-              url: `/uploads/${f.filename}`
-            }));
-            res.status(201).json({ id: purchaseId, user_id: req.user.id, description: safeDesc, amount: amt, date: safeDate, vendor: safeVendor, images });
+
+        // Insert inventory item
+        db.query('INSERT INTO gem_inventory (user_id, gem_name, weight, color, clarity, cut, shape, origin, purchase_price, current_value, quantity, purchase_id, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)',
+          [req.user.id, safeGemName, wt, safeColor, safeClarity, safeCut, safeShape, safeOrigin, amt, amt, purchaseId, safeDesc], (invErr, invResult) => {
+          if (invErr) {
+            // Cleanup files if inventory insert fails
+            files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });
+            return res.status(500).json({ error: 'Failed to create inventory item: ' + invErr.message });
           }
-        );
+          const inventoryId = invResult.insertId;
+
+          if (!files || files.length === 0) {
+            return res.status(201).json({ 
+              id: purchaseId, 
+              user_id: req.user.id, 
+              description: safeDesc, 
+              amount: amt, 
+              date: safeDate, 
+              vendor: safeVendor, 
+              images: [],
+              inventory_id: inventoryId
+            });
+          }
+          const values = files.map(f => [inventoryId, f.filename, f.originalname, f.size, f.mimetype]);
+          db.query(
+            'INSERT INTO gem_inventory_images (inventory_id, file_name, original_name, file_size, mime_type) VALUES ?',
+            [values],
+            (imgErr) => {
+              if (imgErr) return res.status(500).json({ error: imgErr.message });
+              const images = files.map(f => ({
+                file_name: f.filename,
+                original_name: f.originalname,
+                file_size: f.size,
+                mime_type: f.mimetype,
+                url: `/uploads/${f.filename}`
+              }));
+              res.status(201).json({ 
+                id: purchaseId, 
+                user_id: req.user.id, 
+                description: safeDesc, 
+                amount: amt, 
+                date: safeDate, 
+                vendor: safeVendor, 
+                images,
+                inventory_id: inventoryId
+              });
+            }
+          );
+        });
       });
     });
   } catch (err) {
