@@ -203,9 +203,11 @@ export default function GemPurchases() {
           </div>
         </div>
 
-        {/* Purchases Grid */}
-        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Purchase History</h3>
+        {/* Purchases Table */}
+        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">Purchase History</h3>
+          </div>
           
           {loading ? (
             <div className="text-center py-8 text-powerbi-gray-500 dark:text-powerbi-gray-400">
@@ -216,30 +218,57 @@ export default function GemPurchases() {
               No purchases yet. Add your first purchase to get started.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {purchases.map(p => (
-                <div key={p.id} className="border border-powerbi-gray-200 dark:border-powerbi-gray-700 rounded-xl p-4 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <p className="font-semibold text-powerbi-gray-900 dark:text-white">{p.description || 'Purchase'}</p>
-                      <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{new Date(p.date).toLocaleDateString()}</p>
-                      {p.vendor && (
-                        <p className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-500">Vendor: {p.vendor}</p>
-                      )}
-                    </div>
-                    <div className="text-emerald-700 dark:text-emerald-400 font-bold text-lg">
-                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(p.amount) || 0)}
-                    </div>
-                  </div>
-                  {p.images && p.images.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2">
-                      {p.images.slice(0,3).map(img => (
-                        <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-full h-20 object-cover rounded-md border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-powerbi-gray-50 dark:bg-powerbi-gray-900/50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Vendor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Images</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-powerbi-gray-800 divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
+                  {purchases.map(p => (
+                    <tr key={p.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">
+                        {new Date(p.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-powerbi-gray-900 dark:text-white font-medium">
+                        {p.description || 'Purchase'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                        {p.vendor || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(p.amount) || 0)}
+                      </td>
+                      <td className="px-6 py-4">
+                        {p.images && p.images.length > 0 ? (
+                          <div className="flex space-x-1">
+                            {p.images.slice(0, 3).map(img => (
+                              <img
+                                key={img.file_name}
+                                src={`http://localhost:3001${img.url}`}
+                                alt={img.original_name}
+                                className="w-8 h-8 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700"
+                              />
+                            ))}
+                            {p.images.length > 3 && (
+                              <div className="w-8 h-8 bg-powerbi-gray-100 dark:bg-powerbi-gray-700 rounded flex items-center justify-center text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                                +{p.images.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-powerbi-gray-400 dark:text-powerbi-gray-500">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
