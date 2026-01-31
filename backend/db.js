@@ -304,6 +304,63 @@ tempConnection.connect((err) => {
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
           FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
         );
+
+        -- Gem Business: Purchases and Inventory tables
+        CREATE TABLE IF NOT EXISTS gem_purchases (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          description TEXT,
+          amount DECIMAL(10,2) NOT NULL,
+          date DATE NOT NULL,
+          vendor VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_purchase_images (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          purchase_id INT NOT NULL,
+          file_name VARCHAR(255) NOT NULL,
+          original_name VARCHAR(255) NOT NULL,
+          file_size BIGINT NOT NULL,
+          mime_type VARCHAR(100) NOT NULL,
+          uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (purchase_id) REFERENCES gem_purchases(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_inventory (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          gem_name VARCHAR(255) NOT NULL,
+          weight DECIMAL(10,3) NOT NULL,
+          color VARCHAR(100),
+          clarity VARCHAR(100),
+          cut VARCHAR(100),
+          shape VARCHAR(100),
+          origin VARCHAR(255),
+          purchase_price DECIMAL(10,2) NOT NULL,
+          current_value DECIMAL(10,2),
+          quantity INT DEFAULT 1,
+          purchase_id INT,
+          description TEXT,
+          status ENUM('available', 'sold', 'reserved') DEFAULT 'available',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (purchase_id) REFERENCES gem_purchases(id) ON DELETE SET NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_inventory_images (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          inventory_id INT NOT NULL,
+          file_name VARCHAR(255) NOT NULL,
+          original_name VARCHAR(255) NOT NULL,
+          file_size BIGINT NOT NULL,
+          mime_type VARCHAR(100) NOT NULL,
+          uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (inventory_id) REFERENCES gem_inventory(id) ON DELETE CASCADE
+        );
       `;
 
       connection.query(createTables, (err) => {
