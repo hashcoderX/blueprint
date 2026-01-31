@@ -1815,15 +1815,25 @@ const upload = multer({
 app.get('/api/gem/purchases', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
-    db.query('SELECT * FROM gem_purchases WHERE user_id = ? ORDER BY date DESC, created_at DESC', [req.user.id], (err, purchases) => {
+    db.query('SELECT p.*, i.id as inventory_id FROM gem_purchases p LEFT JOIN gem_inventory i ON p.id = i.purchase_id WHERE p.user_id = ? ORDER BY p.date DESC, p.created_at DESC', [req.user.id], (err, purchases) => {
       if (err) return res.status(500).json({ error: err.message });
       if (!purchases || purchases.length === 0) return res.json([]);
-      const ids = purchases.map(p => p.id);
-      db.query('SELECT * FROM gem_purchase_images WHERE purchase_id IN (?)', [ids], (imgErr, images) => {
+      
+      // Get inventory IDs that have images
+      const inventoryIds = purchases.filter(p => p.inventory_id).map(p => p.inventory_id);
+      if (inventoryIds.length === 0) {
+        const result = purchases.map(p => ({
+          ...p,
+          images: []
+        }));
+        return res.json(result);
+      }
+      
+      db.query('SELECT * FROM gem_inventory_images WHERE inventory_id IN (?)', [inventoryIds], (imgErr, images) => {
         if (imgErr) return res.status(500).json({ error: imgErr.message });
         const grouped = images.reduce((acc, img) => {
-          acc[img.purchase_id] = acc[img.purchase_id] || [];
-          acc[img.purchase_id].push({
+          acc[img.inventory_id] = acc[img.inventory_id] || [];
+          acc[img.inventory_id].push({
             id: img.id,
             file_name: img.file_name,
             original_name: img.original_name,
@@ -1836,7 +1846,7 @@ app.get('/api/gem/purchases', authenticateToken, async (req, res) => {
         }, {});
         const result = purchases.map(p => ({
           ...p,
-          images: grouped[p.id] || []
+          images: grouped[p.inventory_id] || []
         }));
         res.json(result);
       });
@@ -2098,9 +2108,9 @@ app.post('/api/gem/purchases', authenticateToken, upload.array('images', 5), asy
         }
         const purchaseId = result.insertId;
 
-        // Insert inventory item
-        db.query('INSERT INTO gem_inventory (user_id, gem_name, weight, color, clarity, cut, shape, origin, purchase_price, current_value, quantity, purchase_id, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)',
-          [req.user.id, safeGemName, wt, safeColor, safeClarity, safeCut, safeShape, safeOrigin, amt, amt, purchaseId, safeDesc], (invErr, invResult) => {
+        // Insert inventory item (explicitly set status to 'available')
+        db.query('INSERT INTO gem_inventory (user_id, gem_name, weight, color, clarity, cut, shape, origin, purchase_price, current_value, quantity, purchase_id, description, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)',
+          [req.user.id, safeGemName, wt, safeColor, safeClarity, safeCut, safeShape, safeOrigin, amt, amt, purchaseId, safeDesc, 'available'], (invErr, invResult) => {
           if (invErr) {
             // Cleanup files if inventory insert fails
             files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });

@@ -162,6 +162,8 @@ export default function GemPurchases() {
       setShape('');
       setOrigin('');
       setShowAdd(false);
+      // Navigate to inventory to confirm item is listed
+      router.push('/manage-gembusiness/inventory');
     } catch (e: any) {
       setSubmitError(e.message || 'Unexpected error');
     } finally {
