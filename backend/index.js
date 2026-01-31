@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const dbPromise = require('./db');
 const EncryptionService = require('./encryption');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const port = 3001;
@@ -11,6 +13,8 @@ const JWT_SECRET = 'your-secret-key'; // Change this in production
 
 app.use(cors());
 app.use(express.json());
+// Serve uploaded files statically for image previews
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Auth middleware
 const authenticateToken = (req, res, next) => {
@@ -1767,8 +1771,6 @@ app.delete('/api/project-income/:id', authenticateToken, async (req, res) => {
 
 // Project Documents API
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -1806,6 +1808,306 @@ const upload = multer({
     } else {
       cb(new Error('Invalid file type'), false);
     }
+  }
+});
+
+// Gem Business: Purchases with image upload
+app.get('/api/gem/purchases', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    db.query('SELECT * FROM gem_purchases WHERE user_id = ? ORDER BY date DESC, created_at DESC', [req.user.id], (err, purchases) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!purchases || purchases.length === 0) return res.json([]);
+      const ids = purchases.map(p => p.id);
+      db.query('SELECT * FROM gem_purchase_images WHERE purchase_id IN (?)', [ids], (imgErr, images) => {
+        if (imgErr) return res.status(500).json({ error: imgErr.message });
+        const grouped = images.reduce((acc, img) => {
+          acc[img.purchase_id] = acc[img.purchase_id] || [];
+          acc[img.purchase_id].push({
+            id: img.id,
+            file_name: img.file_name,
+            original_name: img.original_name,
+            file_size: img.file_size,
+            mime_type: img.mime_type,
+            uploaded_at: img.uploaded_at,
+            url: `/uploads/${img.file_name}`
+          });
+          return acc;
+        }, {});
+        const result = purchases.map(p => ({
+          ...p,
+          images: grouped[p.id] || []
+        }));
+        res.json(result);
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Gem Business: Inventory/Stock management
+app.get('/api/gem/inventory', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { gem_name, weight_min, weight_max, color, status, page = 1, limit = 20 } = req.query;
+    
+    let query = 'SELECT * FROM gem_inventory WHERE user_id = ?';
+    const params = [req.user.id];
+    
+    if (gem_name) {
+      query += ' AND gem_name LIKE ?';
+      params.push(`%${gem_name}%`);
+    }
+    if (weight_min) {
+      query += ' AND weight >= ?';
+      params.push(Number(weight_min));
+    }
+    if (weight_max) {
+      query += ' AND weight <= ?';
+      params.push(Number(weight_max));
+    }
+    if (color) {
+      query += ' AND color LIKE ?';
+      params.push(`%${color}%`);
+    }
+    if (status) {
+      query += ' AND status = ?';
+      params.push(status);
+    }
+    
+    query += ' ORDER BY created_at DESC';
+    
+    const offset = (Number(page) - 1) * Number(limit);
+    query += ` LIMIT ${Number(limit)} OFFSET ${offset}`;
+    
+    db.query(query, params, (err, items) => {
+      if (err) return res.status(500).json({ error: err.message });
+      
+      // Get total count for pagination
+      let countQuery = 'SELECT COUNT(*) as total FROM gem_inventory WHERE user_id = ?';
+      const countParams = [req.user.id];
+      let paramIndex = 0;
+      
+      if (gem_name) {
+        countQuery += ' AND gem_name LIKE ?';
+        countParams.push(`%${gem_name}%`);
+      }
+      if (weight_min) {
+        countQuery += ' AND weight >= ?';
+        countParams.push(Number(weight_min));
+      }
+      if (weight_max) {
+        countQuery += ' AND weight <= ?';
+        countParams.push(Number(weight_max));
+      }
+      if (color) {
+        countQuery += ' AND color LIKE ?';
+        countParams.push(`%${color}%`);
+      }
+      if (status) {
+        countQuery += ' AND status = ?';
+        countParams.push(status);
+      }
+      
+      db.query(countQuery, countParams, (countErr, countResult) => {
+        if (countErr) return res.status(500).json({ error: countErr.message });
+        
+        if (!items || items.length === 0) {
+          return res.json({ items: [], total: countResult[0].total, page: Number(page), limit: Number(limit) });
+        }
+        
+        const ids = items.map(i => i.id);
+        db.query('SELECT * FROM gem_inventory_images WHERE inventory_id IN (?)', [ids], (imgErr, images) => {
+          if (imgErr) return res.status(500).json({ error: imgErr.message });
+          
+          const grouped = images.reduce((acc, img) => {
+            acc[img.inventory_id] = acc[img.inventory_id] || [];
+            acc[img.inventory_id].push({
+              id: img.id,
+              file_name: img.file_name,
+              original_name: img.original_name,
+              url: `/uploads/${img.file_name}`
+            });
+            return acc;
+          }, {});
+          
+          const result = items.map(i => ({
+            ...i,
+            images: grouped[i.id] || []
+          }));
+          
+          res.json({
+            items: result,
+            total: countResult[0].total,
+            page: Number(page),
+            limit: Number(limit)
+          });
+        });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/gem/inventory', authenticateToken, upload.array('images', 5), async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const files = req.files || [];
+    const { gem_name, weight, color, clarity, cut, shape, origin, purchase_price, current_value, quantity, description, purchase_id } = req.body;
+    
+    const purchasePrice = Number(purchase_price);
+    const wt = Number(weight);
+    
+    if (!gem_name || !gem_name.trim()) {
+      files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });
+      return res.status(400).json({ error: 'Gem name is required' });
+    }
+    if (!Number.isFinite(wt) || wt <= 0) {
+      files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });
+      return res.status(400).json({ error: 'Weight must be a positive number' });
+    }
+    if (!Number.isFinite(purchasePrice) || purchasePrice < 0) {
+      files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });
+      return res.status(400).json({ error: 'Purchase price must be a non-negative number' });
+    }
+    
+    const safeGemName = gem_name.trim();
+    const safeColor = typeof color === 'string' ? color.trim() : null;
+    const safeClarity = typeof clarity === 'string' ? clarity.trim() : null;
+    const safeCut = typeof cut === 'string' ? cut.trim() : null;
+    const safeShape = typeof shape === 'string' ? shape.trim() : null;
+    const safeOrigin = typeof origin === 'string' ? origin.trim() : null;
+    const safeCurrentValue = current_value ? Number(current_value) : purchasePrice;
+    const safeQuantity = quantity ? Number(quantity) : 1;
+    const safeDescription = typeof description === 'string' ? description.trim() : null;
+    const safePurchaseId = purchase_id ? Number(purchase_id) : null;
+    
+    db.query('SELECT id FROM users WHERE id = ?', [req.user.id], (userErr, userRows) => {
+      if (userErr) return res.status(500).json({ error: 'Database error' });
+      if (!userRows || userRows.length === 0) return res.status(401).json({ error: 'User not found' });
+      
+      db.query(
+        'INSERT INTO gem_inventory (user_id, gem_name, weight, color, clarity, cut, shape, origin, purchase_price, current_value, quantity, purchase_id, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [req.user.id, safeGemName, wt, safeColor, safeClarity, safeCut, safeShape, safeOrigin, purchasePrice, safeCurrentValue, safeQuantity, safePurchaseId, safeDescription],
+        (insErr, result) => {
+          if (insErr) {
+            files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });
+            return res.status(500).json({ error: insErr.message });
+          }
+          
+          const inventoryId = result.insertId;
+          
+          if (!files || files.length === 0) {
+            return res.status(201).json({
+              id: inventoryId,
+              user_id: req.user.id,
+              gem_name: safeGemName,
+              weight: wt,
+              color: safeColor,
+              purchase_price: purchasePrice,
+              current_value: safeCurrentValue,
+              quantity: safeQuantity,
+              images: []
+            });
+          }
+          
+          const values = files.map(f => [inventoryId, f.filename, f.originalname, f.size, f.mimetype]);
+          db.query(
+            'INSERT INTO gem_inventory_images (inventory_id, file_name, original_name, file_size, mime_type) VALUES ?',
+            [values],
+            (imgErr) => {
+              if (imgErr) return res.status(500).json({ error: imgErr.message });
+              
+              const images = files.map(f => ({
+                file_name: f.filename,
+                original_name: f.originalname,
+                url: `/uploads/${f.filename}`
+              }));
+              
+              res.status(201).json({
+                id: inventoryId,
+                user_id: req.user.id,
+                gem_name: safeGemName,
+                weight: wt,
+                color: safeColor,
+                purchase_price: purchasePrice,
+                current_value: safeCurrentValue,
+                quantity: safeQuantity,
+                images
+              });
+            }
+          );
+        }
+      );
+    });
+  } catch (err) {
+    try {
+      const files = req.files || [];
+      files.forEach(f => { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); });
+    } catch(_){}
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/gem/purchases', authenticateToken, upload.array('images', 5), async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const files = req.files || [];
+    const { description, amount, date, vendor } = req.body;
+    const amt = Number(amount);
+    if (!Number.isFinite(amt) || amt <= 0) {
+      // Cleanup uploaded temp files when validation fails
+      files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });
+      return res.status(400).json({ error: 'Amount must be a positive number' });
+    }
+
+    const safeDesc = typeof description === 'string' ? description.trim() : '';
+    const safeVendor = typeof vendor === 'string' ? vendor.trim() : null;
+    const safeDate = (typeof date === 'string' && date.trim()) ? date.trim() : new Date().toISOString().slice(0,10);
+
+    // Verify user exists
+    db.query('SELECT id FROM users WHERE id = ?', [req.user.id], (userErr, userRows) => {
+      if (userErr) return res.status(500).json({ error: 'Database error' });
+      if (!userRows || userRows.length === 0) return res.status(401).json({ error: 'User not found' });
+
+      db.query('INSERT INTO gem_purchases (user_id, description, amount, date, vendor) VALUES (?, ?, ?, ?, ?)',
+        [req.user.id, safeDesc, amt, safeDate, safeVendor], (insErr, result) => {
+        if (insErr) {
+          // Cleanup files if DB insert fails
+          files.forEach(f => { try { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); } catch(_){} });
+          return res.status(500).json({ error: insErr.message });
+        }
+        const purchaseId = result.insertId;
+        if (!files || files.length === 0) {
+          return res.status(201).json({ id: purchaseId, user_id: req.user.id, description: safeDesc, amount: amt, date: safeDate, vendor: safeVendor, images: [] });
+        }
+        const values = files.map(f => [purchaseId, f.filename, f.originalname, f.size, f.mimetype]);
+        db.query(
+          'INSERT INTO gem_purchase_images (purchase_id, file_name, original_name, file_size, mime_type) VALUES ?',
+          [values],
+          (imgErr) => {
+            if (imgErr) return res.status(500).json({ error: imgErr.message });
+            const images = files.map(f => ({
+              file_name: f.filename,
+              original_name: f.originalname,
+              file_size: f.size,
+              mime_type: f.mimetype,
+              url: `/uploads/${f.filename}`
+            }));
+            res.status(201).json({ id: purchaseId, user_id: req.user.id, description: safeDesc, amount: amt, date: safeDate, vendor: safeVendor, images });
+          }
+        );
+      });
+    });
+  } catch (err) {
+    // Cleanup uploaded files if something went wrong before insert
+    try {
+      const files = req.files || [];
+      files.forEach(f => { if (f.path && fs.existsSync(f.path)) fs.unlinkSync(f.path); });
+    } catch(_){}
+    res.status(500).json({ error: 'Database not ready' });
   }
 });
 
