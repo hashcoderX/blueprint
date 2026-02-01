@@ -183,10 +183,10 @@ export default function ManageGemBusiness() {
                 <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">Income</h3>
               </div>
-              <button className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">Add Sale</button>
+              <button onClick={() => router.push('/manage-gembusiness/sales')} className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">View Sales</button>
             </div>
             <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Track sales, auctions, and consignments.</p>
-            <div className="mt-4 text-powerbi-gray-500 dark:text-powerbi-gray-400 text-sm">No sales yet.</div>
+            <div className="mt-4 text-powerbi-gray-500 dark:text-powerbi-gray-400 text-sm">Click &quot;View Sales&quot; to manage your sales.</div>
           </div>
         </div>
       </div>

@@ -364,6 +364,19 @@ tempConnection.connect((err) => {
           uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (inventory_id) REFERENCES gem_inventory(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS gem_sales (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          inventory_id INT NOT NULL,
+          description TEXT,
+          amount DECIMAL(10,2) NOT NULL,
+          date DATE NOT NULL,
+          buyer VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (inventory_id) REFERENCES gem_inventory(id) ON DELETE CASCADE
+        );
       `;
 
       connection.query(createTables, (err) => {

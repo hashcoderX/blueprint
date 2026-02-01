@@ -2306,3 +2306,81 @@ app.delete('/api/project-documents/:id', authenticateToken, async (req, res) => 
 app.listen(port, () => {
   console.log(`Backend server running on port ${port}`);
 });
+
+// Gem Business: Sales - list
+app.get('/api/gem/sales', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    db.query(
+      `SELECT s.*, i.gem_name, i.weight, i.color, i.clarity, i.shape, i.origin
+       FROM gem_sales s
+       JOIN gem_inventory i ON s.inventory_id = i.id
+       WHERE s.user_id = ?
+       ORDER BY s.date DESC, s.created_at DESC`,
+      [req.user.id],
+      (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!rows || rows.length === 0) return res.json([]);
+        const inventoryIds = rows.map(r => r.inventory_id);
+        db.query('SELECT * FROM gem_inventory_images WHERE inventory_id IN (?)', [inventoryIds], (imgErr, images) => {
+          if (imgErr) return res.status(500).json({ error: imgErr.message });
+          const grouped = images.reduce((acc, img) => {
+            acc[img.inventory_id] = acc[img.inventory_id] || [];
+            acc[img.inventory_id].push({
+              id: img.id,
+              file_name: img.file_name,
+              original_name: img.original_name,
+              url: `/uploads/${img.file_name}`
+            });
+            return acc;
+          }, {});
+          const result = rows.map(r => ({
+            ...r,
+            images: grouped[r.inventory_id] || []
+          }));
+          res.json(result);
+        });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Gem Business: Sales - create
+app.post('/api/gem/sales', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { inventory_id, amount, date, buyer, description } = req.body;
+    const invId = Number(inventory_id);
+    const amt = Number(amount);
+    if (!Number.isFinite(invId) || invId <= 0) return res.status(400).json({ error: 'Invalid inventory item' });
+    if (!Number.isFinite(amt) || amt <= 0) return res.status(400).json({ error: 'Amount must be positive' });
+    const safeDate = (typeof date === 'string' && date.trim()) ? date.trim() : new Date().toISOString().slice(0,10);
+    const safeBuyer = typeof buyer === 'string' ? buyer.trim() : null;
+    const safeDesc = typeof description === 'string' ? description.trim() : '';
+
+    // Ensure inventory item belongs to user and is available
+    db.query('SELECT id, user_id, status FROM gem_inventory WHERE id = ?', [invId], (invErr, invRows) => {
+      if (invErr) return res.status(500).json({ error: invErr.message });
+      if (!invRows || invRows.length === 0) return res.status(404).json({ error: 'Inventory item not found' });
+      const item = invRows[0];
+      if (item.user_id !== req.user.id) return res.status(403).json({ error: 'Not authorized' });
+      if (item.status !== 'available') return res.status(400).json({ error: 'Item is not available for sale' });
+
+      // Insert sale
+      db.query('INSERT INTO gem_sales (user_id, inventory_id, description, amount, date, buyer) VALUES (?, ?, ?, ?, ?, ?)',
+        [req.user.id, invId, safeDesc, amt, safeDate, safeBuyer], (saleErr, saleRes) => {
+        if (saleErr) return res.status(500).json({ error: saleErr.message });
+        const saleId = saleRes.insertId;
+        // Update inventory status and current_value
+        db.query('UPDATE gem_inventory SET status = \'sold\', current_value = ? WHERE id = ?', [amt, invId], (updErr) => {
+          if (updErr) return res.status(500).json({ error: updErr.message });
+          res.status(201).json({ id: saleId, inventory_id: invId, amount: amt, date: safeDate, buyer: safeBuyer, description: safeDesc });
+        });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
