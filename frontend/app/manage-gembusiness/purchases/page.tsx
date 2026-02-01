@@ -18,7 +18,17 @@ type GemPurchase = {
   amount: number;
   date: string;
   vendor?: string | null;
+  inventory_id?: number | null;
   images: GemImage[];
+};
+
+type GemExpense = {
+  id: number;
+  inventory_id: number;
+  amount: number;
+  date: string;
+  category?: string | null;
+  description?: string | null;
 };
 
 export default function GemPurchases() {
@@ -26,6 +36,13 @@ export default function GemPurchases() {
   const [purchases, setPurchases] = useState<GemPurchase[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showAdd, setShowAdd] = useState<boolean>(false);
+  const [selected, setSelected] = useState<GemPurchase | null>(null);
+  const [showDetail, setShowDetail] = useState<boolean>(false);
+  const [showAddExpense, setShowAddExpense] = useState<boolean>(false);
+  const [showExpensesHistory, setShowExpensesHistory] = useState<boolean>(false);
+  const [expenses, setExpenses] = useState<GemExpense[]>([]);
+  const [expensesLoading, setExpensesLoading] = useState<boolean>(false);
+  const [expensesError, setExpensesError] = useState<string | null>(null);
   
   // Add form
   const [desc, setDesc] = useState('');
@@ -44,11 +61,12 @@ export default function GemPurchases() {
   const [cut, setCut] = useState('');
   const [shape, setShape] = useState('');
   const [origin, setOrigin] = useState('');
-  
+
+  // User profile + auth token
   const [userProfile, setUserProfile] = useState<any>(null);
-  
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  
+
+  // Stats
   const monthTotal = useMemo(() => {
     const now = new Date();
     const m = now.getMonth();
@@ -60,9 +78,10 @@ export default function GemPurchases() {
       })
       .reduce((s, p) => s + (Number(p.amount) || 0), 0);
   }, [purchases]);
-  
+
   const totalPurchases = useMemo(() => purchases.length, [purchases]);
-  
+
+  // Load purchases
   const loadPurchases = async () => {
     if (!token) { setLoading(false); return; }
     try {
@@ -71,12 +90,111 @@ export default function GemPurchases() {
       });
       if (res.ok) {
         const data = await res.json();
-        setPurchases(Array.isArray(data) ? data : []);
+        const normalized: GemPurchase[] = (Array.isArray(data) ? data : []).map((p: any) => ({
+          id: Number(p.id),
+          description: typeof p.description === 'string' ? p.description : '',
+          amount: Number(p.amount) || 0,
+          date: p.date || new Date().toISOString().slice(0,10),
+          vendor: p.vendor || null,
+          inventory_id: p.inventory_id ? Number(p.inventory_id) : null,
+          images: Array.isArray(p.images) ? p.images.map((img: any) => ({
+            id: img.id ? Number(img.id) : undefined,
+            file_name: String(img.file_name || ''),
+            original_name: String(img.original_name || ''),
+            url: String(img.url || '')
+          })) : []
+        }));
+        setPurchases(normalized);
       }
     } catch (e) {
       console.error('Failed to load purchases', e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load expenses for selected inventory
+  const loadExpensesForSelected = async () => {
+    if (!token || !selected?.inventory_id) return;
+    setExpensesLoading(true);
+    setExpensesError(null);
+    try {
+      const res = await fetch(`http://localhost:3001/api/gem/expenses?inventory_id=${selected.inventory_id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to load expenses');
+      }
+      const data = await res.json();
+      const normalized: GemExpense[] = (Array.isArray(data) ? data : []).map((e: any) => ({
+        id: Number(e.id),
+        inventory_id: Number(e.inventory_id),
+        amount: Number(e.amount) || 0,
+        date: e.date || new Date().toISOString().slice(0,10),
+        category: e.category || null,
+        description: e.description || null
+      }));
+      setExpenses(normalized);
+    } catch (e: any) {
+      setExpensesError(e.message || 'Unexpected error');
+    } finally {
+      setExpensesLoading(false);
+    }
+  };
+
+  // Add Expense modal state
+  const [expInventoryId, setExpInventoryId] = useState<number | null>(null);
+  const [expAmount, setExpAmount] = useState<string>('');
+  const [expDate, setExpDate] = useState<string>('');
+  const [expCategory, setExpCategory] = useState<string>('general');
+  const [expDesc, setExpDesc] = useState<string>('');
+  const [expError, setExpError] = useState<string | null>(null);
+  const [expSubmitting, setExpSubmitting] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (showAddExpense && selected) {
+      setExpInventoryId(selected.inventory_id || null);
+      setExpDate(new Date().toISOString().slice(0,10));
+      setExpAmount('');
+      setExpCategory('general');
+      setExpDesc('');
+      setExpError(null);
+    }
+  }, [showAddExpense, selected]);
+
+  const submitExpense = async () => {
+    setExpError(null);
+    if (!token) { setExpError('Not authenticated'); return; }
+    if (!expInventoryId) { setExpError('Linked inventory is required'); return; }
+    const amt = Number(expAmount);
+    if (!Number.isFinite(amt) || amt <= 0) { setExpError('Enter a valid positive amount'); return; }
+    setExpSubmitting(true);
+    try {
+      const payload = {
+        inventory_id: expInventoryId,
+        amount: amt,
+        date: expDate || new Date().toISOString().slice(0,10),
+        category: expCategory || 'general',
+        description: expDesc || ''
+      };
+      const res = await fetch('http://localhost:3001/api/gem/expenses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to add expense');
+      }
+      setShowAddExpense(false);
+    } catch (e: any) {
+      setExpError(e.message || 'Unexpected error');
+    } finally {
+      setExpSubmitting(false);
     }
   };
   
@@ -267,7 +385,11 @@ export default function GemPurchases() {
                 </thead>
                 <tbody className="bg-white dark:bg-powerbi-gray-800 divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
                   {purchases.map(p => (
-                    <tr key={p.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50">
+                    <tr
+                      key={p.id}
+                      className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50 cursor-pointer"
+                      onClick={() => { setSelected(p); setShowDetail(true); }}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">
                         {new Date(p.date).toLocaleDateString()}
                       </td>
@@ -291,6 +413,201 @@ export default function GemPurchases() {
                                 className="w-8 h-8 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700"
                               />
                             ))}
+
+                            {/* Purchase Detail Modal */}
+                            {showDetail && selected && (
+                              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                                  <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
+                                    <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Purchase Details</h4>
+                                    <button onClick={() => setShowDetail(false)} className="px-3 py-1.5 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white">Close</button>
+                                  </div>
+                                  <div className="p-6 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Date</div>
+                                        <div className="text-powerbi-gray-900 dark:text-white font-medium">{new Date(selected.date).toLocaleDateString()}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Amount</div>
+                                        <div className="text-emerald-700 dark:text-emerald-400 font-semibold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(selected.amount) || 0)}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Vendor</div>
+                                        <div className="text-powerbi-gray-900 dark:text-white">{selected.vendor || '-'}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Linked Inventory</div>
+                                        <div className="text-powerbi-gray-900 dark:text-white">{selected.inventory_id ? `#${selected.inventory_id}` : 'Not linked'}</div>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Description</div>
+                                      <div className="text-powerbi-gray-900 dark:text-white">{selected.description || '-'}</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400 mb-2">Images</div>
+                                      {selected.images && selected.images.length > 0 ? (
+                                        <div className="grid grid-cols-3 gap-3">
+                                          {selected.images.map(img => (
+                                            <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-full h-28 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <div className="text-sm text-powerbi-gray-400 dark:text-powerbi-gray-500">No images</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+                                    <button onClick={() => { setShowDetail(false); router.push('/manage-gembusiness/inventory'); }} className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">Open Inventory</button>
+                                    <button onClick={() => { setShowExpensesHistory(true); loadExpensesForSelected(); }} disabled={!selected.inventory_id} className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">View Expenses</button>
+                                    <button onClick={() => setShowAddExpense(true)} disabled={!selected.inventory_id} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">Add Expense</button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Purchase Detail Modal */}
+                            {showDetail && selected && (
+                              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={() => { setShowDetail(false); setSelected(null); }}>
+                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700" onClick={(e) => e.stopPropagation()}>
+                                  <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
+                                    <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Purchase Details</h4>
+                                    <button onClick={() => { setShowDetail(false); setSelected(null); }} className="px-3 py-1.5 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white">Close</button>
+                                  </div>
+                                  <div className="p-6 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Date</div>
+                                        <div className="text-powerbi-gray-900 dark:text-white font-medium">{new Date(selected.date).toLocaleDateString()}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Amount</div>
+                                        <div className="text-emerald-700 dark:text-emerald-400 font-semibold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(selected.amount) || 0)}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Vendor</div>
+                                        <div className="text-powerbi-gray-900 dark:text-white">{selected.vendor || '-'}</div>
+                                      </div>
+                                      <div>
+                                        <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Linked Inventory</div>
+                                        <div className="text-powerbi-gray-900 dark:text-white">{selected.inventory_id ? `#${selected.inventory_id}` : 'Not linked'}</div>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Description</div>
+                                      <div className="text-powerbi-gray-900 dark:text-white">{selected.description || '-'}</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400 mb-2">Images</div>
+                                      {selected.images && selected.images.length > 0 ? (
+                                        <div className="grid grid-cols-3 gap-3">
+                                          {selected.images.map(img => (
+                                            <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-full h-28 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <div className="text-sm text-powerbi-gray-400 dark:text-powerbi-gray-500">No images</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+                                    <button onClick={() => { setShowDetail(false); setSelected(null); router.push('/manage-gembusiness/inventory'); }} className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">Open Inventory</button>
+                                    <button onClick={() => { setShowExpensesHistory(true); loadExpensesForSelected(); }} disabled={!selected.inventory_id} className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">View Expenses</button>
+                                    <button onClick={() => setShowAddExpense(true)} disabled={!selected.inventory_id} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">Add Expense</button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Add Expense Modal */}
+                            {showAddExpense && (
+                              <div className="fixed inset-0 bg-black/40 flex items-center justify_center z-50 p-4 overflow-y-auto" onClick={() => setShowAddExpense(false)}>
+                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700" onClick={(e) => e.stopPropagation()}>
+                                  <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                                    <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add Expense</h4>
+                                  </div>
+                                  <div className="p-6 space-y-4">
+                                    <div>
+                                      <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Linked Inventory ID</label>
+                                      <input value={expInventoryId ?? ''} onChange={e => setExpInventoryId(e.target.value ? Number(e.target.value) : null)} type="number" min="1" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 12" />
+                                      <p className="text-xs text-powerbi-gray-500 dark:text-powerbi-gray-400 mt-1">Pre-filled if the purchase created an inventory item.</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Amount *</label>
+                                        <input value={expAmount} onChange={e => setExpAmount(e.target.value)} type="number" min="0" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 25.00" />
+                                      </div>
+                                      <div>
+                                        <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Date</label>
+                                        <input value={expDate} onChange={e => setExpDate(e.target.value)} type="date" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" />
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Category</label>
+                                      <input value={expCategory} onChange={e => setExpCategory(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. cutting" />
+                                    </div>
+                                    <div>
+                                      <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Description</label>
+                                      <input value={expDesc} onChange={e => setExpDesc(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Cutting service" />
+                                    </div>
+                                  </div>
+                                  {expError && (
+                                    <div className="px-6 pb-4">
+                                      <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{expError}</div>
+                                    </div>
+                                  )}
+                                  <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+                                    <button onClick={() => setShowAddExpense(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Cancel</button>
+                                    <button onClick={submitExpense} disabled={expSubmitting} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">{expSubmitting ? 'Saving...' : 'Save Expense'}</button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            {/* Add Expense Modal */}
+                            {showAddExpense && (
+                              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                                  <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                                    <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add Expense</h4>
+                                  </div>
+                                  <div className="p-6 space-y-4">
+                                    <div>
+                                      <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Linked Inventory ID</label>
+                                      <input value={expInventoryId ?? ''} onChange={e => setExpInventoryId(e.target.value ? Number(e.target.value) : null)} type="number" min="1" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 12" />
+                                      <p className="text-xs text-powerbi-gray-500 dark:text-powerbi-gray-400 mt-1">Pre-filled if the purchase created an inventory item.</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Amount *</label>
+                                        <input value={expAmount} onChange={e => setExpAmount(e.target.value)} type="number" min="0" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 25.00" />
+                                      </div>
+                                      <div>
+                                        <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Date</label>
+                                        <input value={expDate} onChange={e => setExpDate(e.target.value)} type="date" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" />
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Category</label>
+                                      <input value={expCategory} onChange={e => setExpCategory(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. cutting" />
+                                    </div>
+                                    <div>
+                                      <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Description</label>
+                                      <input value={expDesc} onChange={e => setExpDesc(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Cutting service" />
+                                    </div>
+                                  </div>
+                                  {expError && (
+                                    <div className="px-6 pb-4">
+                                      <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{expError}</div>
+                                    </div>
+                                  )}
+                                  <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+                                    <button onClick={() => setShowAddExpense(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Cancel</button>
+                                    <button onClick={submitExpense} disabled={expSubmitting} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">{expSubmitting ? 'Saving...' : 'Save Expense'}</button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                             {p.images.length > 3 && (
                               <div className="w-8 h-8 bg-powerbi-gray-100 dark:bg-powerbi-gray-700 rounded flex items-center justify-center text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">
                                 +{p.images.length - 3}
@@ -386,6 +703,52 @@ export default function GemPurchases() {
                 <button onClick={handleAddPurchase} disabled={isSubmitting} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">
                   {isSubmitting ? 'Saving...' : 'Save Purchase'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Expenses History Modal */}
+        {showExpensesHistory && selected && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
+                <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Expenses History</h4>
+                <button onClick={() => setShowExpensesHistory(false)} className="px-3 py-1.5 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white">Close</button>
+              </div>
+              <div className="p-6">
+                {!selected.inventory_id ? (
+                  <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">No linked inventory for this purchase.</div>
+                ) : expensesLoading ? (
+                  <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Loading expenses...</div>
+                ) : expensesError ? (
+                  <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{expensesError}</div>
+                ) : expenses.length === 0 ? (
+                  <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">No expenses recorded for this item.</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-powerbi-gray-50 dark:bg-powerbi-gray-900/50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Category</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Description</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-powerbi-gray-800 divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
+                        {expenses.map(exp => (
+                          <tr key={exp.id}>
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-900 dark:text-white">{new Date(exp.date).toLocaleDateString()}</td>
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{exp.category || '-'}</td>
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{exp.description || '-'}</td>
+                            <td className="px-6 py-3 text-sm font-semibold text-rose-700 dark:text-rose-400">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(exp.amount) || 0)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           </div>

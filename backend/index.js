@@ -139,6 +139,39 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+// Gem Business: Tracking - update
+app.put('/api/gem/tracking/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const trackId = Number(req.params.id);
+    const { status, end_date, notes } = req.body || {};
+    if (!Number.isFinite(trackId) || trackId <= 0) {
+      return res.status(400).json({ error: 'Invalid tracking id' });
+    }
+    if (!status || !['ongoing','completed'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+    db.query('SELECT * FROM gem_inventory_tracking WHERE id = ? AND user_id = ?', [trackId, req.user.id], (selErr, rows) => {
+      if (selErr) return res.status(500).json({ error: selErr.message });
+      if (!rows || rows.length === 0) return res.status(404).json({ error: 'Tracking not found' });
+      const newEndDate = status === 'completed' ? (end_date && String(end_date).trim() ? String(end_date).trim() : new Date().toISOString().slice(0,10)) : null;
+      db.query(
+        'UPDATE gem_inventory_tracking SET status = ?, end_date = ?, notes = COALESCE(?, notes) WHERE id = ? AND user_id = ?',
+        [status, newEndDate, (typeof notes === 'string' ? notes.trim() : null), trackId, req.user.id],
+        (updErr) => {
+          if (updErr) return res.status(500).json({ error: updErr.message });
+          db.query('SELECT * FROM gem_inventory_tracking WHERE id = ?', [trackId], (reErr, reRows) => {
+            if (reErr) return res.status(500).json({ error: reErr.message });
+            return res.json(reRows && reRows[0] ? reRows[0] : { success: true });
+          });
+        }
+      );
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
 // Login
 app.post('/api/login', async (req, res) => {
   try {
@@ -1942,17 +1975,89 @@ app.get('/api/gem/inventory', authenticateToken, async (req, res) => {
             return acc;
           }, {});
           
-          const result = items.map(i => ({
-            ...i,
-            images: grouped[i.id] || []
-          }));
+          // Aggregate expenses per inventory item
+          if (!ids || ids.length === 0) {
+            const result = items.map(i => ({
+              ...i,
+              images: grouped[i.id] || [],
+              expenses_total: 0
+            }));
+            return res.json({
+              items: result,
+              total: countResult[0].total,
+              page: Number(page),
+              limit: Number(limit)
+            });
+          }
           
-          res.json({
-            items: result,
-            total: countResult[0].total,
-            page: Number(page),
-            limit: Number(limit)
-          });
+          db.query(
+            'SELECT inventory_id, SUM(amount) AS expenses_total FROM gem_expenses WHERE user_id = ? AND inventory_id IN (?) GROUP BY inventory_id',
+            [req.user.id, ids],
+            (expErr, expRows) => {
+              if (expErr) {
+                // If expenses query fails, continue with 0
+                const result = items.map(i => ({
+                  ...i,
+                  images: grouped[i.id] || [],
+                  expenses_total: 0,
+                  tracking_action_type: null,
+                  tracking_status: null,
+                  tracking_start_date: null,
+                  derived_status: i.status
+                }));
+                return res.json({
+                  items: result,
+                  total: countResult[0].total,
+                  page: Number(page),
+                  limit: Number(limit)
+                });
+              }
+              const expenseMap = (expRows || []).reduce((acc, row) => {
+                acc[row.inventory_id] = Number(row.expenses_total) || 0;
+                return acc;
+              }, {});
+
+              // Fetch ongoing tracking for these inventory items
+              db.query(
+                'SELECT inventory_id, action_type, status, start_date FROM gem_inventory_tracking WHERE user_id = ? AND inventory_id IN (?) AND status = "ongoing" ORDER BY start_date DESC, id DESC',
+                [req.user.id, ids],
+                (trackErr, trackRows) => {
+                  const trackMap = {};
+                  if (!trackErr && Array.isArray(trackRows)) {
+                    for (const row of trackRows) {
+                      if (!trackMap[row.inventory_id]) {
+                        trackMap[row.inventory_id] = {
+                          action_type: row.action_type,
+                          status: row.status,
+                          start_date: row.start_date
+                        };
+                      }
+                    }
+                  }
+
+                  const result = items.map(i => {
+                    const t = trackMap[i.id] || null;
+                    const derived_status = i.status === 'sold' ? 'sold' : (t ? t.action_type : i.status);
+                    return {
+                      ...i,
+                      images: grouped[i.id] || [],
+                      expenses_total: expenseMap[i.id] || 0,
+                      tracking_action_type: t ? t.action_type : null,
+                      tracking_status: t ? t.status : null,
+                      tracking_start_date: t ? t.start_date : null,
+                      derived_status
+                    };
+                  });
+                  return res.json({
+                    items: result,
+                    total: countResult[0].total,
+                    page: Number(page),
+                    limit: Number(limit)
+                  });
+                }
+              );
+            }
+          );
         });
       });
     });
@@ -2312,7 +2417,8 @@ app.get('/api/gem/sales', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
     db.query(
-      `SELECT s.*, i.gem_name, i.weight, i.color, i.clarity, i.shape, i.origin
+      `SELECT s.*, i.gem_name, i.weight, i.color, i.clarity, i.shape, i.origin, i.purchase_price,
+        (SELECT COALESCE(SUM(e.amount),0) FROM gem_expenses e WHERE e.inventory_id = s.inventory_id AND e.user_id = s.user_id) AS expenses_total
        FROM gem_sales s
        JOIN gem_inventory i ON s.inventory_id = i.id
        WHERE s.user_id = ?
@@ -2379,6 +2485,113 @@ app.post('/api/gem/sales', authenticateToken, async (req, res) => {
           res.status(201).json({ id: saleId, inventory_id: invId, amount: amt, date: safeDate, buyer: safeBuyer, description: safeDesc });
         });
       });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Gem Business: Expenses - list
+app.get('/api/gem/expenses', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { inventory_id } = req.query;
+    const params = [req.user.id];
+    let query = 'SELECT * FROM gem_expenses WHERE user_id = ?';
+    if (inventory_id) {
+      query += ' AND inventory_id = ?';
+      params.push(Number(inventory_id));
+    }
+    query += ' ORDER BY date DESC, created_at DESC';
+    db.query(query, params, (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows || []);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Gem Business: Expenses - create
+app.post('/api/gem/expenses', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { inventory_id, amount, date, description, category } = req.body;
+    const invId = Number(inventory_id);
+    const amt = Number(amount);
+    if (!Number.isFinite(invId) || invId <= 0) return res.status(400).json({ error: 'Invalid inventory item' });
+    if (!Number.isFinite(amt) || amt <= 0) return res.status(400).json({ error: 'Amount must be positive' });
+    const safeDate = (typeof date === 'string' && date.trim()) ? date.trim() : new Date().toISOString().slice(0,10);
+    const safeDesc = typeof description === 'string' ? description.trim() : '';
+    const safeCat = typeof category === 'string' ? category.trim() : null;
+
+    // Ensure inventory item belongs to user
+    db.query('SELECT id, user_id FROM gem_inventory WHERE id = ?', [invId], (invErr, invRows) => {
+      if (invErr) return res.status(500).json({ error: invErr.message });
+      if (!invRows || invRows.length === 0) return res.status(404).json({ error: 'Inventory item not found' });
+      if (invRows[0].user_id !== req.user.id) return res.status(403).json({ error: 'Not authorized' });
+      db.query('INSERT INTO gem_expenses (user_id, inventory_id, amount, date, description, category) VALUES (?, ?, ?, ?, ?, ?)',
+        [req.user.id, invId, amt, safeDate, safeDesc, safeCat], (insErr, insRes) => {
+          if (insErr) return res.status(500).json({ error: insErr.message });
+          res.status(201).json({ id: insRes.insertId, inventory_id: invId, amount: amt, date: safeDate, description: safeDesc, category: safeCat });
+        }
+      );
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Gem Business: Tracking - list
+app.get('/api/gem/tracking', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { inventory_id } = req.query;
+    const params = [req.user.id];
+    let query = 'SELECT * FROM gem_inventory_tracking WHERE user_id = ?';
+    if (inventory_id) {
+      query += ' AND inventory_id = ?';
+      params.push(Number(inventory_id));
+    }
+    query += ' ORDER BY start_date DESC, created_at DESC';
+    db.query(query, params, (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows || []);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Gem Business: Tracking - create
+app.post('/api/gem/tracking', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { inventory_id, action_type, party, status, start_date, end_date, notes } = req.body;
+    const invId = Number(inventory_id);
+    const safeType = typeof action_type === 'string' ? action_type.trim() : '';
+    if (!Number.isFinite(invId) || invId <= 0) return res.status(400).json({ error: 'Invalid inventory item' });
+    if (!['burning','broker','note'].includes(safeType)) return res.status(400).json({ error: 'Invalid action type' });
+    const safeParty = typeof party === 'string' && party.trim() ? party.trim() : null;
+    const safeStatus = (typeof status === 'string' && ['ongoing','completed'].includes(status)) ? status : 'ongoing';
+    const safeStart = (typeof start_date === 'string' && start_date.trim()) ? start_date.trim() : new Date().toISOString().slice(0,10);
+    const safeEnd = (typeof end_date === 'string' && end_date.trim()) ? end_date.trim() : null;
+    const safeNotes = typeof notes === 'string' ? notes.trim() : '';
+
+    // Ensure inventory item belongs to user
+    db.query('SELECT id, user_id FROM gem_inventory WHERE id = ?', [invId], (invErr, invRows) => {
+      if (invErr) return res.status(500).json({ error: invErr.message });
+      if (!invRows || invRows.length === 0) return res.status(404).json({ error: 'Inventory item not found' });
+      if (invRows[0].user_id !== req.user.id) return res.status(403).json({ error: 'Not authorized' });
+
+      db.query(
+        'INSERT INTO gem_inventory_tracking (user_id, inventory_id, action_type, party, status, start_date, end_date, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [req.user.id, invId, safeType, safeParty, safeStatus, safeStart, safeEnd, safeNotes],
+        (insErr, insRes) => {
+          if (insErr) return res.status(500).json({ error: insErr.message });
+          res.status(201).json({ id: insRes.insertId, inventory_id: invId, action_type: safeType, party: safeParty, status: safeStatus, start_date: safeStart, end_date: safeEnd, notes: safeNotes });
+        }
+      );
     });
   } catch (err) {
     res.status(500).json({ error: 'Database not ready' });

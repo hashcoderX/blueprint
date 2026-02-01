@@ -28,6 +28,22 @@ type GemInventoryItem = {
   description: string | null;
   created_at: string;
   images: GemImage[];
+  expenses_total: number;
+  tracking_action_type?: 'burning' | 'broker' | 'note' | null;
+  tracking_status?: 'ongoing' | 'completed' | null;
+  tracking_start_date?: string | null;
+  derived_status?: string | null;
+};
+
+type GemTracking = {
+  id: number;
+  inventory_id: number;
+  action_type: 'burning' | 'broker' | 'note';
+  party?: string | null;
+  status: 'ongoing' | 'completed';
+  start_date: string;
+  end_date?: string | null;
+  notes?: string | null;
 };
 
 export default function GemInventory() {
@@ -64,6 +80,48 @@ export default function GemInventory() {
   const [files, setFiles] = useState<FileList | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const [selectedItem, setSelectedItem] = useState<GemInventoryItem | null>(null);
+  const [showDetail, setShowDetail] = useState<boolean>(false);
+
+  const [showAddExpense, setShowAddExpense] = useState<boolean>(false);
+  const [expenseInvId, setExpenseInvId] = useState('');
+  const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseDate, setExpenseDate] = useState('');
+  const [expenseDesc, setExpenseDesc] = useState('');
+  const [expenseCategory, setExpenseCategory] = useState('');
+  const [expenseSubmitting, setExpenseSubmitting] = useState<boolean>(false);
+  const [expenseError, setExpenseError] = useState<string | null>(null);
+
+  // Tracking state
+  const [showAddTracking, setShowAddTracking] = useState<boolean>(false);
+  const [showTrackingHistory, setShowTrackingHistory] = useState<boolean>(false);
+  const [trackingItems, setTrackingItems] = useState<GemTracking[]>([]);
+  const [trackingLoading, setTrackingLoading] = useState<boolean>(false);
+  const [trackingError, setTrackingError] = useState<string | null>(null);
+  const [trackCompletingId, setTrackCompletingId] = useState<number | null>(null);
+  const [trackCompleteError, setTrackCompleteError] = useState<string | null>(null);
+  const [trackActionType, setTrackActionType] = useState<'burning' | 'broker' | 'note'>('burning');
+  const [trackParty, setTrackParty] = useState('');
+  const [trackStatus, setTrackStatus] = useState<'ongoing' | 'completed'>('ongoing');
+  const [trackStartDate, setTrackStartDate] = useState('');
+  const [trackEndDate, setTrackEndDate] = useState('');
+  const [trackNotes, setTrackNotes] = useState('');
+  const [trackSubmitting, setTrackSubmitting] = useState<boolean>(false);
+
+  // Expenses history modal
+  type GemExpense = {
+    id: number;
+    inventory_id: number;
+    amount: number;
+    date: string;
+    description?: string | null;
+    category?: string | null;
+  };
+  const [showExpensesHistory, setShowExpensesHistory] = useState<boolean>(false);
+  const [expensesItems, setExpensesItems] = useState<GemExpense[]>([]);
+  const [expensesLoading, setExpensesLoading] = useState<boolean>(false);
+  const [expensesError, setExpensesError] = useState<string | null>(null);
   
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   
@@ -102,7 +160,8 @@ export default function GemInventory() {
               weight: Number(i.weight ?? 0),
               purchase_price: Number(i.purchase_price ?? 0),
               current_value: i.current_value != null ? Number(i.current_value) : null,
-              quantity: Number(i.quantity ?? 1)
+              quantity: Number(i.quantity ?? 1),
+              expenses_total: Number(i.expenses_total ?? 0)
             }))
           : [];
         setItems(normalized);
@@ -112,6 +171,89 @@ export default function GemInventory() {
       console.error('Failed to load inventory', e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadExpensesForItem = async (inventoryId: number) => {
+    if (!token) return;
+    setExpensesLoading(true);
+    setExpensesError(null);
+    try {
+      const res = await fetch(`http://localhost:3001/api/gem/expenses?inventory_id=${inventoryId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to load expenses');
+      }
+      const data = await res.json();
+      const list: GemExpense[] = Array.isArray(data) ? data.map((e: any) => ({
+        id: e.id,
+        inventory_id: Number(e.inventory_id),
+        amount: Number(e.amount ?? 0),
+        date: e.date,
+        description: e.description || null,
+        category: e.category || null
+      })) : [];
+      setExpensesItems(list);
+    } catch (e: any) {
+      setExpensesError(e.message || 'Unexpected error');
+    } finally {
+      setExpensesLoading(false);
+    }
+  };
+
+  const loadTrackingForItem = async (inventoryId: number) => {
+    if (!token) return;
+    setTrackingLoading(true);
+    setTrackingError(null);
+    try {
+      const res = await fetch(`http://localhost:3001/api/gem/tracking?inventory_id=${inventoryId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to load tracking');
+      }
+      const data = await res.json();
+      const list: GemTracking[] = Array.isArray(data) ? data.map((t: any) => ({
+        id: Number(t.id),
+        inventory_id: Number(t.inventory_id),
+        action_type: t.action_type,
+        party: t.party || null,
+        status: t.status,
+        start_date: t.start_date,
+        end_date: t.end_date || null,
+        notes: t.notes || null
+      })) : [];
+      setTrackingItems(list);
+    } catch (e: any) {
+      setTrackingError(e.message || 'Unexpected error');
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+
+  const markTrackingCompleted = async (trackingId: number) => {
+    if (!token) return;
+    setTrackCompleteError(null);
+    setTrackCompletingId(trackingId);
+    try {
+      const res = await fetch(`http://localhost:3001/api/gem/tracking/${trackingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: 'completed' })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to update tracking');
+      }
+      // Reload history
+      if (selectedItem) await loadTrackingForItem(selectedItem.id);
+    } catch (e: any) {
+      setTrackCompleteError(e.message || 'Unexpected error');
+    } finally {
+      setTrackCompletingId(null);
     }
   };
   
@@ -340,6 +482,7 @@ export default function GemInventory() {
                   <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Color</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Purchase Price</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Current Value</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Expenses</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Qty</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Status</th>
                 </tr>
@@ -347,19 +490,19 @@ export default function GemInventory() {
               <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                    <td colSpan={9} className="px-6 py-8 text-center text-powerbi-gray-500 dark:text-powerbi-gray-400">
                       Loading inventory...
                     </td>
                   </tr>
                 ) : items.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                    <td colSpan={9} className="px-6 py-8 text-center text-powerbi-gray-500 dark:text-powerbi-gray-400">
                       No items found. Add your first item to get started.
                     </td>
                   </tr>
                 ) : (
                   items.map((item) => (
-                    <tr key={item.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50">
+                    <tr key={item.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50 cursor-pointer" onClick={() => { setSelectedItem(item); setShowDetail(true); }}>
                       <td className="px-6 py-4">
                         {item.images && item.images.length > 0 ? (
                           <img
@@ -389,18 +532,25 @@ export default function GemInventory() {
                         {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(item.current_value ?? item.purchase_price) || 0)}
                       </td>
                       <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(item.expenses_total) || 0)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                         {item.quantity}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                          item.status === 'available'
+                        {(() => {
+                          const displayStatus = (item.derived_status || item.tracking_action_type || item.status) as string;
+                          const cls = displayStatus === 'available'
                             ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                            : item.status === 'sold'
+                            : displayStatus === 'sold'
                             ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-                        }`}>
-                          {item.status}
-                        </span>
+                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+                          return (
+                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${cls}`}>
+                              {displayStatus}
+                            </span>
+                          );
+                        })()}
                       </td>
                     </tr>
                   ))
@@ -509,6 +659,435 @@ export default function GemInventory() {
                 <button onClick={handleAddItem} disabled={isSubmitting} className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">
                   {isSubmitting ? 'Saving...' : 'Add Item'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Item Detail Modal */}
+        {showDetail && selectedItem && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Inventory Item Details</h4>
+              </div>
+              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Gem Name</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{selectedItem.gem_name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Weight</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{Number(selectedItem.weight).toFixed(3)} ct</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Color</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{selectedItem.color || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Clarity</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{selectedItem.clarity || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Cut</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{selectedItem.cut || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Shape</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{selectedItem.shape || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Origin</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{selectedItem.origin || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Status</label>
+                    <p className="text-sm font-medium">
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedItem.status === 'available'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                          : selectedItem.status === 'sold'
+                          ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                      }`}>
+                        {selectedItem.status}
+                      </span>
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Purchase Price</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">
+                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(selectedItem.purchase_price) || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Current Value</label>
+                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(selectedItem.current_value ?? selectedItem.purchase_price) || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Total Expenses</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">
+                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(selectedItem.expenses_total) || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Quantity</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{selectedItem.quantity}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Created</label>
+                    <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{new Date(selectedItem.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Description</label>
+                  <p className="text-sm text-powerbi-gray-900 dark:text-white">{selectedItem.description || '-'}</p>
+                </div>
+                {selectedItem.images && selectedItem.images.length > 0 && (
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Images</label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                      {selectedItem.images.map(img => (
+                        <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-full h-24 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-between">
+                <button onClick={() => { setShowDetail(false); setSelectedItem(null); }} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Close</button>
+                <button onClick={() => {
+                  setExpenseInvId(selectedItem!.id.toString());
+                  setShowDetail(false);
+                  setShowAddExpense(true);
+                }} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Plus className="w-4 h-4 mr-2 inline" />
+                  Add Expense
+                </button>
+                <button onClick={async () => {
+                  if (!selectedItem) return;
+                  await loadExpensesForItem(selectedItem.id);
+                  setExpenseInvId(selectedItem.id.toString());
+                  setShowDetail(false);
+                  setShowExpensesHistory(true);
+                }} className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">
+                  View Expenses
+                </button>
+                <button onClick={() => {
+                  if (!selectedItem) return;
+                  setTrackActionType('burning');
+                  setTrackParty('');
+                  setTrackStatus('ongoing');
+                  setTrackStartDate(new Date().toISOString().slice(0,10));
+                  setTrackEndDate('');
+                  setTrackNotes('');
+                  setShowDetail(false);
+                  setShowAddTracking(true);
+                }} className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white">
+                  Add Tracking
+                </button>
+                <button onClick={async () => {
+                  if (!selectedItem) return;
+                  await loadTrackingForItem(selectedItem.id);
+                  setShowDetail(false);
+                  setShowTrackingHistory(true);
+                }} className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white">
+                  View Tracking
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Expense Modal */}
+        {showAddExpense && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add Gem Expense</h4>
+              </div>
+              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+                <div>
+                  <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Amount *</label>
+                  <input value={expenseAmount} onChange={e => setExpenseAmount(e.target.value)} type="number" min="0" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 25.00" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Date</label>
+                    <input value={expenseDate} onChange={e => setExpenseDate(e.target.value)} type="date" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Category (optional)</label>
+                    <input value={expenseCategory} onChange={e => setExpenseCategory(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Cutting, Certification" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Description</label>
+                  <input value={expenseDesc} onChange={e => setExpenseDesc(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Lab certification fee" />
+                </div>
+              </div>
+              {expenseError && (
+                <div className="px-6 pb-4">
+                  <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{expenseError}</div>
+                </div>
+              )}
+              <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+                <button onClick={() => setShowAddExpense(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Cancel</button>
+                <button onClick={async () => {
+                  setExpenseError(null);
+                  const invId = Number(expenseInvId);
+                  const amt = Number(expenseAmount);
+                  if (!Number.isFinite(invId) || invId <= 0) { setExpenseError('Invalid inventory item'); return; }
+                  if (!Number.isFinite(amt) || amt <= 0) { setExpenseError('Enter a valid positive amount'); return; }
+                  setExpenseSubmitting(true);
+                  try {
+                    const payload = {
+                      inventory_id: invId,
+                      amount: amt,
+                      date: expenseDate || undefined,
+                      description: expenseDesc || '',
+                      category: expenseCategory || undefined
+                    };
+                    const res = await fetch('http://localhost:3001/api/gem/expenses', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify(payload)
+                    });
+                    if (!res.ok) {
+                      const err = await res.json().catch(() => ({}));
+                      throw new Error(err.error || 'Failed to add expense');
+                    }
+                    await loadInventory();
+                    setShowAddExpense(false);
+                    setExpenseInvId('');
+                    setExpenseAmount('');
+                    setExpenseDate('');
+                    setExpenseDesc('');
+                    setExpenseCategory('');
+                  } catch (e: any) {
+                    setExpenseError(e.message || 'Unexpected error');
+                  } finally {
+                    setExpenseSubmitting(false);
+                  }
+                }} disabled={expenseSubmitting} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">{expenseSubmitting ? 'Saving...' : 'Save Expense'}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Tracking Modal */}
+        {showAddTracking && selectedItem && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add Tracking</h4>
+              </div>
+              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+                <div>
+                  <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Action Type *</label>
+                  <select value={trackActionType} onChange={e => setTrackActionType(e.target.value as any)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2">
+                    <option value="burning">Burning</option>
+                    <option value="broker">Broker</option>
+                    <option value="note">Note</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Start Date *</label>
+                    <input value={trackStartDate} onChange={e => setTrackStartDate(e.target.value)} type="date" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">End Date</label>
+                    <input value={trackEndDate} onChange={e => setTrackEndDate(e.target.value)} type="date" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Status</label>
+                    <select value={trackStatus} onChange={e => setTrackStatus(e.target.value as any)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2">
+                      <option value="ongoing">Ongoing</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Party (Broker/Lab)</label>
+                    <input value={trackParty} onChange={e => setTrackParty(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. ABC Brokers" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Notes</label>
+                  <textarea value={trackNotes} onChange={e => setTrackNotes(e.target.value)} rows={3} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="Details about this action" />
+                </div>
+                {trackingError && (
+                  <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{trackingError}</div>
+                )}
+              </div>
+              <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+                <button onClick={() => setShowAddTracking(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Cancel</button>
+                <button onClick={async () => {
+                  if (!selectedItem) return;
+                  setTrackingError(null);
+                  if (!trackStartDate) { setTrackingError('Start date is required'); return; }
+                  setTrackSubmitting(true);
+                  try {
+                    const payload = {
+                      inventory_id: selectedItem.id,
+                      action_type: trackActionType,
+                      party: trackParty || undefined,
+                      status: trackStatus,
+                      start_date: trackStartDate,
+                      end_date: trackEndDate || undefined,
+                      notes: trackNotes || ''
+                    };
+                    const res = await fetch('http://localhost:3001/api/gem/tracking', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                      body: JSON.stringify(payload)
+                    });
+                    if (!res.ok) {
+                      const err = await res.json().catch(() => ({}));
+                      throw new Error(err.error || 'Failed to add tracking');
+                    }
+                    setShowAddTracking(false);
+                  } catch (e: any) {
+                    setTrackingError(e.message || 'Unexpected error');
+                  } finally {
+                    setTrackSubmitting(false);
+                  }
+                }} disabled={trackSubmitting} className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">{trackSubmitting ? 'Saving...' : 'Save Tracking'}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tracking History Modal */}
+        {showTrackingHistory && selectedItem && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
+                <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Tracking History</h4>
+                <span className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{selectedItem.gem_name}</span>
+              </div>
+              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+                {trackingError && (
+                  <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{trackingError}</div>
+                )}
+                {trackingLoading ? (
+                  <div className="text-center py-8 text-powerbi-gray-500 dark:text-powerbi-gray-400">Loading tracking...</div>
+                ) : trackingItems.length === 0 ? (
+                  <div className="text-center py-8 text-powerbi-gray-500 dark:text-powerbi-gray-400">No tracking records for this item.</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-powerbi-gray-100 dark:bg-powerbi-gray-900">
+                        <tr>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Type</th>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Party</th>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Status</th>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Start</th>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">End</th>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Notes</th>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
+                        {trackingItems.map((t) => (
+                          <tr key={t.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50">
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-900 dark:text-white capitalize">{t.action_type}</td>
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t.party || '-'}</td>
+                            <td className="px-6 py-3 text-sm">
+                              <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${t.status === 'ongoing' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'}`}>{t.status}</span>
+                            </td>
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{new Date(t.start_date).toLocaleDateString()}</td>
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t.end_date ? new Date(t.end_date).toLocaleDateString() : '-'}</td>
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t.notes || '-'}</td>
+                            <td className="px-6 py-3 text-sm">
+                              {t.status === 'ongoing' ? (
+                                <button
+                                  onClick={() => markTrackingCompleted(t.id)}
+                                  disabled={trackCompletingId === t.id}
+                                  className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs disabled:opacity-60 disabled:cursor-not-allowed"
+                                >
+                                  {trackCompletingId === t.id ? 'Updating...' : 'Mark Completed'}
+                                </button>
+                              ) : (
+                                <span className="text-powerbi-gray-500 dark:text-powerbi-gray-400">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {trackCompleteError && (
+                  <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{trackCompleteError}</div>
+                )}
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button onClick={() => setShowTrackingHistory(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Expenses History Modal */}
+        {showExpensesHistory && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
+                <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Expenses History</h4>
+                {selectedItem && (
+                  <span className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{selectedItem.gem_name}</span>
+                )}
+              </div>
+              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+                {expensesError && (
+                  <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{expensesError}</div>
+                )}
+                {expensesLoading ? (
+                  <div className="text-center py-8 text-powerbi-gray-500 dark:text-powerbi-gray-400">Loading expenses...</div>
+                ) : expensesItems.length === 0 ? (
+                  <div className="text-center py-8 text-powerbi-gray-500 dark:text-powerbi-gray-400">No expenses recorded for this item.</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-powerbi-gray-100 dark:bg-powerbi-gray-900">
+                        <tr>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Date</th>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Category</th>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Description</th>
+                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
+                        {expensesItems.map((e) => (
+                          <tr key={e.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50">
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-900 dark:text-white">{new Date(e.date).toLocaleDateString()}</td>
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{e.category || '-'}</td>
+                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{e.description || '-'}</td>
+                            <td className="px-6 py-3 text-sm font-semibold text-powerbi-gray-900 dark:text-white">
+                              {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(e.amount || 0)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {selectedItem && (
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button onClick={() => {
+                      setExpenseInvId(selectedItem.id.toString());
+                      setShowExpensesHistory(false);
+                      setShowAddExpense(true);
+                    }} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white">Add Expense</button>
+                    <button onClick={() => setShowExpensesHistory(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Close</button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

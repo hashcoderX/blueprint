@@ -198,6 +198,106 @@ tempConnection.connect((err) => {
           FOREIGN KEY (user_id) REFERENCES users(id)
         );
 
+        CREATE TABLE IF NOT EXISTS gem_purchases (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          description TEXT,
+          amount DECIMAL(10,2) NOT NULL,
+          date DATE NOT NULL,
+          vendor VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_purchase_images (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          purchase_id INT NOT NULL,
+          file_name VARCHAR(255) NOT NULL,
+          original_name VARCHAR(255) NOT NULL,
+          file_size BIGINT NOT NULL,
+          mime_type VARCHAR(100) NOT NULL,
+          uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (purchase_id) REFERENCES gem_purchases(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_inventory (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          gem_name VARCHAR(255) NOT NULL,
+          weight DECIMAL(10,3) NOT NULL,
+          color VARCHAR(100),
+          clarity VARCHAR(100),
+          cut VARCHAR(100),
+          shape VARCHAR(100),
+          origin VARCHAR(255),
+          purchase_price DECIMAL(10,2) NOT NULL,
+          current_value DECIMAL(10,2),
+          quantity INT DEFAULT 1,
+          purchase_id INT,
+          description TEXT,
+          status ENUM('available', 'sold', 'reserved') DEFAULT 'available',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (purchase_id) REFERENCES gem_purchases(id) ON DELETE SET NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_inventory_images (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          inventory_id INT NOT NULL,
+          file_name VARCHAR(255) NOT NULL,
+          original_name VARCHAR(255) NOT NULL,
+          file_size BIGINT NOT NULL,
+          mime_type VARCHAR(100) NOT NULL,
+          uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (inventory_id) REFERENCES gem_inventory(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_sales (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          inventory_id INT NOT NULL,
+          description TEXT,
+          amount DECIMAL(10,2) NOT NULL,
+          date DATE NOT NULL,
+          buyer VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (inventory_id) REFERENCES gem_inventory(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_expenses (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          inventory_id INT NOT NULL,
+          amount DECIMAL(10,2) NOT NULL,
+          date DATE NOT NULL,
+          description TEXT,
+          category VARCHAR(100),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (inventory_id) REFERENCES gem_inventory(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_inventory_tracking (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          inventory_id INT NOT NULL,
+          action_type ENUM('burning','broker','note') NOT NULL,
+          party VARCHAR(255),
+          status ENUM('ongoing','completed') DEFAULT 'ongoing',
+          start_date DATE NOT NULL,
+          end_date DATE NULL,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (inventory_id) REFERENCES gem_inventory(id) ON DELETE CASCADE
+        );
+
         CREATE TABLE IF NOT EXISTS subscriptions (
           id INT AUTO_INCREMENT PRIMARY KEY,
           user_id INT,
@@ -373,6 +473,19 @@ tempConnection.connect((err) => {
           amount DECIMAL(10,2) NOT NULL,
           date DATE NOT NULL,
           buyer VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (inventory_id) REFERENCES gem_inventory(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS gem_expenses (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          inventory_id INT NOT NULL,
+          amount DECIMAL(10,2) NOT NULL,
+          date DATE NOT NULL,
+          description TEXT,
+          category VARCHAR(100),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
           FOREIGN KEY (inventory_id) REFERENCES gem_inventory(id) ON DELETE CASCADE
