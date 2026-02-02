@@ -185,7 +185,7 @@ export default function ProjectDetailsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
@@ -196,18 +196,18 @@ export default function ProjectDetailsPage() {
               Manage time, budget, income and purchases for this project
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 w-full sm:w-auto shrink-0">
             <button
               onClick={() => router.push('/manage-projects')}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700 transition-colors w-full sm:w-auto"
             >
               Back
             </button>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
-          <div className="flex space-x-1">
+        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
+          <div className="flex flex-wrap gap-2">
             {[
               { id: 'budget', label: 'Budgeting', icon: DollarSign },
               { id: 'purchases', label: 'Purchases', icon: ShoppingCart },
@@ -220,7 +220,7 @@ export default function ProjectDetailsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as 'budget' | 'purchases' | 'income' | 'analytics' | 'pl-report' | 'balance-report' | 'documents')}
-                className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                className={`flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-medium transition-all duration-200 ${
                   activeTab === tab.id
                     ? 'bg-powerbi-primary text-white shadow-lg'
                     : 'bg-powerbi-gray-100 dark:bg-powerbi-gray-700 text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-200 dark:hover:bg-powerbi-gray-600'
@@ -237,29 +237,29 @@ export default function ProjectDetailsPage() {
           <div className="space-y-6">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white">
+              <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-4 sm:p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-purple-100 text-sm font-medium">Budget</p>
-                    <p className="text-3xl font-bold">{formatCurrency(project.budget)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(project.budget)}</p>
                   </div>
                   <span className="text-purple-200">💰</span>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-rose-400 to-rose-600 rounded-2xl p-6 text-white">
+              <div className="bg-gradient-to-br from-rose-400 to-rose-600 rounded-2xl p-4 sm:p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-rose-100 text-sm font-medium">Spent</p>
-                    <p className="text-3xl font-bold">{formatCurrency(projectSpent)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(projectSpent)}</p>
                   </div>
                   <span className="text-rose-200">🧾</span>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl p-6 text-white">
+              <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl p-4 sm:p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-emerald-100 text-sm font-medium">Remaining</p>
-                    <p className="text-3xl font-bold">{formatCurrency(remaining)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(remaining)}</p>
                   </div>
                   <span className="text-emerald-200">✅</span>
                 </div>
@@ -270,16 +270,16 @@ export default function ProjectDetailsPage() {
 
         {activeTab === 'purchases' && (
           <div className="space-y-6">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-xl p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
               <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Purchase</h3>
               <PurchaseForm projectId={projectId} onSaved={() => { loadPurchases(); loadProjects(); }} userCurrency={userCurrency} formatCurrency={formatCurrency} />
             </div>
 
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-xl p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
               <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Purchases</h3>
               <div className="space-y-4">
                 {purchases.map((purchase) => (
-                  <div key={purchase.id} className="flex items-center justify-between p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
+                  <div key={purchase.id} className="flex items-center justify-between p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
                     <div>
                       <p className="font-medium text-powerbi-gray-900 dark:text-white">{purchase.item_name}</p>
                       <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{purchase.category || 'Uncategorized'}</p>
@@ -297,16 +297,16 @@ export default function ProjectDetailsPage() {
 
         {activeTab === 'income' && (
           <div className="space-y-6">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-xl p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
               <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Income</h3>
               <IncomeForm projectId={projectId} onSaved={() => { loadIncome(); loadProjects(); }} userCurrency={userCurrency} formatCurrency={formatCurrency} />
             </div>
 
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-xl p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
               <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Income</h3>
               <div className="space-y-4">
                 {income.map((inc) => (
-                  <div key={inc.id} className="flex items-center justify-between p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
+                  <div key={inc.id} className="flex items-center justify-between p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
                     <div>
                       <p className="font-medium text-powerbi-gray-900 dark:text-white">{inc.description}</p>
                       <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{inc.category}</p>
@@ -324,7 +324,7 @@ export default function ProjectDetailsPage() {
 
         {activeTab === 'analytics' && (
           <div className="space-y-6">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-xl p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
               <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Income vs Expenses</h3>
               <div className="h-64">
                 <Bar
@@ -370,7 +370,7 @@ export default function ProjectDetailsPage() {
 
           return (
             <div className="space-y-6">
-              <div className="bg-white dark:bg-powerbi-gray-800 rounded-xl p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+              <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
                 <h3 className="text-xl font-bold text-powerbi-gray-900 dark:text-white mb-6">Profit & Loss Report</h3>
                 
                 <div className="space-y-6">
@@ -379,7 +379,7 @@ export default function ProjectDetailsPage() {
                     <h4 className="text-lg font-semibold text-green-600 dark:text-green-400 mb-3">Revenue / Income</h4>
                     <div className="space-y-2">
                       {income.map((inc) => (
-                        <div key={inc.id} className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div key={inc.id} className="flex justify-between items-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                           <div>
                             <p className="font-medium text-powerbi-gray-900 dark:text-white">{inc.description}</p>
                             <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{inc.category}</p>
@@ -404,7 +404,7 @@ export default function ProjectDetailsPage() {
                     <h4 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-3">Expenses</h4>
                     <div className="space-y-2">
                       {purchases.map((pur) => (
-                        <div key={pur.id} className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <div key={pur.id} className="flex justify-between items-center p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
                           <div>
                             <p className="font-medium text-powerbi-gray-900 dark:text-white">{pur.item_name}</p>
                             <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{pur.category || 'Uncategorized'}</p>
@@ -425,11 +425,11 @@ export default function ProjectDetailsPage() {
                   </div>
 
                   {/* Net Profit/Loss */}
-                  <div className={`p-6 rounded-xl ${isProfitable ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
+                  <div className={`p-4 sm:p-6 rounded-xl ${isProfitable ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400">Net {isProfitable ? 'Profit' : 'Loss'}</p>
-                        <p className={`text-3xl font-bold ${isProfitable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <p className={`text-2xl sm:text-3xl font-bold ${isProfitable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {formatCurrency(Math.abs(netProfitLoss))}
                         </p>
                       </div>
@@ -456,38 +456,38 @@ export default function ProjectDetailsPage() {
 
           return (
             <div className="space-y-6">
-              <div className="bg-white dark:bg-powerbi-gray-800 rounded-xl p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+              <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
                 <h3 className="text-xl font-bold text-powerbi-gray-900 dark:text-white mb-6">Project Balance Report</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 sm:p-6">
                     <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">Initial Budget</p>
-                    <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(projectBudget)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(projectBudget)}</p>
                   </div>
                   
-                  <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-6">
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 sm:p-6">
                     <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">Total Income</p>
-                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">{formatCurrency(totalIncome)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{formatCurrency(totalIncome)}</p>
                   </div>
                   
-                  <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-6">
+                  <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 sm:p-6">
                     <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">Total Expenses</p>
-                    <p className="text-3xl font-bold text-red-600 dark:text-red-400">{formatCurrency(totalExpenses)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">{formatCurrency(totalExpenses)}</p>
                   </div>
                   
-                  <div className={`rounded-xl p-6 ${currentBalance >= 0 ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-orange-50 dark:bg-orange-900/20'}`}>
+                  <div className={`rounded-xl p-4 sm:p-6 ${currentBalance >= 0 ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-orange-50 dark:bg-orange-900/20'}`}>
                     <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">Current Balance</p>
-                    <p className={`text-3xl font-bold ${currentBalance >= 0 ? 'text-purple-600 dark:text-purple-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                    <p className={`text-2xl sm:text-3xl font-bold ${currentBalance >= 0 ? 'text-purple-600 dark:text-purple-400' : 'text-orange-600 dark:text-orange-400'}`}>
                       {formatCurrency(currentBalance)}
                     </p>
                   </div>
                 </div>
 
                 {/* Budget Utilization */}
-                <div className="bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-xl p-6">
+                <div className="bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-xl p-4 sm:p-6">
                   <div className="flex justify-between items-center mb-3">
                     <p className="font-semibold text-powerbi-gray-900 dark:text-white">Budget Utilization</p>
-                    <p className="text-2xl font-bold text-powerbi-gray-900 dark:text-white">{budgetUtilization}%</p>
+                    <p className="text-xl sm:text-2xl font-bold text-powerbi-gray-900 dark:text-white">{budgetUtilization}%</p>
                   </div>
                   <div className="w-full bg-powerbi-gray-200 dark:bg-powerbi-gray-600 rounded-full h-4">
                     <div 
@@ -510,24 +510,24 @@ export default function ProjectDetailsPage() {
                 <div className="mt-6 space-y-3">
                   <h4 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-3">Financial Summary</h4>
                   
-                  <div className="flex justify-between items-center p-3 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
+                  <div className="flex justify-between items-center p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
                     <span className="text-powerbi-gray-700 dark:text-powerbi-gray-300">Initial Budget</span>
                     <span className="font-semibold text-powerbi-gray-900 dark:text-white">{formatCurrency(projectBudget)}</span>
                   </div>
                   
-                  <div className="flex justify-between items-center p-3 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
+                  <div className="flex justify-between items-center p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
                     <span className="text-powerbi-gray-700 dark:text-powerbi-gray-300">Total Income Generated</span>
                     <span className="font-semibold text-green-600 dark:text-green-400">+ {formatCurrency(totalIncome)}</span>
                   </div>
                   
-                  <div className="flex justify-between items-center p-3 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
+                  <div className="flex justify-between items-center p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
                     <span className="text-powerbi-gray-700 dark:text-powerbi-gray-300">Total Expenses</span>
                     <span className="font-semibold text-red-600 dark:text-red-400">- {formatCurrency(totalExpenses)}</span>
                   </div>
                   
-                  <div className="flex justify-between items-center p-4 bg-powerbi-primary/10 dark:bg-powerbi-primary/20 rounded-lg border-2 border-powerbi-primary">
+                  <div className="flex justify-between items-center p-3 sm:p-4 bg-powerbi-primary/10 dark:bg-powerbi-primary/20 rounded-lg border-2 border-powerbi-primary">
                     <span className="font-bold text-powerbi-gray-900 dark:text-white">Available Balance</span>
-                    <span className={`text-xl font-bold ${currentBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <span className={`text-lg sm:text-xl font-bold ${currentBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {formatCurrency(currentBalance)}
                     </span>
                   </div>
@@ -539,16 +539,16 @@ export default function ProjectDetailsPage() {
 
         {activeTab === 'documents' && (
           <div className="space-y-6">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-xl p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
               <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Upload Document</h3>
               <DocumentUploadForm projectId={projectId} onSaved={() => loadDocuments()} />
             </div>
 
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-xl p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
               <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Project Documents</h3>
               <div className="space-y-4">
                 {documents.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
+                  <div key={doc.id} className="flex items-center justify-between p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <File className="w-8 h-8 text-powerbi-primary" />
                       <div>
@@ -584,7 +584,7 @@ export default function ProjectDetailsPage() {
             </div>
           </div>
         )}
-      </div>
+      </section>
     </DashboardLayout>
   );
 }

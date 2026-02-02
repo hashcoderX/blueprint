@@ -13,7 +13,8 @@ import {
   Settings,
   HelpCircle,
   Key,
-  FolderOpen
+  FolderOpen,
+  X
 } from 'lucide-react';
 
 // Removed legacy navItems; using dynamic items via getNavItems()
@@ -24,7 +25,7 @@ const secondaryItems = [
   { name: 'Help', href: '/help', icon: HelpCircle, description: 'Support & FAQ' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ className, mobile = false, onClose }: { className?: string; mobile?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const [userJobType, setUserJobType] = useState<string | null>(null);
   const [userJobSubcategory, setUserJobSubcategory] = useState<string | null>(null);
@@ -89,9 +90,9 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-white dark:bg-powerbi-gray-800 shadow-2xl h-screen fixed left-0 top-0 z-10 border-r border-powerbi-gray-200 dark:border-powerbi-gray-700 flex flex-col">
+    <div className={`${mobile ? 'fixed left-0 top-0 h-screen w-72 z-30 flex flex-col' : 'hidden lg:flex lg:w-64 lg:h-screen lg:fixed lg:left-0 lg:top-0 z-10 flex-col'} bg-white dark:bg-powerbi-gray-800 shadow-2xl border-r border-powerbi-gray-200 dark:border-powerbi-gray-700 ${className || ''}`}>
       {/* Logo Section */}
-      <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+      <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-to-br from-powerbi-primary to-powerbi-secondary rounded-xl flex items-center justify-center shadow-lg">
             <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -107,6 +108,11 @@ export default function Sidebar() {
             </p>
           </div>
         </div>
+        {mobile && (
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 text-powerbi-gray-600 dark:text-powerbi-gray-400" aria-label="Close sidebar">
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}

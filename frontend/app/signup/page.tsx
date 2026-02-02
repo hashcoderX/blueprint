@@ -147,11 +147,11 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-powerbi-blue-50 via-white to-powerbi-blue-100 dark:from-powerbi-gray-900 dark:via-powerbi-gray-800 dark:to-powerbi-blue-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-start">
         {/* Header */}
         <div className="lg:text-left text-center mb-8">
           
-          <h2 className="text-4xl font-bold text-powerbi-gray-900 dark:text-white mb-6">Control Your Money, Goals & Life — One System</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-powerbi-gray-900 dark:text-white mb-6">Control Your Money, Goals & Life — One System</h2>
           <div className="space-y-4 text-lg text-powerbi-gray-600 dark:text-powerbi-gray-300 leading-relaxed">
             <p>
               This application is an all-in-one personal management system designed to help individuals take full control of their daily life, finances, and long-term goals in one secure place.
@@ -175,7 +175,7 @@ export default function Signup() {
         </div>
 
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-2xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 overflow-hidden backdrop-blur-sm bg-white/95 dark:bg-powerbi-gray-800/95">
-          <div className="px-12 py-10 md:px-16 md:py-12">
+          <div className="p-4 sm:p-8 md:px-16 md:py-12">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Step Indicator */}
               <div className="flex justify-center mb-6">
@@ -882,12 +882,12 @@ export default function Signup() {
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between pt-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-6">
                 {currentStep > 1 && (
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="px-6 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-700 dark:text-powerbi-gray-300 rounded-lg hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700 transition-all duration-200"
+                    className="px-6 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-700 dark:text-powerbi-gray-300 rounded-lg hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700 transition-all duration-200 w-full sm:w-auto shrink-0"
                   >
                     Back
                   </button>
@@ -896,7 +896,7 @@ export default function Signup() {
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="px-6 py-3 bg-gradient-to-r from-powerbi-primary to-powerbi-secondary hover:from-powerbi-secondary hover:to-powerbi-primary text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:ring-offset-2 shadow-lg hover:shadow-xl border-0 ml-auto"
+                    className="px-6 py-3 bg-gradient-to-r from-powerbi-primary to-powerbi-secondary hover:from-powerbi-secondary hover:to-powerbi-primary text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:ring-offset-2 shadow-lg hover:shadow-xl border-0 ml-auto w-full sm:w-auto shrink-0"
                   >
                     Next
                   </button>
@@ -904,7 +904,7 @@ export default function Signup() {
                 {currentStep === 4 && (
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-powerbi-primary to-powerbi-secondary hover:from-powerbi-secondary hover:to-powerbi-primary text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:ring-offset-2 shadow-lg hover:shadow-xl border-0 ml-auto"
+                    className="px-6 py-3 bg-gradient-to-r from-powerbi-primary to-powerbi-secondary hover:from-powerbi-secondary hover:to-powerbi-primary text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:ring-offset-2 shadow-lg hover:shadow-xl border-0 ml-auto w-full sm:w-auto shrink-0"
                   >
                     Start Free
                   </button>

@@ -560,22 +560,22 @@ export default function Tasks() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8 mt-16 px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
-              <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">⏱</span>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap min-w-0">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
+              <span className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">⏱</span>
               Task Planner & Tracking
             </h1>
-            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
               Plan your day, track time, and see monthly summaries
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <button
               onClick={() => setShowAddForm(true)}
-              className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap"
             >
               <span className="w-5 h-5">+</span>
               Add Task
@@ -584,42 +584,42 @@ export default function Tasks() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between"><div>
               <p className="text-blue-100 text-sm font-medium">Total Tasks</p>
-              <p className="text-3xl font-bold">{stats.total}</p>
+              <p className="text-2xl sm:text-3xl font-bold">{stats.total}</p>
             </div><span className="text-blue-200">📋</span></div>
           </div>
           <div className="bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between"><div>
               <p className="text-amber-100 text-sm font-medium">In Progress</p>
-              <p className="text-3xl font-bold">{stats.inProgress}</p>
+              <p className="text-2xl sm:text-3xl font-bold">{stats.inProgress}</p>
             </div><span className="text-amber-200">🚀</span></div>
           </div>
           <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between"><div>
               <p className="text-green-100 text-sm font-medium">Done</p>
-              <p className="text-3xl font-bold">{stats.done}</p>
+              <p className="text-2xl sm:text-3xl font-bold">{stats.done}</p>
             </div><span className="text-green-200">✅</span></div>
           </div>
           <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between"><div>
               <p className="text-purple-100 text-sm font-medium">Allocated Hours</p>
-              <p className="text-3xl font-bold">{stats.allocated.toFixed(1)}</p>
+              <p className="text-2xl sm:text-3xl font-bold">{stats.allocated.toFixed(1)}</p>
             </div><span className="text-purple-200">⏳</span></div>
           </div>
           <div className="bg-gradient-to-br from-rose-400 to-rose-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between"><div>
               <p className="text-rose-100 text-sm font-medium">Active Timers</p>
-              <p className="text-3xl font-bold">{stats.running}</p>
+              <p className="text-2xl sm:text-3xl font-bold">{stats.running}</p>
             </div><span className="text-rose-200">⏰</span></div>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
-          <div className="flex space-x-1 mb-6">
+          <div className="flex flex-wrap gap-2 mb-6">
             {[
               { id: 'overview', label: 'Overview' },
               { id: 'planner', label: 'Planner' },
@@ -629,7 +629,7 @@ export default function Tasks() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as ActiveTabType)}
-                className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                className={`flex items-center px-3 py-2 sm:px-6 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 ${
                   activeTab === tab.id
                     ? 'bg-powerbi-primary text-white shadow-lg'
                     : 'bg-powerbi-gray-100 dark:bg-powerbi-gray-700 text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-200 dark:hover:bg-powerbi-gray-600'
@@ -657,11 +657,11 @@ export default function Tasks() {
 
           {activeTab === 'planner' && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <label className="text-sm text-powerbi-gray-700 dark:text-powerbi-gray-200">Plan for</label>
-                <input type="date" className="bg-white dark:bg-powerbi-gray-900 border rounded px-2 py-1"
+                <input type="date" className="bg-white dark:bg-powerbi-gray-900 border rounded px-2 py-1 w-full sm:w-auto"
                        value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
-                <label className="inline-flex items-center gap-2 text-sm text-powerbi-gray-700 dark:text-powerbi-gray-200 ml-3">
+                <label className="inline-flex items-center gap-2 text-sm text-powerbi-gray-700 dark:text-powerbi-gray-200 sm:ml-3">
                   <input type="checkbox" checked={showAll} onChange={e => setShowAll(e.target.checked)} /> Show all
                 </label>
               </div>
@@ -674,7 +674,7 @@ export default function Tasks() {
 
           {activeTab === 'kanban' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {Object.entries(tasksByStatus).map(([column, columnTasks]) => (
                 <div key={column} className="bg-powerbi-gray-100 dark:bg-powerbi-gray-700 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4 capitalize">
@@ -733,13 +733,13 @@ export default function Tasks() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
                   <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">This Month by Category</h3>
-                  <div className="h-80">
+                  <div className="h-64 sm:h-80">
                     <Bar data={monthChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
                   </div>
                 </div>
                 <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
                   <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Share of Time</h3>
-                  <div className="h-80">
+                  <div className="h-64 sm:h-80">
                     <Doughnut
                       data={monthChart}
                       options={{
@@ -759,7 +759,7 @@ export default function Tasks() {
         {/* Edit Task Modal */}
         {showEditModal && editTask && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Edit Task</h3>
                 <form onSubmit={submitEdit} className="space-y-4">
@@ -817,7 +817,7 @@ export default function Tasks() {
         {/* Add Task Modal */}
         {showAddForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Task</h3>
                 <form onSubmit={handleCreate} className="space-y-4">
@@ -876,7 +876,7 @@ export default function Tasks() {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Delete Task</h3>
                 <p className="text-powerbi-gray-600 dark:text-powerbi-gray-300 mb-6">

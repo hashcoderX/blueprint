@@ -348,10 +348,10 @@ export default function GemInventory() {
   
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6 mt-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+        <div className="flex flex-wrap justify-between items-start sm:items-center gap-4">
+          <div className="min-w-0">
             <button
               onClick={() => router.push('/manage-gembusiness')}
               className="flex items-center text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white mb-2"
@@ -367,22 +367,24 @@ export default function GemInventory() {
               Manage your gemstone stock and valuations
             </p>
           </div>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Item
-          </button>
+          <div className="flex gap-3 w-full sm:w-auto">
+            <button
+              onClick={() => setShowAdd(true)}
+              className="flex items-center px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium w-full sm:w-auto shrink-0"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Item
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Total Valuation</p>
-                <p className="text-3xl font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(totalValuation)}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(totalValuation)}</p>
               </div>
               <Gem className="w-8 h-8 text-purple-200" />
             </div>
@@ -391,7 +393,7 @@ export default function GemInventory() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-emerald-100 text-sm font-medium">Available Items</p>
-                <p className="text-3xl font-bold">{availableCount}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{availableCount}</p>
               </div>
               <Filter className="w-8 h-8 text-emerald-200" />
             </div>
@@ -400,7 +402,7 @@ export default function GemInventory() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm font-medium">Total Items</p>
-                <p className="text-3xl font-bold">{total}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{total}</p>
               </div>
               <Search className="w-8 h-8 text-blue-200" />
             </div>
@@ -408,12 +410,12 @@ export default function GemInventory() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
           <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4 flex items-center">
             <Filter className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" />
             Filters
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div>
               <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Gem Name</label>
               <input
@@ -476,34 +478,34 @@ export default function GemInventory() {
             <table className="w-full">
               <thead className="bg-powerbi-gray-100 dark:bg-powerbi-gray-900">
                 <tr>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Image</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Gem Name</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Weight (ct)</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Color</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Purchase Price</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Current Value</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Expenses</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Qty</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Status</th>
+                  <th className="text-left px-3 py-2 sm:px-6 sm:py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Image</th>
+                  <th className="text-left px-3 py-2 sm:px-6 sm:py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Gem Name</th>
+                  <th className="text-left px-3 py-2 sm:px-6 sm:py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Weight (ct)</th>
+                  <th className="text-left px-3 py-2 sm:px-6 sm:py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Color</th>
+                  <th className="text-left px-3 py-2 sm:px-6 sm:py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Purchase Price</th>
+                  <th className="text-left px-3 py-2 sm:px-6 sm:py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Current Value</th>
+                  <th className="text-left px-3 py-2 sm:px-6 sm:py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Expenses</th>
+                  <th className="text-left px-3 py-2 sm:px-6 sm:py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Qty</th>
+                  <th className="text-left px-3 py-2 sm:px-6 sm:py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
                 {loading ? (
                   <tr>
-                    <td colSpan={9} className="px-6 py-8 text-center text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                    <td colSpan={9} className="px-3 sm:px-6 py-8 text-center text-powerbi-gray-500 dark:text-powerbi-gray-400">
                       Loading inventory...
                     </td>
                   </tr>
                 ) : items.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-6 py-8 text-center text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                    <td colSpan={9} className="px-3 sm:px-6 py-8 text-center text-powerbi-gray-500 dark:text-powerbi-gray-400">
                       No items found. Add your first item to get started.
                     </td>
                   </tr>
                 ) : (
                   items.map((item) => (
                     <tr key={item.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50 cursor-pointer" onClick={() => { setSelectedItem(item); setShowDetail(true); }}>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4">
                         {item.images && item.images.length > 0 ? (
                           <img
                             src={`http://localhost:3001${item.images[0].url}`}
@@ -516,28 +518,28 @@ export default function GemInventory() {
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-powerbi-gray-900 dark:text-white">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm font-medium text-powerbi-gray-900 dark:text-white">
                         {item.gem_name}
                       </td>
-                      <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                         {Number(item.weight).toFixed(3)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                         {item.color || '-'}
                       </td>
-                      <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                         {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(item.purchase_price) || 0)}
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                         {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(item.current_value ?? item.purchase_price) || 0)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                         {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(item.expenses_total) || 0)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                         {item.quantity}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4">
                         {(() => {
                           const displayStatus = (item.derived_status || item.tracking_action_type || item.status) as string;
                           const cls = displayStatus === 'available'
@@ -561,7 +563,7 @@ export default function GemInventory() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700">
               <div className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                 Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total} items
               </div>
@@ -591,12 +593,12 @@ export default function GemInventory() {
         {/* Add Item Modal */}
         {showAdd && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
                 <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add Inventory Item</h4>
               </div>
-              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 sm:p-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Gem Name *</label>
                     <input value={gemName} onChange={e => setGemName(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Sapphire" />
@@ -652,7 +654,7 @@ export default function GemInventory() {
                   <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{submitError}</div>
                 </div>
               )}
-              <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+              <div className="p-4 sm:p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
                 <button onClick={() => setShowAdd(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">
                   Cancel
                 </button>
@@ -667,12 +669,12 @@ export default function GemInventory() {
         {/* Item Detail Modal */}
         {showDetail && selectedItem && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
                 <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Inventory Item Details</h4>
               </div>
-              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 sm:p-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Gem Name</label>
                     <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{selectedItem.gem_name}</p>
@@ -757,7 +759,7 @@ export default function GemInventory() {
                   </div>
                 )}
               </div>
-              <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-between">
+              <div className="p-4 sm:p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-between">
                 <button onClick={() => { setShowDetail(false); setSelectedItem(null); }} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Close</button>
                 <button onClick={() => {
                   setExpenseInvId(selectedItem!.id.toString());
@@ -805,16 +807,16 @@ export default function GemInventory() {
         {/* Add Expense Modal */}
         {showAddExpense && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
                 <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add Gem Expense</h4>
               </div>
-              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 space-y-4">
                 <div>
                   <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Amount *</label>
                   <input value={expenseAmount} onChange={e => setExpenseAmount(e.target.value)} type="number" min="0" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 25.00" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Date</label>
                     <input value={expenseDate} onChange={e => setExpenseDate(e.target.value)} type="date" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" />
@@ -834,7 +836,7 @@ export default function GemInventory() {
                   <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{expenseError}</div>
                 </div>
               )}
-              <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+              <div className="p-4 sm:p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
                 <button onClick={() => setShowAddExpense(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Cancel</button>
                 <button onClick={async () => {
                   setExpenseError(null);
@@ -966,12 +968,12 @@ export default function GemInventory() {
         {/* Tracking History Modal */}
         {showTrackingHistory && selectedItem && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
                 <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Tracking History</h4>
                 <span className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{selectedItem.gem_name}</span>
               </div>
-              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 space-y-4">
                 {trackingError && (
                   <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{trackingError}</div>
                 )}
@@ -984,27 +986,27 @@ export default function GemInventory() {
                     <table className="w-full">
                       <thead className="bg-powerbi-gray-100 dark:bg-powerbi-gray-900">
                         <tr>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Type</th>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Party</th>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Status</th>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Start</th>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">End</th>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Notes</th>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Action</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Type</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Party</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Status</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Start</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">End</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Notes</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
                         {trackingItems.map((t) => (
                           <tr key={t.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50">
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-900 dark:text-white capitalize">{t.action_type}</td>
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t.party || '-'}</td>
-                            <td className="px-6 py-3 text-sm">
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-900 dark:text-white capitalize">{t.action_type}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t.party || '-'}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm">
                               <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${t.status === 'ongoing' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'}`}>{t.status}</span>
                             </td>
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{new Date(t.start_date).toLocaleDateString()}</td>
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t.end_date ? new Date(t.end_date).toLocaleDateString() : '-'}</td>
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t.notes || '-'}</td>
-                            <td className="px-6 py-3 text-sm">
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{new Date(t.start_date).toLocaleDateString()}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t.end_date ? new Date(t.end_date).toLocaleDateString() : '-'}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t.notes || '-'}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm">
                               {t.status === 'ongoing' ? (
                                 <button
                                   onClick={() => markTrackingCompleted(t.id)}
@@ -1037,14 +1039,14 @@ export default function GemInventory() {
         {/* Expenses History Modal */}
         {showExpensesHistory && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
                 <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Expenses History</h4>
                 {selectedItem && (
                   <span className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{selectedItem.gem_name}</span>
                 )}
               </div>
-              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 space-y-4">
                 {expensesError && (
                   <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{expensesError}</div>
                 )}
@@ -1057,19 +1059,19 @@ export default function GemInventory() {
                     <table className="w-full">
                       <thead className="bg-powerbi-gray-100 dark:bg-powerbi-gray-900">
                         <tr>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Date</th>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Category</th>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Description</th>
-                          <th className="text-left px-6 py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Amount</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Date</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Category</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Description</th>
+                          <th className="text-left px-3 py-2 sm:px-6 sm:py-3 text-xs font-semibold text-powerbi-gray-900 dark:text-white">Amount</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
                         {expensesItems.map((e) => (
                           <tr key={e.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50">
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-900 dark:text-white">{new Date(e.date).toLocaleDateString()}</td>
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{e.category || '-'}</td>
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{e.description || '-'}</td>
-                            <td className="px-6 py-3 text-sm font-semibold text-powerbi-gray-900 dark:text-white">
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-900 dark:text-white">{new Date(e.date).toLocaleDateString()}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{e.category || '-'}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{e.description || '-'}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm font-semibold text-powerbi-gray-900 dark:text-white">
                               {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(e.amount || 0)}
                             </td>
                           </tr>

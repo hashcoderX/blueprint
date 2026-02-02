@@ -67,7 +67,7 @@ export default function Login() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-powerbi-accent/5 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
-      <div className="max-w-md mx-auto relative z-10">
+      <div className="max-w-md mx-auto px-4 sm:px-6 relative z-10">
         {/* Header with enhanced animations */}
         <div className="text-center mb-8 animate-fade-in-up">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-powerbi-primary to-powerbi-secondary rounded-2xl mb-6 shadow-2xl transform hover:scale-105 transition-transform duration-300">
@@ -75,7 +75,7 @@ export default function Login() {
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97.99 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
             </svg>
           </div>
-          <h2 className="text-5xl font-bold bg-gradient-to-r from-powerbi-primary to-powerbi-secondary bg-clip-text text-transparent mb-3">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-powerbi-primary to-powerbi-secondary bg-clip-text text-transparent mb-3">
             Welcome Back
           </h2>
           <p className="text-xl text-powerbi-gray-600 dark:text-powerbi-gray-300 leading-relaxed">
@@ -85,8 +85,8 @@ export default function Login() {
 
         <div className="bg-white/80 dark:bg-powerbi-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-powerbi-gray-200/50 dark:border-powerbi-gray-700/50 overflow-hidden animate-fade-in-up delay-200">
           {/* Social Login Options */}
-          <div className="px-8 pt-8 pb-4">
-            <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="px-4 sm:px-8 pt-8 pb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
               <button className="flex items-center justify-center px-4 py-3 bg-white dark:bg-powerbi-gray-700 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-xl hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-600 transition-all duration-200 transform hover:scale-105 shadow-sm">
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -113,7 +113,7 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="px-8 py-6">
+          <div className="px-4 sm:px-8 py-4 sm:py-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="animate-fade-in-up delay-300">
                 <label className="block text-sm font-semibold text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">
@@ -172,7 +172,7 @@ export default function Login() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between animate-fade-in-up delay-500">
+              <div className="flex flex-wrap items-center justify-between gap-3 animate-fade-in-up delay-500">
                 <label className="flex items-center">
                   <input
                     type="checkbox"

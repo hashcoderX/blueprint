@@ -582,29 +582,29 @@ export default function Expenses() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8 mt-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
-              <Calculator className="w-8 h-8 mr-3 text-blue-500" />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap min-w-0">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
+              <Calculator className="w-7 h-7 sm:w-8 sm:h-8 mr-3 text-blue-500" />
               Income & Expenses
             </h1>
-            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
               Track your financial transactions and generate professional reports
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <button
               onClick={exportBalanceSheet}
-              className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap"
             >
               <Download className="w-5 h-5" />
               Export P&L Report
             </button>
             <button
               onClick={() => setShowAddForm(true)}
-              className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap"
             >
               <Plus className="w-5 h-5" />
               Add Transaction
@@ -613,12 +613,12 @@ export default function Expenses() {
         </div>
 
         {/* Financial Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-sm font-medium">Total Income</p>
-                <p className="text-3xl font-bold">{formatCurrency(summary.totalIncome)}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(summary.totalIncome)}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-200" />
             </div>
@@ -628,7 +628,7 @@ export default function Expenses() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-red-100 text-sm font-medium">Total Expenses</p>
-                <p className="text-3xl font-bold">{formatCurrency(summary.totalExpenses)}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(summary.totalExpenses)}</p>
               </div>
               <TrendingDown className="w-8 h-8 text-red-200" />
             </div>
@@ -638,7 +638,7 @@ export default function Expenses() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm font-medium">Net Income</p>
-                <p className={`text-3xl font-bold ${summary.netIncome >= 0 ? 'text-white' : 'text-red-200'}`}>
+                <p className={`text-2xl sm:text-3xl font-bold ${summary.netIncome >= 0 ? 'text-white' : 'text-red-200'}`}>
                   {formatCurrency(summary.netIncome)}
                 </p>
               </div>
@@ -650,7 +650,7 @@ export default function Expenses() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Savings Rate</p>
-                <p className="text-3xl font-bold">{summary.savingsRate.toFixed(1)}%</p>
+                <p className="text-2xl sm:text-3xl font-bold">{summary.savingsRate.toFixed(1)}%</p>
               </div>
               <Wallet className="w-8 h-8 text-purple-200" />
             </div>
@@ -659,7 +659,7 @@ export default function Expenses() {
 
         {/* Tab Navigation */}
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
-          <div className="flex space-x-1 mb-6">
+          <div className="flex flex-wrap gap-2 mb-6">
             {[
               { id: 'overview', label: 'Overview', icon: FileText },
               { id: 'income', label: 'Income', icon: TrendingUp },
@@ -671,7 +671,7 @@ export default function Expenses() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as ActiveTabType)}
-                  className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                  className={`flex items-center px-3 py-2 sm:px-6 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 ${
                     activeTab === tab.id
                       ? 'bg-powerbi-primary text-white shadow-lg'
                       : 'bg-powerbi-gray-100 dark:bg-powerbi-gray-700 text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-200 dark:hover:bg-powerbi-gray-600'
@@ -711,7 +711,7 @@ export default function Expenses() {
                     <TrendingUp className="w-5 h-5 mr-2 text-blue-500" />
                     Profit & Loss Trend
                   </h3>
-                  <div className="h-80">
+                  <div className="h-64 sm:h-80">
                     <Line
                       data={getProfitLossChartData()}
                       options={{
@@ -746,7 +746,7 @@ export default function Expenses() {
                     <BarChart3 className="w-5 h-5 mr-2 text-purple-500" />
                     Income vs Expenses
                   </h3>
-                  <div className="h-80 flex items-center justify-center">
+                  <div className="h-64 sm:h-80 flex items-center justify-center">
                     <Pie
                       data={getIncomeExpensePieData()}
                       options={{
@@ -780,7 +780,7 @@ export default function Expenses() {
                   <Wallet className="w-5 h-5 mr-2 text-green-500" />
                   Income Categories Breakdown
                 </h3>
-                <div className="h-80">
+                <div className="h-64 sm:h-80">
                   <Pie
                     data={getIncomeCategoriesData()}
                     options={{
@@ -788,7 +788,7 @@ export default function Expenses() {
                       maintainAspectRatio: false,
                       plugins: {
                         legend: {
-                          position: 'right' as const,
+                          position: 'bottom' as const,
                         },
                         tooltip: {
                           callbacks: {
@@ -813,7 +813,7 @@ export default function Expenses() {
                   <TrendingDown className="w-5 h-5 mr-2 text-red-500" />
                   Expense Categories Breakdown
                 </h3>
-                <div className="h-80">
+                <div className="h-64 sm:h-80">
                   <Pie
                     data={getExpenseCategoriesData()}
                     options={{
@@ -821,7 +821,7 @@ export default function Expenses() {
                       maintainAspectRatio: false,
                       plugins: {
                         legend: {
-                          position: 'right' as const,
+                          position: 'bottom' as const,
                         },
                         tooltip: {
                           callbacks: {
@@ -846,7 +846,7 @@ export default function Expenses() {
         {/* Add Transaction Modal */}
         {showAddForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">
                   Add Transaction

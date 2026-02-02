@@ -325,15 +325,15 @@ export default function Goals() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 space-y-8 mt-16">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-powerbi-gray-900 dark:text-white flex items-center text-center sm:text-left">
               <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">🎯</span>
               Goals Management
             </h1>
-            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1 text-center sm:text-left">
               Track, prioritize, and achieve your financial goals
             </p>
           </div>
@@ -350,8 +350,8 @@ export default function Goals() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-4 sm:p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-100 text-sm font-medium">Total Goals</p>
@@ -360,7 +360,7 @@ export default function Goals() {
                 <span className="text-blue-200">📋</span>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-4 sm:p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-green-100 text-sm font-medium">Completed</p>
@@ -369,7 +369,7 @@ export default function Goals() {
                 <span className="text-green-200">✅</span>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-4 sm:p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-purple-100 text-sm font-medium">Avg Progress</p>
@@ -378,7 +378,7 @@ export default function Goals() {
                 <span className="text-purple-200">📈</span>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-rose-400 to-rose-600 rounded-2xl p-6 text-white">
+            <div className="bg-gradient-to-br from-rose-400 to-rose-600 rounded-2xl p-4 sm:p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-rose-100 text-sm font-medium">Overdue</p>
@@ -391,22 +391,22 @@ export default function Goals() {
         )}
 
         {/* Filters */}
-        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2">
+        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
+          <div className="flex flex-wrap gap-3 sm:gap-4 items-center">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <Search className="w-5 h-5 text-powerbi-gray-500" />
               <input
                 type="text"
                 placeholder="Search goals..."
                 value={filters.search}
                 onChange={(e) => setFilters({...filters, search: e.target.value})}
-                className="px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                className="w-full sm:w-64 px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
               />
             </div>
             <select
               value={filters.category}
               onChange={(e) => setFilters({...filters, category: e.target.value})}
-              className="px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+              className="w-full sm:w-auto px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
             >
               <option value="all">All Categories</option>
               {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -414,7 +414,7 @@ export default function Goals() {
             <select
               value={filters.status}
               onChange={(e) => setFilters({...filters, status: e.target.value})}
-              className="px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+              className="w-full sm:w-auto px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
             >
               <option value="all">All Status</option>
               {statuses.map(status => <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>)}
@@ -422,7 +422,7 @@ export default function Goals() {
             <select
               value={filters.priority}
               onChange={(e) => setFilters({...filters, priority: e.target.value})}
-              className="px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+              className="w-full sm:w-auto px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
             >
               <option value="all">All Priorities</option>
               {priorities.map(priority => <option key={priority} value={priority}>{priority.charAt(0).toUpperCase() + priority.slice(1)}</option>)}
@@ -431,12 +431,12 @@ export default function Goals() {
         </div>
 
         {/* Goals Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {goals.map((goal) => (
-            <div key={goal.id} className="bg-white dark:bg-powerbi-gray-800 p-6 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 hover:shadow-xl transition-shadow">
+            <div key={goal.id} className="bg-white dark:bg-powerbi-gray-800 p-4 sm:p-5 md:p-6 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 hover:shadow-xl transition-shadow">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-1">{goal.name}</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-1">{goal.name}</h3>
                   <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getCategoryColor(goal.category).bg} ${getCategoryColor(goal.category).text}`}>
                     {goal.category}
                   </span>
@@ -488,7 +488,7 @@ export default function Goals() {
                   ></div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-powerbi-gray-900 dark:text-white">
+                  <span className="text-sm sm:text-base font-medium text-powerbi-gray-900 dark:text-white">
                     {Math.round(goal.progress_percentage)}% Complete
                   </span>
                   {isOverdue(goal.target_date, goal.status) && (
@@ -498,7 +498,7 @@ export default function Goals() {
 
                 <div className="flex items-center gap-2 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                   <Calendar className="w-4 h-4" />
-                  <span>Target: {formatDate(goal.target_date)}</span>
+                  <span className="text-sm sm:text-base">Target: {formatDate(goal.target_date)}</span>
                 </div>
               </div>
             </div>

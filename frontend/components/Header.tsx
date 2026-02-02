@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Bell, Search, LogOut, Settings, Moon, Sun, ChevronDown } from 'lucide-react';
+import { User, Bell, Search, LogOut, Settings, Moon, Sun, ChevronDown, Menu } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export default function Header() {
+export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }) {
   const router = useRouter();
   interface UserData {
     fullname?: string;
@@ -66,8 +66,16 @@ export default function Header() {
   };
 
   return (
-    <header suppressHydrationWarning className="bg-white dark:bg-powerbi-gray-800 shadow-lg border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 h-16 fixed top-0 left-64 right-0 z-20 flex items-center justify-between px-6 transition-colors duration-200">
+    <header suppressHydrationWarning className="bg-white dark:bg-powerbi-gray-800 shadow-lg border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 h-16 fixed top-0 left-0 lg:left-64 right-0 z-20 flex items-center justify-between px-4 sm:px-6 transition-colors duration-200">
       <div className="flex items-center flex-1">
+        {/* Mobile: open sidebar */}
+        <button
+          onClick={() => onOpenSidebar?.()}
+          className="p-2 mr-2 lg:hidden text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 rounded-xl transition-all"
+          aria-label="Open sidebar"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-powerbi-gray-400" />
           <input suppressHydrationWarning

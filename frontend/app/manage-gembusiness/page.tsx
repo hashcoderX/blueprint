@@ -101,10 +101,10 @@ export default function ManageGemBusiness() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+        <div className="flex flex-wrap justify-between items-start sm:items-center gap-4">
+          <div className="min-w-0">
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/20">💎</span>
               Manage My Gem Business
@@ -116,12 +116,12 @@ export default function ManageGemBusiness() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Inventory Items</p>
-                <p className="text-3xl font-bold">{inventoryCount}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{inventoryCount}</p>
               </div>
               <Layers className="w-6 h-6 text-purple-200" />
             </div>
@@ -130,7 +130,7 @@ export default function ManageGemBusiness() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-emerald-100 text-sm font-medium">Purchases (Month)</p>
-                <p className="text-3xl font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(monthTotal)}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(monthTotal)}</p>
               </div>
               <ShoppingCart className="w-6 h-6 text-emerald-200" />
             </div>
@@ -139,7 +139,7 @@ export default function ManageGemBusiness() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm font-medium">Sales (Month)</p>
-                <p className="text-3xl font-bold">0</p>
+                <p className="text-2xl sm:text-3xl font-bold">0</p>
               </div>
               <DollarSign className="w-6 h-6 text-blue-200" />
             </div>
@@ -149,7 +149,7 @@ export default function ManageGemBusiness() {
         {/* Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Inventory */}
-          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <Gem className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
@@ -162,7 +162,7 @@ export default function ManageGemBusiness() {
           </div>
 
           {/* Purchases */}
-          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <ShoppingCart className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mr-2" />
@@ -177,7 +177,7 @@ export default function ManageGemBusiness() {
           </div>
 
           {/* Sales/Income */}
-          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />

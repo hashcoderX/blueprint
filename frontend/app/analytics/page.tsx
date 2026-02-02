@@ -153,10 +153,10 @@ export default function Analytics() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+        <div className="flex flex-wrap justify-between items-start sm:items-center gap-4">
+          <div className="min-w-0">
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">📊</span>
               Analytics & Insights
@@ -168,50 +168,50 @@ export default function Analytics() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-6">
           <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between"><div>
               <p className="text-emerald-100 text-sm font-medium">Income</p>
-              <p className="text-3xl font-bold">{totals.incomeTotal.toFixed(2)}</p>
+              <p className="text-2xl sm:text-3xl font-bold">{totals.incomeTotal.toFixed(2)}</p>
             </div><span className="text-emerald-200">💵</span></div>
           </div>
           <div className="bg-gradient-to-br from-rose-400 to-rose-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between"><div>
               <p className="text-rose-100 text-sm font-medium">Expenses</p>
-              <p className="text-3xl font-bold">{totals.expensesTotal.toFixed(2)}</p>
+              <p className="text-2xl sm:text-3xl font-bold">{totals.expensesTotal.toFixed(2)}</p>
             </div><span className="text-rose-200">💳</span></div>
           </div>
           <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between"><div>
               <p className="text-blue-100 text-sm font-medium">Net Balance</p>
-              <p className="text-3xl font-bold">{totals.net.toFixed(2)}</p>
+              <p className="text-2xl sm:text-3xl font-bold">{totals.net.toFixed(2)}</p>
             </div><span className="text-blue-200">⚖️</span></div>
           </div>
           <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between"><div>
               <p className="text-purple-100 text-sm font-medium">Savings Rate</p>
-              <p className="text-3xl font-bold">{Math.round(goalStats?.total_savings_rate || 0)}%</p>
+              <p className="text-2xl sm:text-3xl font-bold">{Math.round(goalStats?.total_savings_rate || 0)}%</p>
             </div><span className="text-purple-200">💰</span></div>
           </div>
           <div className="bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between"><div>
               <p className="text-amber-100 text-sm font-medium">Tasks Done</p>
-              <p className="text-3xl font-bold">{totals.completionRate}%</p>
+              <p className="text-2xl sm:text-3xl font-bold">{totals.completionRate}%</p>
             </div><span className="text-amber-200">✅</span></div>
           </div>
         </div>
 
         {/* Trends and Breakdown */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Monthly Income vs Expenses</h3>
-            <div className="h-80">
+            <div className="h-64 sm:h-80">
               <Line data={monthlyLine} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
             </div>
           </div>
-          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Expenses by Category</h3>
-            <div className="h-80">
+            <div className="h-64 sm:h-80">
               <Doughnut data={{
                 labels: expensesByCategory.labels,
                 datasets: [{
@@ -225,18 +225,18 @@ export default function Analytics() {
 
         {/* Goals and Tasks */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Goals Progress Distribution</h3>
-            <div className="h-80">
+            <div className="h-64 sm:h-80">
               <Bar data={{
                 labels: ['0–25%','25–50%','50–75%','75–100%'],
                 datasets: [{ label: 'Goals', data: goalsBuckets, backgroundColor: ['#ef4444','#f59e0b','#3b82f6','#10b981'] }]
               }} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
             </div>
           </div>
-          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Tasks Status</h3>
-            <div className="h-80">
+            <div className="h-64 sm:h-80">
               <Doughnut data={{
                 labels: ['To Do','In Progress','Done'],
                 datasets: [{ data: [statusDistribution.todo, statusDistribution.inProgress, statusDistribution.done], backgroundColor: ['#6b7280','#3b82f6','#10b981'] }]
@@ -246,7 +246,7 @@ export default function Analytics() {
         </div>
 
         {/* Insights */}
-        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
           <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Recommendations</h3>
           <ul className="space-y-2">
             {insights.map((tip, i) => (

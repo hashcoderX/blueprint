@@ -162,19 +162,19 @@ export default function Diary() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8 mt-16">
         {/* Header like other pages */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">Diary</h1>
-            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap min-w-0">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white">Diary</h1>
+            <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => router.push('/diary/view')}
-              className="px-4 py-2 rounded-xl shadow bg-gray-600 text-white hover:bg-gray-700"
+              className="px-4 py-2 rounded-xl shadow bg-gray-600 text-white hover:bg-gray-700 flex-shrink-0 whitespace-nowrap"
             >
               View Diary
             </button>
@@ -196,15 +196,15 @@ export default function Diary() {
             isNightMode ? 'bg-amber-900 text-amber-100' : 'bg-amber-50 text-gray-800'
           }`}>
             {/* Inner header date (handwritten) */}
-            <div className="flex justify-between items-center p-6">
+            <div className="flex justify-between items-center p-4 sm:p-6">
               <div className="text-2xl font-light" style={{ fontFamily: 'var(--font-kalam)' }}>
                 Today
               </div>
             </div>
 
             {/* Mood Selector */}
-            <div className="px-6 mb-4">
-              <div className="flex space-x-4">
+            <div className="px-4 sm:px-6 mb-4">
+              <div className="flex flex-wrap gap-3 sm:gap-4">
                 {moodOptions.map(({ value, icon: Icon, label }) => (
                   <button
                     key={value}
@@ -223,7 +223,7 @@ export default function Diary() {
             </div>
 
             {/* One Sentence */}
-            <div className="px-6 mb-4">
+            <div className="px-4 sm:px-6 mb-4">
               <input
                 type="text"
                 value={oneSentence}
@@ -239,7 +239,7 @@ export default function Diary() {
             </div>
 
             {/* Writing Area */}
-            <div className="px-6 pb-6">
+            <div className="px-4 sm:px-6 pb-6">
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
@@ -280,7 +280,7 @@ export default function Diary() {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 text-sm opacity-60" style={{ fontFamily: 'var(--font-kalam)' }}>
+            <div className="px-4 sm:px-6 py-4 text-sm opacity-60" style={{ fontFamily: 'var(--font-kalam)' }}>
               Your thoughts are safe here.
             </div>
           </div>

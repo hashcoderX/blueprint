@@ -207,7 +207,7 @@ export default function Achievements() {
     const progressPercentage = (achievement.progress / achievement.max_progress) * 100;
 
     return (
-      <div className={`relative bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${
+      <div className={`relative bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${
         achievement.unlocked ? 'ring-2 ring-green-200 dark:ring-green-800' : ''
       }`}>
         {achievement.unlocked && (
@@ -237,7 +237,7 @@ export default function Achievements() {
 
           <div className="flex-1">
             <div className="flex items-center justify-between mb-2">
-              <h3 className={`font-bold text-lg ${
+              <h3 className={`font-bold text-base sm:text-lg ${
                 achievement.unlocked
                   ? 'text-powerbi-gray-900 dark:text-white'
                   : 'text-powerbi-gray-600 dark:text-powerbi-gray-400'
@@ -249,7 +249,7 @@ export default function Achievements() {
               </span>
             </div>
 
-            <p className={`text-sm mb-3 ${
+            <p className={`text-xs sm:text-sm mb-3 ${
               achievement.unlocked
                 ? 'text-powerbi-gray-700 dark:text-powerbi-gray-300'
                 : 'text-powerbi-gray-500 dark:text-powerbi-gray-500'
@@ -299,21 +299,21 @@ export default function Achievements() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 space-y-8 mt-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 flex-wrap">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-powerbi-gray-900 dark:text-white flex items-center text-center sm:text-left">
               <Trophy className="w-8 h-8 mr-3 text-yellow-500" />
               Achievements
             </h1>
-            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
+            <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1 text-center sm:text-left">
               Track your financial milestones and earn rewards
             </p>
           </div>
           <button
             onClick={() => { setShowCreateForm(true); setFormError(null); }}
-            className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
             Add Achievement
@@ -321,42 +321,42 @@ export default function Achievements() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl p-6 text-white">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-yellow-100 text-sm font-medium">Total Achievements</p>
-                <p className="text-3xl font-bold">{stats.totalAchievements}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{stats.totalAchievements}</p>
               </div>
               <Trophy className="w-8 h-8 text-yellow-200" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white">
+          <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-sm font-medium">Unlocked</p>
-                <p className="text-3xl font-bold">{stats.unlockedAchievements}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{stats.unlockedAchievements}</p>
               </div>
               <Award className="w-8 h-8 text-green-200" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white">
+          <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm font-medium">Points Earned</p>
-                <p className="text-3xl font-bold">{stats.totalPoints.toLocaleString()}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{stats.totalPoints.toLocaleString()}</p>
               </div>
               <Star className="w-8 h-8 text-blue-200" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white">
+          <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Current Streak</p>
-                <p className="text-3xl font-bold">{stats.currentStreak} days</p>
+                <p className="text-2xl sm:text-3xl font-bold">{stats.currentStreak} days</p>
               </div>
               <Zap className="w-8 h-8 text-purple-200" />
             </div>
@@ -364,8 +364,8 @@ export default function Achievements() {
         </div>
 
         {/* Category Filter */}
-        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
-          <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Categories</h3>
+        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Categories</h3>
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setSelectedCategory('all')}
@@ -398,7 +398,7 @@ export default function Achievements() {
         </div>
 
         {/* Achievements Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredAchievements.map((achievement) => (
             <AchievementCard key={achievement.id} achievement={achievement} />
           ))}

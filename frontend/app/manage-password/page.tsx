@@ -379,10 +379,10 @@ export default function ManagePassword() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8 mt-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+        <div className="flex flex-wrap justify-between items-start sm:items-center gap-4">
+          <div className="min-w-0">
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/20">🔐</span>
               Credential Manager
@@ -391,10 +391,10 @@ export default function ManagePassword() {
               Securely store passwords and API keys for personal and development use
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 w-full sm:w-auto">
             <button
               onClick={() => activeTab === 'passwords' ? setShowAddForm(true) : setShowAddApiForm(true)}
-              className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors shrink-0 w-full sm:w-auto"
             >
               <span className="w-5 h-5">+</span>
               Add {activeTab === 'passwords' ? 'Password' : 'API Key'}
@@ -405,10 +405,10 @@ export default function ManagePassword() {
         {/* Tabs */}
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 overflow-hidden">
           <div className="border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
-            <nav className="flex">
+            <nav className="flex flex-wrap">
               <button
                 onClick={() => setActiveTab('passwords')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-3 py-3 sm:px-6 sm:py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'passwords'
                     ? 'border-amber-500 text-amber-600 dark:text-amber-400'
                     : 'border-transparent text-powerbi-gray-500 hover:text-powerbi-gray-700 dark:text-powerbi-gray-400 dark:hover:text-powerbi-gray-200'
@@ -418,7 +418,7 @@ export default function ManagePassword() {
               </button>
               <button
                 onClick={() => setActiveTab('api-keys')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-3 py-3 sm:px-6 sm:py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'api-keys'
                     ? 'border-amber-500 text-amber-600 dark:text-amber-400'
                     : 'border-transparent text-powerbi-gray-500 hover:text-powerbi-gray-700 dark:text-powerbi-gray-400 dark:hover:text-powerbi-gray-200'
@@ -429,16 +429,16 @@ export default function ManagePassword() {
             </nav>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {activeTab === 'passwords' ? (
               <>
                 {/* Password Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
                   <div className="bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl p-6 text-white">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-amber-100 text-sm font-medium">Total Passwords</p>
-                        <p className="text-3xl font-bold">{passwordStats.total}</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{passwordStats.total}</p>
                       </div>
                       <span className="text-amber-200">🔐</span>
                     </div>
@@ -447,7 +447,7 @@ export default function ManagePassword() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-blue-100 text-sm font-medium">With Email</p>
-                        <p className="text-3xl font-bold">{passwordStats.withEmail}</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{passwordStats.withEmail}</p>
                       </div>
                       <span className="text-blue-200">📧</span>
                     </div>
@@ -456,7 +456,7 @@ export default function ManagePassword() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-green-100 text-sm font-medium">With Username</p>
-                        <p className="text-3xl font-bold">{passwordStats.withUsername}</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{passwordStats.withUsername}</p>
                       </div>
                       <span className="text-green-200">👤</span>
                     </div>
@@ -488,18 +488,18 @@ export default function ManagePassword() {
                       <table className="w-full">
                         <thead className="bg-powerbi-gray-50 dark:bg-powerbi-gray-700">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Platform</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Email</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Username</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Password</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Notes</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Actions</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Platform</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Email</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Username</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Password</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Notes</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-right text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-600">
                           {entries.map((entry) => (
                             <tr key={entry.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-powerbi-gray-900 dark:text-white">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm font-medium text-powerbi-gray-900 dark:text-white">
                                 {editingId === entry.id ? (
                                   <input
                                     type="text"
@@ -511,7 +511,7 @@ export default function ManagePassword() {
                                   entry.platform
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
                                 {editingId === entry.id ? (
                                   <input
                                     type="email"
@@ -523,7 +523,7 @@ export default function ManagePassword() {
                                   entry.email || '-'
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
                                 {editingId === entry.id ? (
                                   <input
                                     type="text"
@@ -535,7 +535,7 @@ export default function ManagePassword() {
                                   entry.username || '-'
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
                                 {editingId === entry.id ? (
                                   <input
                                     type="password"
@@ -555,7 +555,7 @@ export default function ManagePassword() {
                                   </div>
                                 )}
                               </td>
-                              <td className="px-6 py-4 text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400 max-w-xs truncate">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400 max-w-xs truncate">
                                 {editingId === entry.id ? (
                                   <textarea
                                     value={editForm.notes}
@@ -567,7 +567,7 @@ export default function ManagePassword() {
                                   entry.notes || '-'
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-right">
                                 <div className="flex gap-2 justify-end">
                                   {editingId === entry.id ? (
                                     <>
@@ -613,12 +613,12 @@ export default function ManagePassword() {
             ) : (
               <>
                 {/* API Keys Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-purple-100 text-sm font-medium">Total API Keys</p>
-                        <p className="text-3xl font-bold">{apiStats.total}</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{apiStats.total}</p>
                       </div>
                       <span className="text-purple-200">🔑</span>
                     </div>
@@ -627,7 +627,7 @@ export default function ManagePassword() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-blue-100 text-sm font-medium">Development</p>
-                        <p className="text-3xl font-bold">{apiStats.development}</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{apiStats.development}</p>
                       </div>
                       <span className="text-blue-200">🛠️</span>
                     </div>
@@ -636,7 +636,7 @@ export default function ManagePassword() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-yellow-100 text-sm font-medium">Staging</p>
-                        <p className="text-3xl font-bold">{apiStats.staging}</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{apiStats.staging}</p>
                       </div>
                       <span className="text-yellow-200">🧪</span>
                     </div>
@@ -645,7 +645,7 @@ export default function ManagePassword() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-red-100 text-sm font-medium">Production</p>
-                        <p className="text-3xl font-bold">{apiStats.production}</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{apiStats.production}</p>
                       </div>
                       <span className="text-red-200">🚀</span>
                     </div>
@@ -677,19 +677,19 @@ export default function ManagePassword() {
                       <table className="w-full">
                         <thead className="bg-powerbi-gray-50 dark:bg-powerbi-gray-700">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Project</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Provider</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Environment</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">API Key</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Secret</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Actions</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Name</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Project</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Provider</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Environment</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">API Key</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Secret</th>
+                            <th className="px-3 py-2 sm:px-6 sm:py-3 text-right text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-600">
                           {apiEntries.map((entry) => (
                             <tr key={entry.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-powerbi-gray-900 dark:text-white">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm font-medium text-powerbi-gray-900 dark:text-white">
                                 {editingApiId === entry.id ? (
                                   <input
                                     type="text"
@@ -701,7 +701,7 @@ export default function ManagePassword() {
                                   entry.name
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
                                 {editingApiId === entry.id ? (
                                   <input
                                     type="text"
@@ -713,7 +713,7 @@ export default function ManagePassword() {
                                   entry.project_name
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
                                 {editingApiId === entry.id ? (
                                   <input
                                     type="text"
@@ -725,7 +725,7 @@ export default function ManagePassword() {
                                   entry.provider
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm">
                                 {editingApiId === entry.id ? (
                                   <select
                                     value={editApiForm.environment}
@@ -742,7 +742,7 @@ export default function ManagePassword() {
                                   </span>
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400 font-mono">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400 font-mono">
                                 {editingApiId === entry.id ? (
                                   <input
                                     type="password"
@@ -762,7 +762,7 @@ export default function ManagePassword() {
                                   </div>
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400 font-mono">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400 font-mono">
                                 {editingApiId === entry.id ? (
                                   <input
                                     type="password"
@@ -786,7 +786,7 @@ export default function ManagePassword() {
                                   )
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                              <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-right">
                                 <div className="flex gap-2 justify-end">
                                   {editingApiId === entry.id ? (
                                     <>
@@ -836,8 +836,8 @@ export default function ManagePassword() {
         {/* Add Form Modal */}
         {showAddForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl max-w-2xl w-full mx-4 sm:mx-6 max-h-[85vh] overflow-y-auto">
+              <div className="p-4 sm:p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add New Password Entry</h2>
                   <button
@@ -937,8 +937,8 @@ export default function ManagePassword() {
         {/* Add API Key Form Modal */}
         {showAddApiForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl max-w-2xl w-full mx-4 sm:mx-6 max-h-[85vh] overflow-y-auto">
+              <div className="p-4 sm:p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add New API Key</h2>
                   <button

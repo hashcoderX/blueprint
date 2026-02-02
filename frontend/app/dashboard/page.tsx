@@ -93,7 +93,7 @@ const StatCard = ({
     </div>
     <div className="space-y-1">
       <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400">{title}</p>
-      <p className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">
+      <p className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white">
         {prefix === '$'
           ? new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'USD' }).format(
               typeof value === 'number' ? value : 0
@@ -443,10 +443,10 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+        <div className="flex flex-wrap justify-between items-start sm:items-center gap-4">
+          <div className="min-w-0">
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">Dashboard</h1>
             <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
               Welcome back! Here&apos;s your financial overview.
@@ -456,7 +456,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
           <StatCard
             title="Total Expenses"
             value={stats.totalExpenses}
@@ -492,7 +492,7 @@ export default function Dashboard() {
         {/* Charts and Insights Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Spending Overview Chart */}
-          <div className="lg:col-span-2 bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="lg:col-span-2 bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Spending Overview</h3>
               <div className="flex items-center gap-2">
@@ -547,8 +547,8 @@ export default function Dashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white mb-4 sm:col-span-2">Quick Actions</h3>
             <QuickAction
               icon={Plus}
               title="Add Expense"
@@ -581,7 +581,7 @@ export default function Dashboard() {
         </div>
 
         {/* Diary Section */}
-        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Your Diary</h3>
             <div className="flex gap-2">
@@ -641,7 +641,7 @@ export default function Dashboard() {
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Activity */}
-          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Recent Activity</h3>
               <button className="text-sm text-powerbi-primary hover:text-powerbi-secondary font-medium transition-colors">
@@ -656,7 +656,7 @@ export default function Dashboard() {
           </div>
 
           {/* Financial Insights */}
-          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Financial Insights</h3>
               <Activity className="w-5 h-5 text-powerbi-gray-600 dark:text-powerbi-gray-400" />

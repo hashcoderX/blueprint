@@ -231,6 +231,58 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
   }
 });
 
+// Update user profile
+app.put('/api/user/profile', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const {
+      fullname,
+      email,
+      phone,
+      address,
+      country,
+      currency,
+      job_type,
+      job_subcategory
+    } = req.body;
+
+    // Build dynamic update set with only provided fields
+    const fields = [];
+    const values = [];
+    if (fullname !== undefined) { fields.push('fullname = ?'); values.push(fullname); }
+    if (email !== undefined) { fields.push('email = ?'); values.push(email); }
+    if (phone !== undefined) { fields.push('phone = ?'); values.push(phone); }
+    if (address !== undefined) { fields.push('address = ?'); values.push(address); }
+    if (country !== undefined) { fields.push('country = ?'); values.push(country); }
+    if (currency !== undefined) { fields.push('currency = ?'); values.push(currency); }
+    if (job_type !== undefined) { fields.push('job_type = ?'); values.push(job_type); }
+    if (job_subcategory !== undefined) { fields.push('job_subcategory = ?'); values.push(job_subcategory); }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    const sql = `UPDATE users SET ${fields.join(', ')} WHERE id = ?`;
+    values.push(req.user.id);
+
+    db.query(sql, values, (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      // Return updated profile
+      db.query(
+        'SELECT id, username, fullname, email, phone, address, country, currency, job_type, job_subcategory, role, status, is_paid, created_at FROM users WHERE id = ?',
+        [req.user.id],
+        (err2, results) => {
+          if (err2) return res.status(500).json({ error: err2.message });
+          res.json({ message: 'Profile updated', profile: results[0] });
+        }
+      );
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
 app.get('/', (req, res) => {
   res.send('Hello from backend!');
 });
@@ -2592,6 +2644,121 @@ app.post('/api/gem/tracking', authenticateToken, async (req, res) => {
           res.status(201).json({ id: insRes.insertId, inventory_id: invId, action_type: safeType, party: safeParty, status: safeStatus, start_date: safeStart, end_date: safeEnd, notes: safeNotes });
         }
       );
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Business: Register or update
+app.post('/api/business/register', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const {
+      business_name,
+      registration_no,
+      tax_id,
+      email,
+      phone,
+      address,
+      country,
+      currency,
+      owner_name
+    } = req.body || {};
+
+    if (!business_name) {
+      return res.status(400).json({ error: 'business_name is required' });
+    }
+
+    const sql = `
+      INSERT INTO businesses (user_id, business_name, registration_no, tax_id, email, phone, address, country, currency, owner_name)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        business_name = VALUES(business_name),
+        registration_no = VALUES(registration_no),
+        tax_id = VALUES(tax_id),
+        email = VALUES(email),
+        phone = VALUES(phone),
+        address = VALUES(address),
+        country = VALUES(country),
+        currency = VALUES(currency),
+        owner_name = VALUES(owner_name)
+    `;
+
+    db.query(
+      sql,
+      [
+        req.user.id,
+        business_name || null,
+        registration_no || null,
+        tax_id || null,
+        email || null,
+        phone || null,
+        address || null,
+        country || null,
+        currency || 'USD',
+        owner_name || null
+      ],
+      (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        db.query('SELECT * FROM businesses WHERE user_id = ?', [req.user.id], (selErr, rows) => {
+          if (selErr) return res.status(500).json({ error: selErr.message });
+          res.json({ message: 'Business saved', business: rows && rows[0] ? rows[0] : null });
+        });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Business: Get details
+app.get('/api/business', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    db.query('SELECT * FROM businesses WHERE user_id = ?', [req.user.id], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!rows || rows.length === 0) return res.status(404).json({ error: 'No business registered' });
+      res.json(rows[0]);
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Business: Report
+app.get('/api/business/report', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const userId = req.user.id;
+
+    const runQuery = (sql, params = []) => new Promise((resolve, reject) => {
+      db.query(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+    });
+
+    const [business] = await runQuery('SELECT * FROM businesses WHERE user_id = ?', [userId]);
+    const [inv] = await runQuery('SELECT COUNT(*) AS count, COALESCE(SUM(current_value),0) AS total_value FROM gem_inventory WHERE user_id = ?', [userId]);
+    const [purchases] = await runQuery('SELECT COUNT(*) AS count, COALESCE(SUM(amount),0) AS total FROM gem_purchases WHERE user_id = ?', [userId]);
+    const [sales] = await runQuery('SELECT COUNT(*) AS count, COALESCE(SUM(amount),0) AS total FROM gem_sales WHERE user_id = ?', [userId]).catch(() => [{ count: 0, total: 0 }]);
+    const [expenses] = await runQuery('SELECT COUNT(*) AS count, COALESCE(SUM(amount),0) AS total FROM gem_expenses WHERE user_id = ?', [userId]).catch(() => [{ count: 0, total: 0 }]);
+
+    const heading = business && business.business_name ? `${business.business_name} — Business Report` : 'Business Report';
+    const generated_at = new Date().toISOString();
+
+    res.json({
+      heading,
+      generated_at,
+      business: business || null,
+      summary: {
+        inventory_items: inv ? inv.count : 0,
+        inventory_total_value: inv ? inv.total_value : 0,
+        purchases_count: purchases ? purchases.count : 0,
+        purchases_total: purchases ? purchases.total : 0,
+        sales_count: sales ? sales.count : 0,
+        sales_total: sales ? sales.total : 0,
+        expenses_count: expenses ? expenses.count : 0,
+        expenses_total: expenses ? expenses.total : 0
+      }
     });
   } catch (err) {
     res.status(500).json({ error: 'Database not ready' });

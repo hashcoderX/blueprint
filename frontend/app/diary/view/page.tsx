@@ -27,6 +27,7 @@ export default function DiaryList() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   const filtered = entries.filter((e) =>
     [e.title, e.content, e.one_sentence].join(' ').toLowerCase().includes(query.toLowerCase())
@@ -81,23 +82,23 @@ export default function DiaryList() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6 mt-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">My Diary</h1>
-            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap min-w-0">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white">My Diary</h1>
+            <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
               Flip through your memories, one page at a time. Use arrow keys to navigate.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-powerbi-gray-500" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search entries..."
-                className="pl-9 pr-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none"
+                className="w-full pl-9 pr-3 py-2 rounded-lg bg-white dark:bg-powerbi-gray-800 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none"
               />
             </div>
           </div>
@@ -106,7 +107,7 @@ export default function DiaryList() {
         {/* Diary Book */}
         <div className="flex justify-center">
           <div className="relative w-full max-w-2xl">
-            {(!localStorage.getItem('token')) ? (
+            {(!token) ? (
               <div className="text-gray-500 text-center py-20">Log in to view your diary.</div>
             ) : loading ? (
               <div className="text-gray-500 text-center py-20">Loading your diary...</div>
@@ -116,7 +117,7 @@ export default function DiaryList() {
               <>
                 {/* Page Content */}
                 <div
-                  className={`bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 min-h-[500px] transition-all duration-300 ${
+                  className={`relative bg-white dark:bg-powerbi-gray-800 p-6 sm:p-8 rounded-2xl shadow-2xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 min-h-[500px] transition-all duration-300 ${
                     isAnimating ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
                   }`}
                   style={{
@@ -124,6 +125,11 @@ export default function DiaryList() {
                     backgroundSize: '20px 20px',
                   }}
                 >
+                  {/* Decorative ribbon */}
+                  <div className="absolute -top-3 left-6 w-28 h-3 rounded-b-xl bg-gradient-to-r from-amber-500 to-amber-300 dark:from-amber-600 dark:to-amber-400" />
+
+                  {/* Inner page tint */}
+                  <div className="rounded-xl p-4 sm:p-6 bg-amber-50 dark:bg-amber-900/10">
                   <div className="mb-6">
                     <div className="text-2xl font-light text-gray-900 dark:text-white mb-2" style={{ fontFamily: 'var(--font-kalam)' }}>
                       {(() => {
@@ -162,6 +168,7 @@ export default function DiaryList() {
                   <div className="absolute bottom-4 right-4 text-xs text-gray-400 opacity-50">
                     Page {currentPage + 1} of {filtered.length}
                   </div>
+                  </div>
                 </div>
 
                 {/* Navigation Buttons */}
@@ -169,7 +176,7 @@ export default function DiaryList() {
                   <button
                     onClick={() => handlePageTurn('prev')}
                     disabled={currentPage === 0 || isAnimating}
-                    className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+                    className="flex items-center px-4 py-2 bg-powerbi-primary hover:brightness-110 disabled:opacity-50 text-white rounded-xl transition-colors"
                   >
                     <ChevronLeft size={20} className="mr-2" />
                     Previous
@@ -177,7 +184,7 @@ export default function DiaryList() {
                   <button
                     onClick={() => handlePageTurn('next')}
                     disabled={currentPage === filtered.length - 1 || isAnimating}
-                    className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+                    className="flex items-center px-4 py-2 bg-powerbi-primary hover:brightness-110 disabled:opacity-50 text-white rounded-xl transition-colors"
                   >
                     Next
                     <ChevronRight size={20} className="ml-2" />

@@ -294,7 +294,7 @@ export default function VehicleExpenses() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8 mt-16">
         {message && (
           <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-xl shadow-lg ${
             message.type === 'success'
@@ -304,17 +304,17 @@ export default function VehicleExpenses() {
             {message.text}
           </div>
         )}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
-              <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">🚗</span>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap min-w-0">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
+              <span className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">🚗</span>
               Vehicle Income & Expenses
             </h1>
-            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">Track costs and earnings by vehicle {loading && <span className="ml-2 text-xs italic">(Loading...)</span>}</p>
+            <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">Track costs and earnings by vehicle {loading && <span className="ml-2 text-xs italic">(Loading...)</span>}</p>
           </div>
-          <div className="flex gap-3">
-            {activeTab === 'entries' && <button onClick={openAdd} className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors">+ Add Entry</button>}
-            {activeTab === 'vehicles' && <button onClick={openAddVehicle} className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors">+ Add Vehicle</button>}
+          <div className="flex gap-3 flex-wrap">
+            {activeTab === 'entries' && <button onClick={openAdd} className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap">+ Add Entry</button>}
+            {activeTab === 'vehicles' && <button onClick={openAddVehicle} className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap">+ Add Vehicle</button>}
           </div>
         </div>
 
@@ -323,13 +323,13 @@ export default function VehicleExpenses() {
           <div className="flex">
             <button 
               onClick={() => setActiveTab('entries')} 
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-colors ${activeTab === 'entries' ? 'bg-powerbi-primary text-white' : 'text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white'}`}
+              className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 rounded-xl text-sm sm:text-base font-medium transition-colors ${activeTab === 'entries' ? 'bg-powerbi-primary text-white' : 'text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white'}`}
             >
               Entries
             </button>
             <button 
               onClick={() => setActiveTab('vehicles')} 
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-colors ${activeTab === 'vehicles' ? 'bg-powerbi-primary text-white' : 'text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white'}`}
+              className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 rounded-xl text-sm sm:text-base font-medium transition-colors ${activeTab === 'vehicles' ? 'bg-powerbi-primary text-white' : 'text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white'}`}
             >
               Vehicles
             </button>
@@ -338,33 +338,33 @@ export default function VehicleExpenses() {
 
         {activeTab === 'entries' && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl p-6 text-white">
                 <div className="flex items-center justify-between"><div>
                   <p className="text-emerald-100 text-sm font-medium">Income</p>
-                  <p className="text-3xl font-bold">{formatCurrency(totals.income)}</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(totals.income)}</p>
                 </div><span className="text-emerald-200">💵</span></div>
               </div>
               <div className="bg-gradient-to-br from-rose-400 to-rose-600 rounded-2xl p-6 text-white">
                 <div className="flex items-center justify-between"><div>
                   <p className="text-rose-100 text-sm font-medium">Expenses</p>
-                  <p className="text-3xl font-bold">{formatCurrency(totals.expense)}</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(totals.expense)}</p>
                 </div><span className="text-rose-200">🧾</span></div>
               </div>
               <div className={`rounded-2xl p-6 text-white ${totals.net >= 0 ? 'bg-gradient-to-br from-blue-400 to-blue-600' : 'bg-gradient-to-br from-amber-400 to-amber-600'}`}>
                 <div className="flex items-center justify-between"><div>
                   <p className="text-white/80 text-sm font-medium">Net</p>
-                  <p className="text-3xl font-bold">{formatCurrency(totals.net)}</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(totals.net)}</p>
                 </div><span className="opacity-80">⚖️</span></div>
               </div>
             </div>
 
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">Entries</h3>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                   <label className="text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300">Vehicle</label>
-                  <select className="bg-white dark:bg-powerbi-gray-900 border rounded px-2 py-1" value={filterVehicle} onChange={e => setFilterVehicle(e.target.value)}>
+                  <select className="bg-white dark:bg-powerbi-gray-900 border rounded px-2 py-1 w-full sm:w-auto" value={filterVehicle} onChange={e => setFilterVehicle(e.target.value)}>
                     <option value="all">All</option>
                     {vehicleOptions.map(v => (<option key={v} value={v}>{v}</option>))}
                   </select>
@@ -455,7 +455,7 @@ export default function VehicleExpenses() {
         {/* Add Modal */}
         {showAdd && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Entry</h3>
                 <form onSubmit={submitAdd} className="space-y-4">
@@ -500,7 +500,7 @@ export default function VehicleExpenses() {
         {/* Edit Modal */}
         {showEdit && selected && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Edit Entry</h3>
                 <form onSubmit={submitEdit} className="space-y-4">
@@ -545,7 +545,7 @@ export default function VehicleExpenses() {
         {/* Add Vehicle Modal */}
         {showAddVehicle && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Vehicle</h3>
                 <form onSubmit={submitAddVehicle} className="space-y-4">
@@ -584,7 +584,7 @@ export default function VehicleExpenses() {
         {/* Edit Vehicle Modal */}
         {showEditVehicle && selectedVehicle && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Edit Vehicle</h3>
                 <form onSubmit={submitEditVehicle} className="space-y-4">
@@ -623,7 +623,7 @@ export default function VehicleExpenses() {
         {/* Details Modal */}
         {showDetails && selectedEntry && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-lg w-full">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-6">
                   <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Entry Details</h3>

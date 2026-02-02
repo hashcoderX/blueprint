@@ -63,6 +63,22 @@ tempConnection.connect((err) => {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
+        CREATE TABLE IF NOT EXISTS businesses (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL UNIQUE,
+          business_name VARCHAR(255) NOT NULL,
+          registration_no VARCHAR(100),
+          tax_id VARCHAR(100),
+          email VARCHAR(100),
+          phone VARCHAR(20),
+          address TEXT,
+          country VARCHAR(100),
+          currency VARCHAR(10) DEFAULT 'USD',
+          owner_name VARCHAR(100),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
         CREATE TABLE IF NOT EXISTS expenses (
           id INT AUTO_INCREMENT PRIMARY KEY,
           user_id INT,

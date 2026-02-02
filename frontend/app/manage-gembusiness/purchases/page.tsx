@@ -291,10 +291,10 @@ export default function GemPurchases() {
   
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6 mt-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+        <div className="flex flex-wrap justify-between items-start sm:items-center gap-4">
+          <div className="min-w-0">
             <button
               onClick={() => router.push('/manage-gembusiness')}
               className="flex items-center text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white mb-2"
@@ -310,40 +310,42 @@ export default function GemPurchases() {
               Track your gemstone purchases and suppliers
             </p>
           </div>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Purchase
-          </button>
+          <div className="w-full sm:w-auto shrink-0">
+            <button
+              onClick={() => setShowAdd(true)}
+              className="flex items-center px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium w-full sm:w-auto"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Purchase
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl p-6 text-white">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-emerald-100 text-sm font-medium">This Month</p>
-                <p className="text-3xl font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(monthTotal)}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(monthTotal)}</p>
               </div>
               <DollarSign className="w-8 h-8 text-emerald-200" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white">
+          <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm font-medium">Total Purchases</p>
-                <p className="text-3xl font-bold">{totalPurchases}</p>
+                <p className="text-2xl sm:text-3xl font-bold">{totalPurchases}</p>
               </div>
               <ShoppingCart className="w-8 h-8 text-blue-200" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-6 text-white">
+          <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Average Purchase</p>
-                <p className="text-3xl font-bold">
+                <p className="text-2xl sm:text-3xl font-bold">
                   {totalPurchases > 0
                     ? new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(
                         purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0) / totalPurchases
@@ -359,7 +361,7 @@ export default function GemPurchases() {
 
         {/* Purchases Table */}
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 overflow-hidden">
-          <div className="px-6 py-4 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
             <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">Purchase History</h3>
           </div>
           
@@ -376,11 +378,11 @@ export default function GemPurchases() {
               <table className="w-full">
                 <thead className="bg-powerbi-gray-50 dark:bg-powerbi-gray-900/50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Vendor</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Images</th>
+                    <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Date</th>
+                    <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Description</th>
+                    <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Vendor</th>
+                    <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Amount</th>
+                    <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Images</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-powerbi-gray-800 divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
@@ -390,19 +392,19 @@ export default function GemPurchases() {
                       className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-900/50 cursor-pointer"
                       onClick={() => { setSelected(p); setShowDetail(true); }}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">
                         {new Date(p.date).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-sm text-powerbi-gray-900 dark:text-white font-medium">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-900 dark:text-white font-medium">
                         {p.description || 'Purchase'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
                         {p.vendor || '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap text-sm font-semibold text-emerald-700 dark:text-emerald-400">
                         {new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(p.amount) || 0)}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3 sm:px-6 sm:py-4">
                         {p.images && p.images.length > 0 ? (
                           <div className="flex space-x-1">
                             {p.images.slice(0, 3).map(img => (
@@ -417,13 +419,13 @@ export default function GemPurchases() {
                             {/* Purchase Detail Modal */}
                             {showDetail && selected && (
                               <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-                                  <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
+                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto">
+                                  <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
                                     <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Purchase Details</h4>
                                     <button onClick={() => setShowDetail(false)} className="px-3 py-1.5 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white">Close</button>
                                   </div>
-                                  <div className="p-6 space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                                  <div className="p-4 sm:p-6 space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                       <div>
                                         <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Date</div>
                                         <div className="text-powerbi-gray-900 dark:text-white font-medium">{new Date(selected.date).toLocaleDateString()}</div>
@@ -448,7 +450,7 @@ export default function GemPurchases() {
                                     <div>
                                       <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400 mb-2">Images</div>
                                       {selected.images && selected.images.length > 0 ? (
-                                        <div className="grid grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                           {selected.images.map(img => (
                                             <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-full h-28 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
                                           ))}
@@ -458,7 +460,7 @@ export default function GemPurchases() {
                                       )}
                                     </div>
                                   </div>
-                                  <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+                                  <div className="p-4 sm:p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
                                     <button onClick={() => { setShowDetail(false); router.push('/manage-gembusiness/inventory'); }} className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">Open Inventory</button>
                                     <button onClick={() => { setShowExpensesHistory(true); loadExpensesForSelected(); }} disabled={!selected.inventory_id} className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">View Expenses</button>
                                     <button onClick={() => setShowAddExpense(true)} disabled={!selected.inventory_id} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">Add Expense</button>
@@ -470,13 +472,13 @@ export default function GemPurchases() {
                             {/* Purchase Detail Modal */}
                             {showDetail && selected && (
                               <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={() => { setShowDetail(false); setSelected(null); }}>
-                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700" onClick={(e) => e.stopPropagation()}>
-                                  <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
+                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                                  <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
                                     <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Purchase Details</h4>
                                     <button onClick={() => { setShowDetail(false); setSelected(null); }} className="px-3 py-1.5 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white">Close</button>
                                   </div>
-                                  <div className="p-6 space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                                  <div className="p-4 sm:p-6 space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                       <div>
                                         <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">Date</div>
                                         <div className="text-powerbi-gray-900 dark:text-white font-medium">{new Date(selected.date).toLocaleDateString()}</div>
@@ -501,7 +503,7 @@ export default function GemPurchases() {
                                     <div>
                                       <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400 mb-2">Images</div>
                                       {selected.images && selected.images.length > 0 ? (
-                                        <div className="grid grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                           {selected.images.map(img => (
                                             <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-full h-28 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
                                           ))}
@@ -511,7 +513,7 @@ export default function GemPurchases() {
                                       )}
                                     </div>
                                   </div>
-                                  <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+                                  <div className="p-4 sm:p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
                                     <button onClick={() => { setShowDetail(false); setSelected(null); router.push('/manage-gembusiness/inventory'); }} className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">Open Inventory</button>
                                     <button onClick={() => { setShowExpensesHistory(true); loadExpensesForSelected(); }} disabled={!selected.inventory_id} className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">View Expenses</button>
                                     <button onClick={() => setShowAddExpense(true)} disabled={!selected.inventory_id} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">Add Expense</button>
@@ -522,18 +524,18 @@ export default function GemPurchases() {
 
                             {/* Add Expense Modal */}
                             {showAddExpense && (
-                              <div className="fixed inset-0 bg-black/40 flex items-center justify_center z-50 p-4 overflow-y-auto" onClick={() => setShowAddExpense(false)}>
-                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700" onClick={(e) => e.stopPropagation()}>
-                                  <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={() => setShowAddExpense(false)}>
+                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                                  <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
                                     <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add Expense</h4>
                                   </div>
-                                  <div className="p-6 space-y-4">
+                                  <div className="p-4 sm:p-6 space-y-4">
                                     <div>
                                       <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Linked Inventory ID</label>
                                       <input value={expInventoryId ?? ''} onChange={e => setExpInventoryId(e.target.value ? Number(e.target.value) : null)} type="number" min="1" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 12" />
                                       <p className="text-xs text-powerbi-gray-500 dark:text-powerbi-gray-400 mt-1">Pre-filled if the purchase created an inventory item.</p>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                       <div>
                                         <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Amount *</label>
                                         <input value={expAmount} onChange={e => setExpAmount(e.target.value)} type="number" min="0" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 25.00" />
@@ -553,11 +555,11 @@ export default function GemPurchases() {
                                     </div>
                                   </div>
                                   {expError && (
-                                    <div className="px-6 pb-4">
+                                    <div className="px-4 sm:px-6 pb-4">
                                       <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{expError}</div>
                                     </div>
                                   )}
-                                  <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+                                  <div className="p-4 sm:p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
                                     <button onClick={() => setShowAddExpense(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Cancel</button>
                                     <button onClick={submitExpense} disabled={expSubmitting} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">{expSubmitting ? 'Saving...' : 'Save Expense'}</button>
                                   </div>
@@ -567,17 +569,17 @@ export default function GemPurchases() {
                             {/* Add Expense Modal */}
                             {showAddExpense && (
                               <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-                                  <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                                <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto">
+                                  <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
                                     <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add Expense</h4>
                                   </div>
-                                  <div className="p-6 space-y-4">
+                                  <div className="p-4 sm:p-6 space-y-4">
                                     <div>
                                       <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Linked Inventory ID</label>
                                       <input value={expInventoryId ?? ''} onChange={e => setExpInventoryId(e.target.value ? Number(e.target.value) : null)} type="number" min="1" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 12" />
                                       <p className="text-xs text-powerbi-gray-500 dark:text-powerbi-gray-400 mt-1">Pre-filled if the purchase created an inventory item.</p>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                       <div>
                                         <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Amount *</label>
                                         <input value={expAmount} onChange={e => setExpAmount(e.target.value)} type="number" min="0" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 25.00" />
@@ -597,11 +599,11 @@ export default function GemPurchases() {
                                     </div>
                                   </div>
                                   {expError && (
-                                    <div className="px-6 pb-4">
+                                    <div className="px-4 sm:px-6 pb-4">
                                       <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{expError}</div>
                                     </div>
                                   )}
-                                  <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+                                  <div className="p-4 sm:p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
                                     <button onClick={() => setShowAddExpense(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">Cancel</button>
                                     <button onClick={submitExpense} disabled={expSubmitting} className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">{expSubmitting ? 'Saving...' : 'Save Expense'}</button>
                                   </div>
@@ -629,11 +631,11 @@ export default function GemPurchases() {
         {/* Add Purchase Modal */}
         {showAdd && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
                 <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Add Purchase</h4>
               </div>
-              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 space-y-4">
                 <div>
                   <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Gem Name *</label>
                   <input value={gemName} onChange={e => setGemName(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Sapphire" />
@@ -642,7 +644,7 @@ export default function GemPurchases() {
                   <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Description</label>
                   <input value={desc} onChange={e => setDesc(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 3ct Sapphire rough" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Weight (ct) *</label>
                     <input value={weight} onChange={e => setWeight(e.target.value)} type="number" min="0" step="0.001" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 3.250" />
@@ -652,7 +654,7 @@ export default function GemPurchases() {
                     <input value={amount} onChange={e => setAmount(e.target.value)} type="number" min="0" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 250.00" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Color</label>
                     <input value={color} onChange={e => setColor(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Blue" />
@@ -662,7 +664,7 @@ export default function GemPurchases() {
                     <input value={clarity} onChange={e => setClarity(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. VS" />
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Cut</label>
                     <input value={cut} onChange={e => setCut(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Round" />
@@ -676,7 +678,7 @@ export default function GemPurchases() {
                     <input value={origin} onChange={e => setOrigin(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Sri Lanka" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Date</label>
                     <input value={date} onChange={e => setDate(e.target.value)} type="date" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" />
@@ -692,11 +694,11 @@ export default function GemPurchases() {
                 </div>
               </div>
               {submitError && (
-                <div className="px-6 pb-4">
+                <div className="px-4 sm:px-6 pb-4">
                   <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-lg">{submitError}</div>
                 </div>
               )}
-              <div className="p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
+              <div className="p-4 sm:p-6 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex justify-end gap-3">
                 <button onClick={() => setShowAdd(false)} className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600">
                   Cancel
                 </button>
@@ -711,12 +713,12 @@ export default function GemPurchases() {
         {/* Expenses History Modal */}
         {showExpensesHistory && selected && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
                 <h4 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Expenses History</h4>
                 <button onClick={() => setShowExpensesHistory(false)} className="px-3 py-1.5 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white">Close</button>
               </div>
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {!selected.inventory_id ? (
                   <div className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">No linked inventory for this purchase.</div>
                 ) : expensesLoading ? (
@@ -730,19 +732,19 @@ export default function GemPurchases() {
                     <table className="w-full">
                       <thead className="bg-powerbi-gray-50 dark:bg-powerbi-gray-900/50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Category</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Description</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Amount</th>
+                          <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Date</th>
+                          <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Category</th>
+                          <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Description</th>
+                          <th className="px-3 py-2 sm:px-6 sm:py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider">Amount</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-powerbi-gray-800 divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-700">
                         {expenses.map(exp => (
                           <tr key={exp.id}>
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-900 dark:text-white">{new Date(exp.date).toLocaleDateString()}</td>
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{exp.category || '-'}</td>
-                            <td className="px-6 py-3 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{exp.description || '-'}</td>
-                            <td className="px-6 py-3 text-sm font-semibold text-rose-700 dark:text-rose-400">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(exp.amount) || 0)}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-900 dark:text-white">{new Date(exp.date).toLocaleDateString()}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{exp.category || '-'}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{exp.description || '-'}</td>
+                            <td className="px-3 py-3 sm:px-6 sm:py-4 text-sm font-semibold text-rose-700 dark:text-rose-400">{new Intl.NumberFormat(undefined, { style: 'currency', currency: userProfile?.currency || 'USD' }).format(Number(exp.amount) || 0)}</td>
                           </tr>
                         ))}
                       </tbody>
