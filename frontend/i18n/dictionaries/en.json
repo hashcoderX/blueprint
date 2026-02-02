@@ -12,5 +12,59 @@
   "common": {
     "save": "Save",
     "saving": "Saving..."
+  },
+  "sidebar": {
+    "main": "Main",
+    "more": "More",
+    "proTip": "Pro Tip",
+    "footerTip": "Track expenses daily for better insights",
+    "items": {
+      "dashboard": "Dashboard",
+      "goals": "Goals",
+      "achievements": "Achievements",
+      "expenses": "Income & Expenses",
+      "tasks": "Tasks",
+      "vehicleExpenses": "Vehicle Maintains",
+      "diary": "Diary",
+      "managePassword": "Manage Password",
+      "manageProjects": "Manage My Projects",
+      "manageGemBusiness": "Manage My Gem Business",
+      "analytics": "Analytics",
+      "settings": "Settings",
+      "help": "Help"
+    },
+    "descriptions": {
+      "dashboardDesc": "Overview & insights",
+      "goalsDesc": "Financial targets",
+      "achievementsDesc": "Milestones & rewards",
+      "expensesDesc": "Track Income & spending",
+      "tasksDesc": "To-do list",
+      "vehicleExpensesDesc": "Car costs",
+      "diaryDesc": "Personal notes",
+      "managePasswordDesc": "Update your password",
+      "manageProjectsDesc": "Project management & tracking",
+      "manageGemBusinessDesc": "Manage inventory, purchases, and income",
+      "analyticsDesc": "Detailed reports",
+      "settingsDesc": "Preferences",
+      "helpDesc": "Support & FAQ"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Welcome back! Here's your financial overview.",
+    "stats": {
+      "totalExpenses": "Total Expenses",
+      "goalsProgress": "Goals Progress",
+      "pendingTasks": "Pending Tasks",
+      "vehicleExpenses": "Vehicle Expenses"
+    },
+    "spendingOverview": "Spending Overview",
+    "range": {
+      "last30Days": "Last 30 days",
+      "last3Months": "Last 3 months",
+      "lastYear": "Last year"
+    },
+    "noSpendingData": "No spending data yet",
+    "addExpensesHint": "Add expenses to see category breakdown"
   }
 }

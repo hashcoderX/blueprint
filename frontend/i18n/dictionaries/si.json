@@ -12,5 +12,59 @@
   "common": {
     "save": "සුරකින්න",
     "saving": "සුරකිමින්..."
+  },
+  "sidebar": {
+    "main": "ප්‍රධාන",
+    "more": "තවත්",
+    "proTip": "කාර්යසාධන උපදෙස්",
+    "footerTip": "බෙදාහදා ගැනීමට දෛනික වියදම් ලියාපදිංචි කරන්න",
+    "items": {
+      "dashboard": "ඩෑෂ්බෝර්ඩ්",
+      "goals": "ඉලක්ක",
+      "achievements": "උපලබ්ධීන්",
+      "expenses": "ආදායම් සහ වියදම්",
+      "tasks": "කාර්යයන්",
+      "vehicleExpenses": "වාහන නඩත්තු",
+      "diary": "දිනපොත",
+      "managePassword": "මුරපදය කළමනාකරණය",
+      "manageProjects": "මගේ ව්‍යාපෘති කළමනාකරණය",
+      "manageGemBusiness": "මගේ වජ්‍ර ව්‍යාපාර කළමනාකරණය",
+      "analytics": "විශ්ලේෂණ",
+      "settings": "සැකසුම්",
+      "help": "උදව්"
+    },
+    "descriptions": {
+      "dashboardDesc": "දළ විශ්ලේෂණය",
+      "goalsDesc": "මූල්‍ය ඉලක්ක",
+      "achievementsDesc": "සම්මාන සහ උපලබ්ධීන්",
+      "expensesDesc": "ආදායම් සහ වියදම් ලියාපදිංචි කරන්න",
+      "tasksDesc": "කාර්ය ලැයිස්තුව",
+      "vehicleExpensesDesc": "වාහන පිරිවැය",
+      "diaryDesc": "පෞද්ගලික සටහන්",
+      "managePasswordDesc": "ඔබේ මුරපදය යාවත්කාලීන කරන්න",
+      "manageProjectsDesc": "ව්‍යාපෘති කළමනාකරණය සහ ට්රැකින්",
+      "manageGemBusinessDesc": "තොග, මිලදීගැනීම් සහ ආදායම් කළමනාකරණය",
+      "analyticsDesc": "විස්තරාත්මක වාර්තා",
+      "settingsDesc": "අභිප්‍රේත",
+      "helpDesc": "සහාය සහ අපේක්ෂිත පිළිතුරු"
+    }
+  },
+  "dashboard": {
+    "title": "ඩෑෂ්බෝර්ඩ්",
+    "subtitle": "පිළිගන්නා තැන! මෙන්න ඔබගේ මූල්‍ය අවලෝකනය.",
+    "stats": {
+      "totalExpenses": "සම්පූර්ණ වියදම්",
+      "goalsProgress": "ඉලක්ක ප්‍රගති",
+      "pendingTasks": "බಾಕියයි කාර්යයන්",
+      "vehicleExpenses": "වාහන වියදම්"
+    },
+    "spendingOverview": "වියදම් අවලෝකනය",
+    "range": {
+      "last30Days": "අවසාන දින 30",
+      "last3Months": "අවසාන මාස 3",
+      "lastYear": "අවසාන වර්ෂය"
+    },
+    "noSpendingData": "තවමත් වියදම් දත්ත නොමැත",
+    "addExpensesHint": "ප්‍රවර්ග වෙන්වීමේ වඩපත් එකතු කිරීමට වියදම් එක් කරන්න"
   }
 }

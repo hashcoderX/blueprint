@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useI18n } from '../i18n/I18nProvider';
 import {
   Home,
   DollarSign,
@@ -19,16 +20,17 @@ import {
 
 // Removed legacy navItems; using dynamic items via getNavItems()
 
-const secondaryItems = [
-  { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Detailed reports' },
-  { name: 'Settings', href: '/settings', icon: Settings, description: 'Preferences' },
-  { name: 'Help', href: '/help', icon: HelpCircle, description: 'Support & FAQ' },
+const secondaryItemsBase = [
+  { key: 'analytics', href: '/analytics', icon: BarChart3, descKey: 'analyticsDesc' },
+  { key: 'settings', href: '/settings', icon: Settings, descKey: 'settingsDesc' },
+  { key: 'help', href: '/help', icon: HelpCircle, descKey: 'helpDesc' },
 ];
 
 export default function Sidebar({ className, mobile = false, onClose }: { className?: string; mobile?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const [userJobType, setUserJobType] = useState<string | null>(null);
   const [userJobSubcategory, setUserJobSubcategory] = useState<string | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     // Get user job type from API
@@ -56,33 +58,33 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
   // Dynamic nav items based on user type
   const getNavItems = () => {
     const baseItems = [
-      { name: 'Dashboard', href: '/dashboard', icon: Home, description: 'Overview & insights' },
-      { name: 'Goals', href: '/goals', icon: Target, description: 'Financial targets' },
-      { name: 'Achievements', href: '/achievements', icon: Trophy, description: 'Milestones & rewards' },
-      { name: 'Income & Expenses', href: '/expenses', icon: DollarSign, description: 'Track Income & spending' },
-      { name: 'Tasks', href: '/tasks', icon: CheckSquare, description: 'To-do list' },
-      { name: 'Vehicle Maintains', href: '/vehicle-expenses', icon: Car, description: 'Car costs' },
-      { name: 'Diary', href: '/diary', icon: BookOpen, description: 'Personal notes' },
-      { name: 'Manage Password', href: '/manage-password', icon: Key, description: 'Update your password' },
+      { key: 'dashboard', href: '/dashboard', icon: Home, descKey: 'dashboardDesc' },
+      { key: 'goals', href: '/goals', icon: Target, descKey: 'goalsDesc' },
+      { key: 'achievements', href: '/achievements', icon: Trophy, descKey: 'achievementsDesc' },
+      { key: 'expenses', href: '/expenses', icon: DollarSign, descKey: 'expensesDesc' },
+      { key: 'tasks', href: '/tasks', icon: CheckSquare, descKey: 'tasksDesc' },
+      { key: 'vehicleExpenses', href: '/vehicle-expenses', icon: Car, descKey: 'vehicleExpensesDesc' },
+      { key: 'diary', href: '/diary', icon: BookOpen, descKey: 'diaryDesc' },
+      { key: 'managePassword', href: '/manage-password', icon: Key, descKey: 'managePasswordDesc' },
     ];
 
     // Add Manage My Projects for freelancers
     if (userJobType === 'freelancer') {
       baseItems.splice(7, 0, {
-        name: 'Manage My Projects',
+        key: 'manageProjects',
         href: '/manage-projects',
         icon: FolderOpen,
-        description: 'Project management & tracking'
+        descKey: 'manageProjectsDesc'
       });
     }
 
     // Add Manage My Gem Business for businessmen with Gem Business subcategory
     if (userJobType === 'businessman' && (userJobSubcategory || '').toLowerCase() === 'gem business') {
       baseItems.splice(7, 0, {
-        name: 'Manage My Gem Business',
+        key: 'manageGemBusiness',
         href: '/manage-gembusiness',
         icon: FolderOpen,
-        description: 'Manage inventory, purchases, and income'
+        descKey: 'manageGemBusinessDesc'
       });
     }
 
@@ -120,13 +122,13 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
         {/* Main Navigation */}
         <div className="px-4 mb-6">
           <h3 className="text-xs font-semibold text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider mb-3">
-            Main
+            {t('sidebar.main')}
           </h3>
           <ul className="space-y-1">
             {getNavItems().map((item) => {
               const isActive = pathname === item.href;
               return (
-                <li key={item.name}>
+                <li key={item.key}>
                   <Link
                     href={item.href}
                     className={`group flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
@@ -139,11 +141,11 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
                       isActive ? 'text-powerbi-primary' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 group-hover:text-powerbi-primary'
                     }`} />
                     <div className="flex-1">
-                      <div className="font-medium">{item.name}</div>
+                      <div className="font-medium">{t(`sidebar.items.${item.key}`)}</div>
                       <div className={`text-xs transition-opacity ${
                         isActive ? 'text-powerbi-primary/70' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 opacity-0 group-hover:opacity-100'
                       }`}>
-                        {item.description}
+                        {t(`sidebar.descriptions.${item.descKey}`)}
                       </div>
                     </div>
                   </Link>
@@ -156,13 +158,13 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
         {/* Secondary Navigation */}
         <div className="px-4">
           <h3 className="text-xs font-semibold text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider mb-3">
-            More
+            {t('sidebar.more')}
           </h3>
           <ul className="space-y-1">
-            {secondaryItems.map((item) => {
+            {secondaryItemsBase.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <li key={item.name}>
+                <li key={item.key}>
                   <Link
                     href={item.href}
                     className={`group flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
@@ -175,11 +177,11 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
                       isActive ? 'text-powerbi-primary' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 group-hover:text-powerbi-primary'
                     }`} />
                     <div className="flex-1">
-                      <div className="font-medium">{item.name}</div>
+                      <div className="font-medium">{t(`sidebar.items.${item.key}`)}</div>
                       <div className={`text-xs transition-opacity ${
                         isActive ? 'text-powerbi-primary/70' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 opacity-0 group-hover:opacity-100'
                       }`}>
-                        {item.description}
+                        {t(`sidebar.descriptions.${item.descKey}`)}
                       </div>
                     </div>
                   </Link>
@@ -199,10 +201,10 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
             </div>
             <div>
               <p className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">
-                Pro Tip
+                {t('sidebar.proTip')}
               </p>
               <p className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                Track expenses daily for better insights
+                {t('sidebar.footerTip')}
               </p>
             </div>
           </div>

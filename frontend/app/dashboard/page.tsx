@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import {
@@ -175,6 +176,7 @@ const ActivityItem = ({ activity, currency }: { activity: RecentActivity; curren
 
 export default function Dashboard() {
   const router = useRouter();
+  const { t } = useI18n();
   const [stats, setStats] = useState<DashboardStats>({
     totalExpenses: 0,
     monthlyChange: 0,
@@ -447,9 +449,9 @@ export default function Dashboard() {
         {/* Header Section */}
         <div className="flex flex-wrap justify-between items-start sm:items-center gap-4">
           <div className="min-w-0">
-            <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">{t('dashboard.title')}</h1>
             <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
-              Welcome back! Here&apos;s your financial overview.
+              {t('dashboard.subtitle')}
             </p>
           </div>
           {/* Removed Quick Add and Bell action buttons */}
@@ -458,7 +460,7 @@ export default function Dashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
           <StatCard
-            title="Total Expenses"
+            title={t('dashboard.stats.totalExpenses')}
             value={stats.totalExpenses}
             change={stats.monthlyChange}
             icon={DollarSign}
@@ -467,20 +469,20 @@ export default function Dashboard() {
             currency={userCurrency}
           />
           <StatCard
-            title="Goals Progress"
+            title={t('dashboard.stats.goalsProgress')}
             value={stats.goalsProgress}
             icon={Target}
             color="green"
             suffix="%"
           />
           <StatCard
-            title="Pending Tasks"
+            title={t('dashboard.stats.pendingTasks')}
             value={stats.pendingTasks}
             icon={CheckSquare}
             color="blue"
           />
           <StatCard
-            title="Vehicle Expenses"
+            title={t('dashboard.stats.vehicleExpenses')}
             value={stats.vehicleExpenses}
             icon={Car}
             color="purple"
@@ -494,13 +496,13 @@ export default function Dashboard() {
           {/* Spending Overview Chart */}
           <div className="lg:col-span-2 bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Spending Overview</h3>
+              <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('dashboard.spendingOverview')}</h3>
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-powerbi-gray-600 dark:text-powerbi-gray-400" />
                 <select className="text-sm bg-powerbi-gray-100 dark:bg-powerbi-gray-700 rounded-lg px-3 py-1 border-0">
-                  <option>Last 30 days</option>
-                  <option>Last 3 months</option>
-                  <option>Last year</option>
+                  <option>{t('dashboard.range.last30Days')}</option>
+                  <option>{t('dashboard.range.last3Months')}</option>
+                  <option>{t('dashboard.range.lastYear')}</option>
                 </select>
               </div>
             </div>
@@ -508,8 +510,8 @@ export default function Dashboard() {
               {Object.keys(spendingByCategory).length === 0 ? (
                 <div className="text-center">
                   <PieChart className="w-12 h-12 text-powerbi-gray-400 mx-auto mb-2" />
-                  <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400">No spending data yet</p>
-                  <p className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-500 mt-1">Add expenses to see category breakdown</p>
+                  <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400">{t('dashboard.noSpendingData')}</p>
+                  <p className="text-sm text-powerbi-gray-500 dark:text-powerbi-gray-500 mt-1">{t('dashboard.addExpensesHint')}</p>
                 </div>
               ) : (
                 <Pie
