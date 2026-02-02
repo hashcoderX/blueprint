@@ -1,0 +1,16 @@
+{
+  "header": {
+    "searchPlaceholder": "වැය, ඉලක්ක, කාර්යයන් සෙවීම...",
+    "darkModeOn": "ආලෝක ප්‍රකාරයට මාරුවන්න",
+    "darkModeOff": "අඳුරු ප්‍රකාරයට මාරුවන්න",
+    "notifications": "දැනුම්දීම්",
+    "profileSettings": "පැතිකඩ සැකසුම්",
+    "preferences": "අභිප්‍රේත",
+    "signOut": "ඉවත්වන්න",
+    "language": "භාෂාව"
+  },
+  "common": {
+    "save": "සුරකින්න",
+    "saving": "සුරකිමින්..."
+  }
+}

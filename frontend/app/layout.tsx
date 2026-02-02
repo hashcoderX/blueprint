@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Kalam } from "next/font/google";
 import "./globals.css";
+import I18nProvider from "../i18n/I18nProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +42,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.className} ${geistMono.variable} ${kalam.variable} antialiased min-h-screen overflow-x-hidden`}
       >
-        {children}
+        <I18nProvider>
+          {children}
+        </I18nProvider>
       </body>
     </html>
   );

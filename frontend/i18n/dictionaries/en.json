@@ -1,0 +1,16 @@
+{
+  "header": {
+    "searchPlaceholder": "Search expenses, goals, tasks...",
+    "darkModeOn": "Switch to light mode",
+    "darkModeOff": "Switch to dark mode",
+    "notifications": "Notifications",
+    "profileSettings": "Profile Settings",
+    "preferences": "Preferences",
+    "signOut": "Sign Out",
+    "language": "Language"
+  },
+  "common": {
+    "save": "Save",
+    "saving": "Saving..."
+  }
+}

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Bell, Search, LogOut, Settings, Moon, Sun, ChevronDown, Menu } from 'lucide-react';
+import { User, Bell, Search, LogOut, Settings, Moon, Sun, ChevronDown, Menu, Globe } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useI18n } from '../i18n/I18nProvider';
+import { supportedLocales } from '../i18n/config';
 
 export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }) {
   const router = useRouter();
@@ -20,6 +22,7 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
   });
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [notifications] = useState(3); // Mock notification count
+  const { t, locale, setLocale } = useI18n();
 
   useEffect(() => {
     // Load user data on client after mount to avoid hydration mismatch
@@ -80,7 +83,7 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-powerbi-gray-400" />
           <input suppressHydrationWarning
             type="text"
-            placeholder="Search expenses, goals, tasks..."
+            placeholder={t('header.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2 bg-powerbi-gray-100 dark:bg-powerbi-gray-700 border border-powerbi-gray-200 dark:border-powerbi-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-transparent transition-all duration-200"
           />
         </div>
@@ -91,10 +94,30 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
         <button suppressHydrationWarning
           onClick={toggleDarkMode}
           className="p-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 rounded-xl transition-all duration-200"
-          title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          title={isDarkMode ? t('header.darkModeOn') : t('header.darkModeOff')}
         >
           {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
+
+        {/* Language Selector */}
+        <div className="relative">
+          <div className="flex items-center gap-2 p-2 rounded-xl hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700">
+            <Globe className="w-5 h-5 text-powerbi-gray-600 dark:text-powerbi-gray-400" />
+            <select
+              suppressHydrationWarning
+              value={locale}
+              onChange={(e) => setLocale(e.target.value as any)}
+              className="bg-transparent text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300 focus:outline-none"
+              title={t('header.language')}
+            >
+              {supportedLocales.map(l => (
+                <option key={l.code} value={l.code} className="text-powerbi-gray-900 dark:text-white bg-white dark:bg-powerbi-gray-800">
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         {/* Notifications */}
         <button suppressHydrationWarning className="p-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 rounded-xl transition-all duration-200 relative">
@@ -141,11 +164,11 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
               <div className="py-1">
                 <button suppressHydrationWarning className="flex items-center w-full px-4 py-2 text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 transition-colors">
                   <User className="w-4 h-4 mr-3" />
-                  Profile Settings
+                  {t('header.profileSettings')}
                 </button>
                 <button suppressHydrationWarning className="flex items-center w-full px-4 py-2 text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 transition-colors">
                   <Settings className="w-4 h-4 mr-3" />
-                  Preferences
+                  {t('header.preferences')}
                 </button>
               </div>
 
@@ -155,7 +178,7 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
                   className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
                   <LogOut className="w-4 h-4 mr-3" />
-                  Sign Out
+                  {t('header.signOut')}
                 </button>
               </div>
             </div>
