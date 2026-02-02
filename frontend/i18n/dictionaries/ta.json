@@ -66,8 +66,7 @@
     },
     "noSpendingData": "No spending data yet",
     "addExpensesHint": "Add expenses to see category breakdown"
-  }
-  ,
+  },
   "pages": {
     "achievements": { "title": "Achievements" },
     "analytics": { "title": "Analytics" },

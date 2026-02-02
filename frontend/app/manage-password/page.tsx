@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface PasswordEntry {
   id: number;
@@ -30,6 +31,7 @@ interface APIKeyEntry {
 type ActiveTab = 'passwords' | 'api-keys';
 
 export default function ManagePassword() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<ActiveTab>('passwords');
   
   // Password states
@@ -385,7 +387,7 @@ export default function ManagePassword() {
           <div className="min-w-0">
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/20">🔐</span>
-              Credential Manager
+              {t('pages.managePassword.title')}
             </h1>
             <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
               Securely store passwords and API keys for personal and development use
@@ -397,7 +399,7 @@ export default function ManagePassword() {
               className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors shrink-0 w-full sm:w-auto"
             >
               <span className="w-5 h-5">+</span>
-              Add {activeTab === 'passwords' ? 'Password' : 'API Key'}
+              {t('buttons.add')} {activeTab === 'passwords' ? 'Password' : 'API Key'}
             </button>
           </div>
         </div>
@@ -414,7 +416,7 @@ export default function ManagePassword() {
                     : 'border-transparent text-powerbi-gray-500 hover:text-powerbi-gray-700 dark:text-powerbi-gray-400 dark:hover:text-powerbi-gray-200'
                 }`}
               >
-                Personal Passwords ({passwordStats.total})
+                {t('pages.managePassword.title')} ({passwordStats.total})
               </button>
               <button
                 onClick={() => setActiveTab('api-keys')}

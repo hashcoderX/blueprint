@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 import {
   Plus,
   DollarSign,
@@ -49,6 +50,7 @@ interface Income {
 
 export default function ManageProjects() {
   const router = useRouter();
+  const { t } = useI18n();
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'budgeting' | 'purchases' | 'income'>('overview');
   const [showProjectForm, setShowProjectForm] = useState(false);
@@ -422,7 +424,7 @@ export default function ManageProjects() {
           <div className="min-w-0">
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">📁</span>
-              Project Management
+              {t('pages.manageProjects.title')}
             </h1>
             <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
               Track projects, time, budget, and manage purchases
@@ -434,7 +436,7 @@ export default function ManageProjects() {
               className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors w-full sm:w-auto"
             >
               <Plus className="w-5 h-5" />
-              New Project
+              {t('buttons.add')} Project
             </button>
           </div>
         </div>
@@ -492,10 +494,10 @@ export default function ManageProjects() {
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
           <div className="flex flex-wrap gap-2 mb-6">
             {[
-              { id: 'overview', label: 'Overview', icon: BarChart3 },
-              { id: 'projects', label: 'Projects', icon: FolderOpen },
+              { id: 'overview', label: t('pages.tasks.tabs.overview'), icon: BarChart3 },
+              { id: 'projects', label: t('sidebar.items.manageProjects'), icon: FolderOpen },
               { id: 'budgeting', label: 'Budgeting', icon: DollarSign },
-              { id: 'purchases', label: 'Expenses', icon: ShoppingCart },
+              { id: 'purchases', label: t('sidebar.descriptions.expensesDesc'), icon: ShoppingCart },
               { id: 'income', label: 'Income', icon: TrendingUp }
             ].map((tab) => (
               <button

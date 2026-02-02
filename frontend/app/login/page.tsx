@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useI18n } from '../../i18n/I18nProvider';
 import Link from 'next/link';
 
 export default function Login() {
+  const { t } = useI18n();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -76,10 +78,10 @@ export default function Login() {
             </svg>
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-powerbi-primary to-powerbi-secondary bg-clip-text text-transparent mb-3">
-            Welcome Back
+            {t('pages.login.title')}
           </h2>
           <p className="text-xl text-powerbi-gray-600 dark:text-powerbi-gray-300 leading-relaxed">
-            Sign in to your Blueprint account
+            {/* Optional subtitle */}
           </p>
         </div>
 

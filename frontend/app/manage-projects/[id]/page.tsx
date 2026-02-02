@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '../../../components/DashboardLayout';
+import { useI18n } from '../../../i18n/I18nProvider';
 import { DollarSign, ShoppingCart, TrendingUp, BarChart3, FileText, Wallet, Upload, Download, File, Eye } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
@@ -58,6 +59,7 @@ export default function ProjectDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const projectId = Number(params?.id);
+  const { t } = useI18n();
 
   const [project, setProject] = useState<Project | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -190,10 +192,10 @@ export default function ProjectDetailsPage() {
           <div>
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">📁</span>
-              {project?.name || 'Project'}
+              {project?.name || t('pages.manageProjectDetails.title')}
             </h1>
             <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
-              Manage time, budget, income and purchases for this project
+              {t('pages.manageProjectDetails.subtitle')}
             </p>
           </div>
           <div className="flex gap-3 w-full sm:w-auto shrink-0">
@@ -201,7 +203,7 @@ export default function ProjectDetailsPage() {
               onClick={() => router.push('/manage-projects')}
               className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700 transition-colors w-full sm:w-auto"
             >
-              Back
+              {t('buttons.back')}
             </button>
           </div>
         </div>
@@ -209,13 +211,13 @@ export default function ProjectDetailsPage() {
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
           <div className="flex flex-wrap gap-2">
             {[
-              { id: 'budget', label: 'Budgeting', icon: DollarSign },
-              { id: 'purchases', label: 'Purchases', icon: ShoppingCart },
-              { id: 'income', label: 'Income', icon: TrendingUp },
-              { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-              { id: 'pl-report', label: 'P&L Report', icon: FileText },
-              { id: 'balance-report', label: 'Balance', icon: Wallet },
-              { id: 'documents', label: 'Documents', icon: File }
+              { id: 'budget', label: t('pages.manageProjectDetails.tabs.budgeting'), icon: DollarSign },
+              { id: 'purchases', label: t('pages.manageProjectDetails.tabs.purchases'), icon: ShoppingCart },
+              { id: 'income', label: t('pages.manageProjectDetails.tabs.income'), icon: TrendingUp },
+              { id: 'analytics', label: t('pages.manageProjectDetails.tabs.analytics'), icon: BarChart3 },
+              { id: 'pl-report', label: t('pages.manageProjectDetails.tabs.plReport'), icon: FileText },
+              { id: 'balance-report', label: t('pages.manageProjectDetails.tabs.balance'), icon: Wallet },
+              { id: 'documents', label: t('pages.manageProjectDetails.tabs.documents'), icon: File }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -240,7 +242,7 @@ export default function ProjectDetailsPage() {
               <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-4 sm:p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-100 text-sm font-medium">Budget</p>
+                    <p className="text-purple-100 text-sm font-medium">{t('pages.manageProjectDetails.budget.budget')}</p>
                     <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(project.budget)}</p>
                   </div>
                   <span className="text-purple-200">💰</span>
@@ -249,7 +251,7 @@ export default function ProjectDetailsPage() {
               <div className="bg-gradient-to-br from-rose-400 to-rose-600 rounded-2xl p-4 sm:p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-rose-100 text-sm font-medium">Spent</p>
+                    <p className="text-rose-100 text-sm font-medium">{t('pages.manageProjectDetails.budget.spent')}</p>
                     <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(projectSpent)}</p>
                   </div>
                   <span className="text-rose-200">🧾</span>
@@ -258,7 +260,7 @@ export default function ProjectDetailsPage() {
               <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl p-4 sm:p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-emerald-100 text-sm font-medium">Remaining</p>
+                    <p className="text-emerald-100 text-sm font-medium">{t('pages.manageProjectDetails.budget.remaining')}</p>
                     <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(remaining)}</p>
                   </div>
                   <span className="text-emerald-200">✅</span>
@@ -271,18 +273,18 @@ export default function ProjectDetailsPage() {
         {activeTab === 'purchases' && (
           <div className="space-y-6">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Purchase</h3>
+              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.manageProjectDetails.purchases.add')}</h3>
               <PurchaseForm projectId={projectId} onSaved={() => { loadPurchases(); loadProjects(); }} userCurrency={userCurrency} formatCurrency={formatCurrency} />
             </div>
 
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Purchases</h3>
+              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.manageProjectDetails.purchases.list')}</h3>
               <div className="space-y-4">
                 {purchases.map((purchase) => (
                   <div key={purchase.id} className="flex items-center justify-between p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
                     <div>
                       <p className="font-medium text-powerbi-gray-900 dark:text-white">{purchase.item_name}</p>
-                      <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{purchase.category || 'Uncategorized'}</p>
+                      <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{purchase.category || t('pages.manageProjectDetails.purchases.uncategorized')}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-powerbi-gray-900 dark:text-white">{formatCurrency(purchase.cost)}</p>
@@ -298,12 +300,12 @@ export default function ProjectDetailsPage() {
         {activeTab === 'income' && (
           <div className="space-y-6">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Income</h3>
+              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.manageProjectDetails.income.add')}</h3>
               <IncomeForm projectId={projectId} onSaved={() => { loadIncome(); loadProjects(); }} userCurrency={userCurrency} formatCurrency={formatCurrency} />
             </div>
 
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Income</h3>
+              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.manageProjectDetails.income.list')}</h3>
               <div className="space-y-4">
                 {income.map((inc) => (
                   <div key={inc.id} className="flex items-center justify-between p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
@@ -325,14 +327,14 @@ export default function ProjectDetailsPage() {
         {activeTab === 'analytics' && (
           <div className="space-y-6">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Income vs Expenses</h3>
+              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.manageProjectDetails.analytics.title')}</h3>
               <div className="h-64">
                 <Bar
                   data={{
-                    labels: ['Income', 'Expenses'],
+                    labels: [t('pages.manageProjectDetails.analytics.labels.income'), t('pages.manageProjectDetails.analytics.labels.expenses')],
                     datasets: [
                       {
-                        label: 'Amount',
+                        label: t('pages.manageProjectDetails.analytics.datasetAmount'),
                         data: [
                           income.reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0),
                           purchases.reduce((sum, pur) => sum + (Number(pur.cost) || 0), 0)
@@ -352,7 +354,7 @@ export default function ProjectDetailsPage() {
                       },
                       title: {
                         display: true,
-                        text: 'Project Income vs Expenses',
+                        text: t('pages.manageProjectDetails.analytics.chartTitle'),
                       },
                     },
                   }}
@@ -371,12 +373,12 @@ export default function ProjectDetailsPage() {
           return (
             <div className="space-y-6">
               <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-                <h3 className="text-xl font-bold text-powerbi-gray-900 dark:text-white mb-6">Profit & Loss Report</h3>
+                <h3 className="text-xl font-bold text-powerbi-gray-900 dark:text-white mb-6">{t('pages.manageProjectDetails.plReport.title')}</h3>
                 
                 <div className="space-y-6">
                   {/* Income Section */}
                   <div>
-                    <h4 className="text-lg font-semibold text-green-600 dark:text-green-400 mb-3">Revenue / Income</h4>
+                    <h4 className="text-lg font-semibold text-green-600 dark:text-green-400 mb-3">{t('pages.manageProjectDetails.plReport.revenueIncome')}</h4>
                     <div className="space-y-2">
                       {income.map((inc) => (
                         <div key={inc.id} className="flex justify-between items-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
@@ -388,12 +390,12 @@ export default function ProjectDetailsPage() {
                         </div>
                       ))}
                       {income.length === 0 && (
-                        <p className="text-powerbi-gray-500 dark:text-powerbi-gray-400 italic">No income recorded</p>
+                        <p className="text-powerbi-gray-500 dark:text-powerbi-gray-400 italic">{t('pages.manageProjectDetails.plReport.noIncome')}</p>
                       )}
                     </div>
                     <div className="mt-3 pt-3 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700">
                       <div className="flex justify-between items-center">
-                        <p className="font-semibold text-powerbi-gray-900 dark:text-white">Total Income</p>
+                        <p className="font-semibold text-powerbi-gray-900 dark:text-white">{t('pages.manageProjectDetails.plReport.totalIncome')}</p>
                         <p className="text-xl font-bold text-green-600 dark:text-green-400">{formatCurrency(totalIncome)}</p>
                       </div>
                     </div>
@@ -401,24 +403,24 @@ export default function ProjectDetailsPage() {
 
                   {/* Expenses Section */}
                   <div>
-                    <h4 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-3">Expenses</h4>
+                    <h4 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-3">{t('pages.manageProjectDetails.plReport.expenses')}</h4>
                     <div className="space-y-2">
                       {purchases.map((pur) => (
                         <div key={pur.id} className="flex justify-between items-center p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
                           <div>
                             <p className="font-medium text-powerbi-gray-900 dark:text-white">{pur.item_name}</p>
-                            <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{pur.category || 'Uncategorized'}</p>
+                            <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{pur.category || t('pages.manageProjectDetails.purchases.uncategorized')}</p>
                           </div>
                           <p className="font-semibold text-red-600 dark:text-red-400">{formatCurrency(pur.cost)}</p>
                         </div>
                       ))}
                       {purchases.length === 0 && (
-                        <p className="text-powerbi-gray-500 dark:text-powerbi-gray-400 italic">No expenses recorded</p>
+                        <p className="text-powerbi-gray-500 dark:text-powerbi-gray-400 italic">{t('pages.manageProjectDetails.plReport.noExpenses')}</p>
                       )}
                     </div>
                     <div className="mt-3 pt-3 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700">
                       <div className="flex justify-between items-center">
-                        <p className="font-semibold text-powerbi-gray-900 dark:text-white">Total Expenses</p>
+                        <p className="font-semibold text-powerbi-gray-900 dark:text-white">{t('pages.manageProjectDetails.plReport.totalExpenses')}</p>
                         <p className="text-xl font-bold text-red-600 dark:text-red-400">{formatCurrency(totalExpenses)}</p>
                       </div>
                     </div>
@@ -428,7 +430,7 @@ export default function ProjectDetailsPage() {
                   <div className={`p-4 sm:p-6 rounded-xl ${isProfitable ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400">Net {isProfitable ? 'Profit' : 'Loss'}</p>
+                        <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400">{isProfitable ? t('pages.manageProjectDetails.plReport.netProfit') : t('pages.manageProjectDetails.plReport.netLoss')}</p>
                         <p className={`text-2xl sm:text-3xl font-bold ${isProfitable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {formatCurrency(Math.abs(netProfitLoss))}
                         </p>
@@ -438,7 +440,7 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <p className="mt-2 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                      {isProfitable ? 'Project is generating profit' : 'Project is operating at a loss'}
+                      {isProfitable ? t('pages.manageProjectDetails.plReport.profitableText') : t('pages.manageProjectDetails.plReport.lossText')}
                     </p>
                   </div>
                 </div>
@@ -457,26 +459,26 @@ export default function ProjectDetailsPage() {
           return (
             <div className="space-y-6">
               <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-                <h3 className="text-xl font-bold text-powerbi-gray-900 dark:text-white mb-6">Project Balance Report</h3>
+                <h3 className="text-xl font-bold text-powerbi-gray-900 dark:text-white mb-6">{t('pages.manageProjectDetails.balanceReport.title')}</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 sm:p-6">
-                    <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">Initial Budget</p>
+                    <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">{t('pages.manageProjectDetails.balanceReport.initialBudget')}</p>
                     <p className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(projectBudget)}</p>
                   </div>
                   
                   <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 sm:p-6">
-                    <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">Total Income</p>
+                    <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">{t('pages.manageProjectDetails.balanceReport.totalIncome')}</p>
                     <p className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{formatCurrency(totalIncome)}</p>
                   </div>
                   
                   <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 sm:p-6">
-                    <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">Total Expenses</p>
+                    <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">{t('pages.manageProjectDetails.balanceReport.totalExpenses')}</p>
                     <p className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">{formatCurrency(totalExpenses)}</p>
                   </div>
                   
                   <div className={`rounded-xl p-4 sm:p-6 ${currentBalance >= 0 ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-orange-50 dark:bg-orange-900/20'}`}>
-                    <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">Current Balance</p>
+                    <p className="text-sm font-medium text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">{t('pages.manageProjectDetails.balanceReport.currentBalance')}</p>
                     <p className={`text-2xl sm:text-3xl font-bold ${currentBalance >= 0 ? 'text-purple-600 dark:text-purple-400' : 'text-orange-600 dark:text-orange-400'}`}>
                       {formatCurrency(currentBalance)}
                     </p>
@@ -486,7 +488,7 @@ export default function ProjectDetailsPage() {
                 {/* Budget Utilization */}
                 <div className="bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-xl p-4 sm:p-6">
                   <div className="flex justify-between items-center mb-3">
-                    <p className="font-semibold text-powerbi-gray-900 dark:text-white">Budget Utilization</p>
+                    <p className="font-semibold text-powerbi-gray-900 dark:text-white">{t('pages.manageProjectDetails.balanceReport.budgetUtilization')}</p>
                     <p className="text-xl sm:text-2xl font-bold text-powerbi-gray-900 dark:text-white">{budgetUtilization}%</p>
                   </div>
                   <div className="w-full bg-powerbi-gray-200 dark:bg-powerbi-gray-600 rounded-full h-4">
@@ -500,33 +502,33 @@ export default function ProjectDetailsPage() {
                     ></div>
                   </div>
                   <p className="mt-2 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                    {Number(budgetUtilization) > 100 ? 'Budget exceeded!' : 
-                     Number(budgetUtilization) > 80 ? 'Approaching budget limit' : 
-                     'Budget is on track'}
+                    {Number(budgetUtilization) > 100 ? t('pages.manageProjectDetails.balanceReport.exceeded') : 
+                     Number(budgetUtilization) > 80 ? t('pages.manageProjectDetails.balanceReport.approaching') : 
+                     t('pages.manageProjectDetails.balanceReport.onTrack')}
                   </p>
                 </div>
 
                 {/* Financial Summary */}
                 <div className="mt-6 space-y-3">
-                  <h4 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-3">Financial Summary</h4>
+                  <h4 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-3">{t('pages.manageProjectDetails.balanceReport.financialSummary')}</h4>
                   
                   <div className="flex justify-between items-center p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
-                    <span className="text-powerbi-gray-700 dark:text-powerbi-gray-300">Initial Budget</span>
+                    <span className="text-powerbi-gray-700 dark:text-powerbi-gray-300">{t('pages.manageProjectDetails.balanceReport.initialBudget')}</span>
                     <span className="font-semibold text-powerbi-gray-900 dark:text-white">{formatCurrency(projectBudget)}</span>
                   </div>
                   
                   <div className="flex justify-between items-center p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
-                    <span className="text-powerbi-gray-700 dark:text-powerbi-gray-300">Total Income Generated</span>
+                    <span className="text-powerbi-gray-700 dark:text-powerbi-gray-300">{t('pages.manageProjectDetails.balanceReport.totalIncomeGenerated')}</span>
                     <span className="font-semibold text-green-600 dark:text-green-400">+ {formatCurrency(totalIncome)}</span>
                   </div>
                   
                   <div className="flex justify-between items-center p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
-                    <span className="text-powerbi-gray-700 dark:text-powerbi-gray-300">Total Expenses</span>
+                    <span className="text-powerbi-gray-700 dark:text-powerbi-gray-300">{t('pages.manageProjectDetails.balanceReport.totalExpenses')}</span>
                     <span className="font-semibold text-red-600 dark:text-red-400">- {formatCurrency(totalExpenses)}</span>
                   </div>
                   
                   <div className="flex justify-between items-center p-3 sm:p-4 bg-powerbi-primary/10 dark:bg-powerbi-primary/20 rounded-lg border-2 border-powerbi-primary">
-                    <span className="font-bold text-powerbi-gray-900 dark:text-white">Available Balance</span>
+                    <span className="font-bold text-powerbi-gray-900 dark:text-white">{t('pages.manageProjectDetails.balanceReport.availableBalance')}</span>
                     <span className={`text-lg sm:text-xl font-bold ${currentBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {formatCurrency(currentBalance)}
                     </span>
@@ -540,12 +542,12 @@ export default function ProjectDetailsPage() {
         {activeTab === 'documents' && (
           <div className="space-y-6">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Upload Document</h3>
+              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.manageProjectDetails.documents.uploadTitle')}</h3>
               <DocumentUploadForm projectId={projectId} onSaved={() => loadDocuments()} />
             </div>
 
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
-              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Project Documents</h3>
+              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.manageProjectDetails.documents.projectDocuments')}</h3>
               <div className="space-y-4">
                 {documents.map((doc) => (
                   <div key={doc.id} className="flex items-center justify-between p-3 sm:p-4 bg-powerbi-gray-50 dark:bg-powerbi-gray-700/50 rounded-lg">
@@ -565,20 +567,20 @@ export default function ProjectDetailsPage() {
                         className="flex items-center space-x-2 px-3 py-2 bg-powerbi-gray-100 hover:bg-powerbi-gray-200 dark:bg-powerbi-gray-700 dark:hover:bg-powerbi-gray-600 text-powerbi-gray-700 dark:text-powerbi-gray-300 text-sm font-medium rounded-lg transition-colors"
                       >
                         <Eye className="w-4 h-4" />
-                        <span>View</span>
+                        <span>{t('pages.manageProjectDetails.documents.view')}</span>
                       </button>
                       <button
                         onClick={() => downloadDocument(doc.id, doc.original_name)}
                         className="flex items-center space-x-2 px-3 py-2 bg-powerbi-primary hover:bg-powerbi-primary/90 text-white text-sm font-medium rounded-lg transition-colors"
                       >
                         <Download className="w-4 h-4" />
-                        <span>Download</span>
+                        <span>{t('pages.manageProjectDetails.documents.download')}</span>
                       </button>
                     </div>
                   </div>
                 ))}
                 {documents.length === 0 && (
-                  <p className="text-powerbi-gray-500 dark:text-powerbi-gray-400 italic text-center py-8">No documents uploaded yet</p>
+                  <p className="text-powerbi-gray-500 dark:text-powerbi-gray-400 italic text-center py-8">{t('pages.manageProjectDetails.documents.empty')}</p>
                 )}
               </div>
             </div>
@@ -590,6 +592,7 @@ export default function ProjectDetailsPage() {
 }
 
 function PurchaseForm({ projectId, onSaved, userCurrency, formatCurrency }: { projectId: number; onSaved: () => void; userCurrency: string; formatCurrency: (n: number) => string }) {
+  const { t } = useI18n();
   const [form, setForm] = useState({ item_name: '', cost: '', category: '', vendor: '' });
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -605,28 +608,29 @@ function PurchaseForm({ projectId, onSaved, userCurrency, formatCurrency }: { pr
     <form onSubmit={save} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Item Name</label>
+          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.manageProjectDetails.forms.itemName')}</label>
           <input value={form.item_name} onChange={(e) => setForm({ ...form, item_name: e.target.value })} required className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg dark:bg-powerbi-gray-700 dark:text-white" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Cost ({userCurrency})</label>
+          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.manageProjectDetails.forms.cost')} ({userCurrency})</label>
           <input type="number" step="0.01" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} required className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg dark:bg-powerbi-gray-700 dark:text-white" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Category</label>
+          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.manageProjectDetails.forms.category')}</label>
           <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg dark:bg-powerbi-gray-700 dark:text-white" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Vendor</label>
+          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.manageProjectDetails.forms.vendor')}</label>
           <input value={form.vendor} onChange={(e) => setForm({ ...form, vendor: e.target.value })} className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg dark:bg-powerbi-gray-700 dark:text-white" />
         </div>
       </div>
-      <button type="submit" className="px-4 py-2 bg-powerbi-primary hover:bg-powerbi-primary/90 text-white font-medium rounded-lg transition-colors">Save Purchase</button>
+      <button type="submit" className="px-4 py-2 bg-powerbi-primary hover:bg-powerbi-primary/90 text-white font-medium rounded-lg transition-colors">{t('pages.manageProjectDetails.purchases.save')}</button>
     </form>
   );
 }
 
 function IncomeForm({ projectId, onSaved, userCurrency, formatCurrency }: { projectId: number; onSaved: () => void; userCurrency: string; formatCurrency: (n: number) => string }) {
+  const { t } = useI18n();
   const [form, setForm] = useState({ description: '', amount: '', category: '' });
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -642,24 +646,25 @@ function IncomeForm({ projectId, onSaved, userCurrency, formatCurrency }: { proj
     <form onSubmit={save} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Description</label>
+          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.manageProjectDetails.forms.description')}</label>
           <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg dark:bg-powerbi-gray-700 dark:text-white" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Amount ({userCurrency})</label>
+          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.manageProjectDetails.forms.amount')} ({userCurrency})</label>
           <input type="number" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg dark:bg-powerbi-gray-700 dark:text-white" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Category</label>
+          <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.manageProjectDetails.forms.category')}</label>
           <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg dark:bg-powerbi-gray-700 dark:text-white" />
         </div>
       </div>
-      <button type="submit" className="px-4 py-2 bg-powerbi-primary hover:bg-powerbi-primary/90 text-white font-medium rounded-lg transition-colors">Save Income</button>
+      <button type="submit" className="px-4 py-2 bg-powerbi-primary hover:bg-powerbi-primary/90 text-white font-medium rounded-lg transition-colors">{t('pages.manageProjectDetails.income.save')}</button>
     </form>
   );
 }
 
 function DocumentUploadForm({ projectId, onSaved }: { projectId: number; onSaved: () => void }) {
+  const { t } = useI18n();
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -703,7 +708,7 @@ function DocumentUploadForm({ projectId, onSaved }: { projectId: number; onSaved
   return (
     <form onSubmit={upload} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Select File</label>
+        <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.manageProjectDetails.documents.selectFile')}</label>
         <input
           type="file"
           onChange={handleFileChange}
@@ -712,11 +717,11 @@ function DocumentUploadForm({ projectId, onSaved }: { projectId: number; onSaved
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Description</label>
+        <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.manageProjectDetails.documents.description')}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe this document..."
+          placeholder={t('pages.manageProjectDetails.documents.descriptionPlaceholder')}
           required
           rows={3}
           className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg dark:bg-powerbi-gray-700 dark:text-white resize-none"
@@ -728,7 +733,7 @@ function DocumentUploadForm({ projectId, onSaved }: { projectId: number; onSaved
         className="flex items-center space-x-2 px-4 py-2 bg-powerbi-primary hover:bg-powerbi-primary/90 disabled:bg-powerbi-gray-400 text-white font-medium rounded-lg transition-colors"
       >
         <Upload className="w-4 h-4" />
-        <span>{uploading ? 'Uploading...' : 'Upload Document'}</span>
+        <span>{uploading ? t('pages.manageProjectDetails.documents.uploading') : t('pages.manageProjectDetails.documents.uploadButton')}</span>
       </button>
     </form>
   );

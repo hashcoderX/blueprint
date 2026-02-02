@@ -67,4 +67,104 @@
     "noSpendingData": "තවමත් වියදම් දත්ත නොමැත",
     "addExpensesHint": "ප්‍රවර්ග වෙන්වීමේ වඩපත් එකතු කිරීමට වියදම් එක් කරන්න"
   }
+  ,
+  "pages": {
+    "achievements": { "title": "උපලබ්ධීන්" },
+    "analytics": { "title": "විශ්ලේෂණ" },
+    "diary": { "title": "දිනපොත", "subtitle": "ඔබගේ සිතිවිලි ලියාපදිංචි කර මනෝභාවයන් ට්රැක් කරන්න" },
+    "diaryView": { "title": "දිනපොත් දර්ශනය" },
+    "expenses": { "title": "ආදායම් සහ වියදම්" },
+    "goals": { "title": "ඉලක්ක" },
+    "help": { "title": "උදව්" },
+    "login": { "title": "පිවිසෙන්න" },
+    "managePassword": { "title": "මුරපදය කළමනාකරණය" },
+    "manageProjects": { "title": "මගේ ව්‍යාපෘති කළමනාකරණය" },
+    "manageProjectDetails": {
+      "title": "ව්‍යාපෘති විස්තර",
+      "subtitle": "මෙම ව්‍යාපෘතිය සඳහා කාලය, අයවැය, ආදායම් සහ මිලදී ගැනීම් කළමනාකරණය කරන්න",
+      "tabs": {
+        "budgeting": "අයවැය සැලසුම්",
+        "purchases": "මිලදී ගැනීම්",
+        "income": "ආදායම",
+        "analytics": "විශ්ලේෂණ",
+        "plReport": "ලාභ හා හානි වාර්තාව",
+        "balance": "ශේෂය",
+        "documents": "ලේඛන"
+      },
+      "budget": { "budget": "අයවැය", "spent": "වියදම්", "remaining": "ඉතිරි" },
+      "purchases": { "add": "මිලදී ගැනීම එක් කරන්න", "list": "මිලදී ගැනීම්", "uncategorized": "ප්‍රවර්ගවින් නොවෙන්", "save": "මිලදී ගැනීම සුරකින්න" },
+      "income": { "add": "ආදායම එක් කරන්න", "list": "ආදායම", "save": "ආදායම සුරකින්න" },
+      "analytics": {
+        "title": "ආදායම vs වියදම්",
+        "labels": { "income": "ආදායම", "expenses": "වියදම්" },
+        "datasetAmount": "මුදල",
+        "chartTitle": "ව්‍යාපෘති ආදායම vs වියදම්"
+      },
+      "plReport": {
+        "title": "ලාභ හා හානි වාර්තාව",
+        "revenueIncome": "ආදායම් / ආදායම",
+        "noIncome": "ආදායම් ලියාපදිංචි කර නැත",
+        "totalIncome": "සම්පූර්ණ ආදායම",
+        "expenses": "වියදම්",
+        "noExpenses": "වියදම් ලියාපදිංචි කර නැත",
+        "totalExpenses": "සම්පූර්ණ වියදම්",
+        "netProfit": "ශුද්ධ ලාභ",
+        "netLoss": "ශුද්ධ හානි",
+        "profitableText": "ව්‍යාපෘතිය ලාභදායී වේ",
+        "lossText": "ව්‍යාපෘතිය හානියක් සහිතව ක්‍රියාකරයි"
+      },
+      "balanceReport": {
+        "title": "ව්‍යාපෘති ශේෂ වාර්තාව",
+        "initialBudget": "ආරම්භක අයවැය",
+        "totalIncome": "සම්පූර්ණ ආදායම",
+        "totalExpenses": "සම්පූර්ණ වියදම්",
+        "currentBalance": "වත්මන් ශේෂය",
+        "budgetUtilization": "අයවැය භාවිතය",
+        "exceeded": "අයවැය ඉක්මවා ගොස් ඇත!",
+        "approaching": "අයවැය සීමාවට ළඟා වේ",
+        "onTrack": "අයවැය යථා තත්වයේ",
+        "financialSummary": "මූල්‍ය සාරාංශය",
+        "totalIncomeGenerated": "සාදන ලද සම්පූර්ණ ආදායම",
+        "availableBalance": "ලබා ගත හැකි ශේෂය"
+      },
+      "documents": {
+        "uploadTitle": "ලේඛනය උඩුගත කරන්න",
+        "projectDocuments": "ව්‍යාපෘති ලේඛන",
+        "view": "බලන්න",
+        "download": "බාගන්න",
+        "empty": "තවමත් ලේඛන උඩුගත කර නැත",
+        "selectFile": "ගොනුව තෝරන්න",
+        "description": "විස්තරය",
+        "descriptionPlaceholder": "මෙම ලේඛනය විස්තර කරන්න...",
+        "uploading": "උඩුගත කරමින්...",
+        "uploadButton": "ලේඛනය උඩුගත කරන්න"
+      },
+      "forms": {
+        "itemName": "අයිතමයේ නම",
+        "cost": "වියදම",
+        "category": "ප්‍රවර්ගය",
+        "vendor": "සැපයුම්කරු",
+        "description": "විස්තරය",
+        "amount": "මුදල"
+      }
+    },
+    "settings": { "title": "සැකසුම්", "subtitle": "ඔබගේ ගිණුම් අවශ්‍යතා සහ යෙදුම් සැකසුම් කළමනාකරණය කරන්න" },
+    "signup": { "title": "ලියාපදිංචි වන්න" },
+    "tasks": { "title": "කාර්ය සැලසුම්කරණය සහ ට්රැකින්", "tabs": { "overview": "දළ විශ්ලේෂණය", "planner": "සැලසුම්කරු", "kanban": "කාන්බෑන්", "analytics": "විශ්ලේෂණ" } },
+    "vehicleExpenses": { "title": "වාහන වියදම්" },
+    "gemBusiness": { "title": "මගේ වජ්‍ර ව්‍යාපාර කළමනාකරණය", "inventory": "තොග", "purchases": "මිලදී ගැනීම්", "sales": "විකුණුම්" }
+  },
+  "buttons": {
+    "add": "එක් කරන්න",
+    "save": "සුරකින්න",
+    "back": "ආපසු",
+    "edit": "සංස්කරණය",
+    "delete": "ඔතන්න",
+    "start": "ආරම්භ කරන්න",
+    "stop": "නවත්වන්න",
+    "done": "කලේ",
+    "print": "මුද්‍රණය",
+    "signIn": "පිවිසෙන්න",
+    "signUp": "ලියාපදිංචි වන්න"
+  }
 }

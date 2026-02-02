@@ -1,15 +1,15 @@
 'use client';
 
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 
-export default function Help() {
+export default function HelpPage() {
+  const { t } = useI18n();
   return (
     <DashboardLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">
-            Help & Support
-          </h1>
+          <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white">{t('pages.help.title')}</h1>
           <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
             Find answers to common questions and get support
           </p>

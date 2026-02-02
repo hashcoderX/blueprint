@@ -4,10 +4,34 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { defaultLocale, supportedLocales, type Locale } from './config';
 import en from './dictionaries/en.json';
 import si from './dictionaries/si.json';
+import ta from './dictionaries/ta.json';
+import zh from './dictionaries/zh.json';
+import hi from './dictionaries/hi.json';
+import es from './dictionaries/es.json';
+import fr from './dictionaries/fr.json';
+import ar from './dictionaries/ar.json';
+import bn from './dictionaries/bn.json';
+import pt from './dictionaries/pt.json';
+import ru from './dictionaries/ru.json';
+import ur from './dictionaries/ur.json';
+import de from './dictionaries/de.json';
+import ja from './dictionaries/ja.json';
 
 const dictionaries: Record<Locale, any> = {
   en,
-  si
+  si,
+  ta,
+  zh,
+  hi,
+  es,
+  fr,
+  ar,
+  bn,
+  pt,
+  ru,
+  ur,
+  de,
+  ja
 };
 
 interface I18nContextValue {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 import {
   TrendingUp,
   TrendingDown,
@@ -72,6 +73,7 @@ interface FinancialSummary {
 }
 
 export default function Expenses() {
+  const { t } = useI18n();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [income, setIncome] = useState<Income[]>([]);
   const [summary, setSummary] = useState<FinancialSummary>({
@@ -588,7 +590,7 @@ export default function Expenses() {
           <div className="min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <Calculator className="w-7 h-7 sm:w-8 sm:h-8 mr-3 text-blue-500" />
-              Income & Expenses
+              {t('pages.expenses.title')}
             </h1>
             <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
               Track your financial transactions and generate professional reports
@@ -600,14 +602,14 @@ export default function Expenses() {
               className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap"
             >
               <Download className="w-5 h-5" />
-              Export P&L Report
+              {t('buttons.print')}
             </button>
             <button
               onClick={() => setShowAddForm(true)}
               className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap"
             >
               <Plus className="w-5 h-5" />
-              Add Transaction
+              {t('buttons.add')}
             </button>
           </div>
         </div>

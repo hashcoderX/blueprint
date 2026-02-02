@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, Target, Calendar, Search, Eye, AlertTriangle } from 'lucide-react';
 
@@ -80,6 +81,7 @@ function formatDate(dateStr: string): string {
 export default function Goals() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [stats, setStats] = useState<GoalStats | null>(null);
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
@@ -331,7 +333,7 @@ export default function Goals() {
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-powerbi-gray-900 dark:text-white flex items-center text-center sm:text-left">
               <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">🎯</span>
-              Goals Management
+              {t('pages.goals.title')}
             </h1>
             <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1 text-center sm:text-left">
               Track, prioritize, and achieve your financial goals

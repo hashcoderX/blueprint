@@ -1,0 +1,169 @@
+{
+	"header": {
+		"searchPlaceholder": "Pesquisar despesas, objetivos, tarefas...",
+		"darkModeOn": "Mudar para modo claro",
+		"darkModeOff": "Mudar para modo escuro",
+		"notifications": "Notificações",
+		"profileSettings": "Configurações do perfil",
+		"preferences": "Preferências",
+		"signOut": "Sair",
+		"language": "Idioma"
+	},
+	"common": {
+		"save": "Save",
+		"saving": "Saving..."
+	},
+	"sidebar": {
+		"main": "Principal",
+		"more": "Mais",
+		"proTip": "Dica",
+		"footerTip": "Acompanhe despesas diariamente para melhores insights",
+		"items": {
+			"dashboard": "Painel",
+			"goals": "Objetivos",
+			"achievements": "Conquistas",
+			"expenses": "Receitas e Despesas",
+			"tasks": "Tarefas",
+			"vehicleExpenses": "Manutenção do veículo",
+			"diary": "Diário",
+			"managePassword": "Gerenciar senha",
+			"manageProjects": "Gerenciar meus projetos",
+			"manageGemBusiness": "Gerenciar meu negócio de gemas",
+			"analytics": "Análises",
+			"settings": "Configurações",
+			"help": "Ajuda"
+		},
+		"descriptions": {
+			"dashboardDesc": "Visão geral e insights",
+			"goalsDesc": "Metas financeiras",
+			"achievementsDesc": "Marcos e recompensas",
+			"expensesDesc": "Acompanhar receitas e gastos",
+			"tasksDesc": "Lista de tarefas",
+			"vehicleExpensesDesc": "Custos do veículo",
+			"diaryDesc": "Notas pessoais",
+			"managePasswordDesc": "Atualize sua senha",
+			"manageProjectsDesc": "Gestão e acompanhamento de projetos",
+			"manageGemBusinessDesc": "Gerenciar estoque, compras e receitas",
+			"analyticsDesc": "Relatórios detalhados",
+			"settingsDesc": "Preferências",
+			"helpDesc": "Suporte e FAQ"
+		}
+	},
+	"dashboard": {
+		"title": "Painel",
+		"subtitle": "Bem-vindo de volta! Aqui está sua visão financeira.",
+		"stats": {
+			"totalExpenses": "Despesas totais",
+			"goalsProgress": "Progresso das metas",
+			"pendingTasks": "Tarefas pendentes",
+			"vehicleExpenses": "Despesas do veículo"
+		},
+		"spendingOverview": "Visão geral dos gastos",
+		"range": {
+			"last30Days": "Últimos 30 dias",
+			"last3Months": "Últimos 3 meses",
+			"lastYear": "Último ano"
+		},
+		"noSpendingData": "Ainda não há dados de gastos",
+		"addExpensesHint": "Adicione despesas para ver a divisão por categoria"
+	},
+	"pages": {
+		"achievements": { "title": "Conquistas" },
+		"analytics": { "title": "Análises" },
+		"diary": { "title": "Diário", "subtitle": "Escreva seus pensamentos e acompanhe os humores" },
+		"diaryView": { "title": "Visualização do diário" },
+		"expenses": { "title": "Receitas e Despesas" },
+		"goals": { "title": "Objetivos" },
+		"help": { "title": "Ajuda" },
+		"login": { "title": "Entrar" },
+		"managePassword": { "title": "Gerenciar senha" },
+		"manageProjects": { "title": "Gerenciar meus projetos" },
+		"manageProjectDetails": {
+			"title": "Detalhes do projeto",
+			"subtitle": "Gerencie tempo, orçamento, receitas e compras deste projeto",
+			"tabs": {
+				"budgeting": "Orçamento",
+				"purchases": "Compras",
+				"income": "Receitas",
+				"analytics": "Análises",
+				"plReport": "Demonstração de Resultados",
+				"balance": "Saldo",
+				"documents": "Documentos"
+			},
+			"budget": { "budget": "Orçamento", "spent": "Gasto", "remaining": "Restante" },
+			"purchases": { "add": "Adicionar compra", "list": "Compras", "uncategorized": "Sem categoria", "save": "Salvar compra" },
+			"income": { "add": "Adicionar receita", "list": "Receitas", "save": "Salvar receita" },
+			"analytics": {
+				"title": "Receitas vs Despesas",
+				"labels": { "income": "Receitas", "expenses": "Despesas" },
+				"datasetAmount": "Valor",
+				"chartTitle": "Receitas vs Despesas do projeto"
+			},
+			"plReport": {
+				"title": "Demonstração de Resultados",
+				"revenueIncome": "Receitas",
+				"noIncome": "Nenhuma receita registrada",
+				"totalIncome": "Receita total",
+				"expenses": "Despesas",
+				"noExpenses": "Nenhuma despesa registrada",
+				"totalExpenses": "Despesa total",
+				"netProfit": "Lucro líquido",
+				"netLoss": "Prejuízo líquido",
+				"profitableText": "Projeto gerando lucro",
+				"lossText": "Projeto operando com prejuízo"
+			},
+			"balanceReport": {
+				"title": "Relatório de saldo do projeto",
+				"initialBudget": "Orçamento inicial",
+				"totalIncome": "Receita total",
+				"totalExpenses": "Despesa total",
+				"currentBalance": "Saldo atual",
+				"budgetUtilization": "Utilização do orçamento",
+				"exceeded": "Orçamento excedido!",
+				"approaching": "Aproximando-se do limite de orçamento",
+				"onTrack": "Orçamento dentro do planejado",
+				"financialSummary": "Resumo financeiro",
+				"totalIncomeGenerated": "Receita gerada",
+				"availableBalance": "Saldo disponível"
+			},
+			"documents": {
+				"uploadTitle": "Enviar documento",
+				"projectDocuments": "Documentos do projeto",
+				"view": "Ver",
+				"download": "Baixar",
+				"empty": "Nenhum documento enviado",
+				"selectFile": "Selecionar arquivo",
+				"description": "Descrição",
+				"descriptionPlaceholder": "Descreva este documento...",
+				"uploading": "Enviando...",
+				"uploadButton": "Enviar documento"
+			},
+			"forms": {
+				"itemName": "Nome do item",
+				"cost": "Custo",
+				"category": "Categoria",
+				"vendor": "Fornecedor",
+				"description": "Descrição",
+				"amount": "Valor"
+			}
+		},
+		"settings": { "title": "Configurações", "subtitle": "Gerencie as preferências da conta e as configurações do aplicativo" },
+		"signup": { "title": "Cadastrar" },
+		"tasks": { "title": "Planejamento e acompanhamento de tarefas", "tabs": { "overview": "Visão geral", "planner": "Planejador", "kanban": "Kanban", "analytics": "Análises" } },
+		"vehicleExpenses": { "title": "Despesas do veículo" },
+		"gemBusiness": { "title": "Gerenciar meu negócio de gemas", "inventory": "Inventário", "purchases": "Compras", "sales": "Vendas" }
+	},
+	"buttons": {
+		"add": "Adicionar",
+		"save": "Salvar",
+		"back": "Voltar",
+		"edit": "Editar",
+		"delete": "Excluir",
+		"start": "Iniciar",
+		"stop": "Parar",
+		"done": "Concluído",
+		"print": "Imprimir",
+		"signIn": "Entrar",
+		"signUp": "Cadastrar"
+	}
+}

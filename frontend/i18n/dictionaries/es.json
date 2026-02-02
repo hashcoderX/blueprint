@@ -1,0 +1,169 @@
+{
+	"header": {
+		"searchPlaceholder": "Buscar gastos, objetivos, tareas...",
+		"darkModeOn": "Cambiar a modo claro",
+		"darkModeOff": "Cambiar a modo oscuro",
+		"notifications": "Notificaciones",
+		"profileSettings": "Configuración de perfil",
+		"preferences": "Preferencias",
+		"signOut": "Cerrar sesión",
+		"language": "Idioma"
+	},
+	"common": {
+		"save": "Save",
+		"saving": "Saving..."
+	},
+	"sidebar": {
+		"main": "Principal",
+		"more": "Más",
+		"proTip": "Consejo",
+		"footerTip": "Registra gastos a diario para mejores análisis",
+		"items": {
+			"dashboard": "Panel",
+			"goals": "Objetivos",
+			"achievements": "Logros",
+			"expenses": "Ingresos y Gastos",
+			"tasks": "Tareas",
+			"vehicleExpenses": "Mantenimiento del vehículo",
+			"diary": "Diario",
+			"managePassword": "Gestionar contraseña",
+			"manageProjects": "Gestionar mis proyectos",
+			"manageGemBusiness": "Gestionar mi negocio de gemas",
+			"analytics": "Analítica",
+			"settings": "Ajustes",
+			"help": "Ayuda"
+		},
+		"descriptions": {
+			"dashboardDesc": "Resumen e información",
+			"goalsDesc": "Objetivos financieros",
+			"achievementsDesc": "Hitos y recompensas",
+			"expensesDesc": "Seguimiento de ingresos y gastos",
+			"tasksDesc": "Lista de tareas",
+			"vehicleExpensesDesc": "Costes del automóvil",
+			"diaryDesc": "Notas personales",
+			"managePasswordDesc": "Actualiza tu contraseña",
+			"manageProjectsDesc": "Gestión y seguimiento de proyectos",
+			"manageGemBusinessDesc": "Gestiona inventario, compras y ingresos",
+			"analyticsDesc": "Informes detallados",
+			"settingsDesc": "Preferencias",
+			"helpDesc": "Soporte y preguntas frecuentes"
+		}
+	},
+	"dashboard": {
+		"title": "Panel",
+		"subtitle": "¡Bienvenido de nuevo! Aquí está tu resumen financiero.",
+		"stats": {
+			"totalExpenses": "Gastos totales",
+			"goalsProgress": "Progreso de objetivos",
+			"pendingTasks": "Tareas pendientes",
+			"vehicleExpenses": "Gastos del vehículo"
+		},
+		"spendingOverview": "Resumen de gastos",
+		"range": {
+			"last30Days": "Últimos 30 días",
+			"last3Months": "Últimos 3 meses",
+			"lastYear": "Último año"
+		},
+		"noSpendingData": "Sin datos de gastos todavía",
+		"addExpensesHint": "Añade gastos para ver el desglose por categoría"
+	},
+	"pages": {
+		"achievements": { "title": "Logros" },
+		"analytics": { "title": "Analítica" },
+		"diary": { "title": "Diario", "subtitle": "Escribe tus pensamientos y registra tus estados de ánimo" },
+		"diaryView": { "title": "Vista del diario" },
+		"expenses": { "title": "Ingresos y Gastos" },
+		"goals": { "title": "Objetivos" },
+		"help": { "title": "Ayuda" },
+		"login": { "title": "Iniciar sesión" },
+		"managePassword": { "title": "Gestionar contraseña" },
+		"manageProjects": { "title": "Gestionar mis proyectos" },
+		"manageProjectDetails": {
+			"title": "Detalles del proyecto",
+			"subtitle": "Administra tiempo, presupuesto, ingresos y compras de este proyecto",
+			"tabs": {
+				"budgeting": "Presupuesto",
+				"purchases": "Compras",
+				"income": "Ingresos",
+				"analytics": "Analítica",
+				"plReport": "Informe PyG",
+				"balance": "Saldo",
+				"documents": "Documentos"
+			},
+			"budget": { "budget": "Presupuesto", "spent": "Gastado", "remaining": "Disponible" },
+			"purchases": { "add": "Añadir compra", "list": "Compras", "uncategorized": "Sin categoría", "save": "Guardar compra" },
+			"income": { "add": "Añadir ingreso", "list": "Ingresos", "save": "Guardar ingreso" },
+			"analytics": {
+				"title": "Ingresos vs Gastos",
+				"labels": { "income": "Ingresos", "expenses": "Gastos" },
+				"datasetAmount": "Importe",
+				"chartTitle": "Ingresos vs Gastos del proyecto"
+			},
+			"plReport": {
+				"title": "Informe de pérdidas y ganancias",
+				"revenueIncome": "Ingresos",
+				"noIncome": "No hay ingresos registrados",
+				"totalIncome": "Ingresos totales",
+				"expenses": "Gastos",
+				"noExpenses": "No hay gastos registrados",
+				"totalExpenses": "Gastos totales",
+				"netProfit": "Beneficio neto",
+				"netLoss": "Pérdida neta",
+				"profitableText": "El proyecto genera beneficios",
+				"lossText": "El proyecto tiene pérdidas"
+			},
+			"balanceReport": {
+				"title": "Informe de saldo del proyecto",
+				"initialBudget": "Presupuesto inicial",
+				"totalIncome": "Ingresos totales",
+				"totalExpenses": "Gastos totales",
+				"currentBalance": "Saldo actual",
+				"budgetUtilization": "Uso del presupuesto",
+				"exceeded": "¡Presupuesto excedido!",
+				"approaching": "Cerca del límite de presupuesto",
+				"onTrack": "Presupuesto en buen estado",
+				"financialSummary": "Resumen financiero",
+				"totalIncomeGenerated": "Ingresos generados",
+				"availableBalance": "Saldo disponible"
+			},
+			"documents": {
+				"uploadTitle": "Subir documento",
+				"projectDocuments": "Documentos del proyecto",
+				"view": "Ver",
+				"download": "Descargar",
+				"empty": "Aún no hay documentos",
+				"selectFile": "Seleccionar archivo",
+				"description": "Descripción",
+				"descriptionPlaceholder": "Describe este documento...",
+				"uploading": "Subiendo...",
+				"uploadButton": "Subir documento"
+			},
+			"forms": {
+				"itemName": "Nombre del artículo",
+				"cost": "Costo",
+				"category": "Categoría",
+				"vendor": "Proveedor",
+				"description": "Descripción",
+				"amount": "Importe"
+			}
+		},
+		"settings": { "title": "Ajustes", "subtitle": "Administra las preferencias de tu cuenta y la configuración de la aplicación" },
+		"signup": { "title": "Registrarse" },
+		"tasks": { "title": "Planificación y seguimiento de tareas", "tabs": { "overview": "Resumen", "planner": "Planificador", "kanban": "Kanban", "analytics": "Analítica" } },
+		"vehicleExpenses": { "title": "Gastos del vehículo" },
+		"gemBusiness": { "title": "Gestionar mi negocio de gemas", "inventory": "Inventario", "purchases": "Compras", "sales": "Ventas" }
+	},
+	"buttons": {
+		"add": "Añadir",
+		"save": "Guardar",
+		"back": "Atrás",
+		"edit": "Editar",
+		"delete": "Eliminar",
+		"start": "Iniciar",
+		"stop": "Detener",
+		"done": "Hecho",
+		"print": "Imprimir",
+		"signIn": "Iniciar sesión",
+		"signUp": "Registrarse"
+	}
+}

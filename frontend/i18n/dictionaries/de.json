@@ -1,0 +1,169 @@
+{
+	"header": {
+		"searchPlaceholder": "Ausgaben, Ziele, Aufgaben suchen...",
+		"darkModeOn": "Zum hellen Modus wechseln",
+		"darkModeOff": "Zum dunklen Modus wechseln",
+		"notifications": "Benachrichtigungen",
+		"profileSettings": "Profileinstellungen",
+		"preferences": "Einstellungen",
+		"signOut": "Abmelden",
+		"language": "Sprache"
+	},
+	"common": {
+		"save": "Save",
+		"saving": "Saving..."
+	},
+	"sidebar": {
+		"main": "Hauptmenü",
+		"more": "Mehr",
+		"proTip": "Tipp",
+		"footerTip": "Verfolge Ausgaben täglich für bessere Einblicke",
+		"items": {
+			"dashboard": "Dashboard",
+			"goals": "Ziele",
+			"achievements": "Erfolge",
+			"expenses": "Einnahmen & Ausgaben",
+			"tasks": "Aufgaben",
+			"vehicleExpenses": "Fahrzeugwartung",
+			"diary": "Tagebuch",
+			"managePassword": "Passwort verwalten",
+			"manageProjects": "Meine Projekte verwalten",
+			"manageGemBusiness": "Mein Edelstein-Geschäft verwalten",
+			"analytics": "Analysen",
+			"settings": "Einstellungen",
+			"help": "Hilfe"
+		},
+		"descriptions": {
+			"dashboardDesc": "Übersicht & Einblicke",
+			"goalsDesc": "Finanzielle Ziele",
+			"achievementsDesc": "Meilensteine & Belohnungen",
+			"expensesDesc": "Einnahmen & Ausgaben verfolgen",
+			"tasksDesc": "Aufgabenliste",
+			"vehicleExpensesDesc": "Fahrzeugkosten",
+			"diaryDesc": "Persönliche Notizen",
+			"managePasswordDesc": "Passwort aktualisieren",
+			"manageProjectsDesc": "Projektmanagement & Tracking",
+			"manageGemBusinessDesc": "Bestand, Einkäufe und Einnahmen verwalten",
+			"analyticsDesc": "Detaillierte Berichte",
+			"settingsDesc": "Einstellungen",
+			"helpDesc": "Support & FAQ"
+		}
+	},
+	"dashboard": {
+		"title": "Dashboard",
+		"subtitle": "Willkommen zurück! Hier ist deine Finanzübersicht.",
+		"stats": {
+			"totalExpenses": "Gesamtausgaben",
+			"goalsProgress": "Ziel-Fortschritt",
+			"pendingTasks": "Offene Aufgaben",
+			"vehicleExpenses": "Fahrzeugausgaben"
+		},
+		"spendingOverview": "Ausgabenübersicht",
+		"range": {
+			"last30Days": "Letzte 30 Tage",
+			"last3Months": "Letzte 3 Monate",
+			"lastYear": "Letztes Jahr"
+		},
+		"noSpendingData": "Noch keine Ausgabendaten",
+		"addExpensesHint": "Füge Ausgaben hinzu, um Kategorien zu sehen"
+	},
+	"pages": {
+		"achievements": { "title": "Erfolge" },
+		"analytics": { "title": "Analysen" },
+		"diary": { "title": "Tagebuch", "subtitle": "Schreibe Gedanken und verfolge Stimmungen" },
+		"diaryView": { "title": "Tagebuchansicht" },
+		"expenses": { "title": "Einnahmen & Ausgaben" },
+		"goals": { "title": "Ziele" },
+		"help": { "title": "Hilfe" },
+		"login": { "title": "Anmelden" },
+		"managePassword": { "title": "Passwort verwalten" },
+		"manageProjects": { "title": "Meine Projekte verwalten" },
+		"manageProjectDetails": {
+			"title": "Projektdetails",
+			"subtitle": "Zeit, Budget, Einnahmen und Einkäufe für dieses Projekt verwalten",
+			"tabs": {
+				"budgeting": "Budget",
+				"purchases": "Einkäufe",
+				"income": "Einnahmen",
+				"analytics": "Analysen",
+				"plReport": "Gewinn- & Verlustrechnung",
+				"balance": "Saldo",
+				"documents": "Dokumente"
+			},
+			"budget": { "budget": "Budget", "spent": "Ausgegeben", "remaining": "Verbleibend" },
+			"purchases": { "add": "Einkauf hinzufügen", "list": "Einkäufe", "uncategorized": "Ohne Kategorie", "save": "Einkauf speichern" },
+			"income": { "add": "Einnahme hinzufügen", "list": "Einnahmen", "save": "Einnahme speichern" },
+			"analytics": {
+				"title": "Einnahmen vs Ausgaben",
+				"labels": { "income": "Einnahmen", "expenses": "Ausgaben" },
+				"datasetAmount": "Betrag",
+				"chartTitle": "Einnahmen vs Ausgaben des Projekts"
+			},
+			"plReport": {
+				"title": "Gewinn- & Verlustrechnung",
+				"revenueIncome": "Einnahmen",
+				"noIncome": "Keine Einnahmen erfasst",
+				"totalIncome": "Gesamteinnahmen",
+				"expenses": "Ausgaben",
+				"noExpenses": "Keine Ausgaben erfasst",
+				"totalExpenses": "Gesamtausgaben",
+				"netProfit": "Nettogewinn",
+				"netLoss": "Nettverlust",
+				"profitableText": "Projekt ist profitabel",
+				"lossText": "Projekt arbeitet mit Verlust"
+			},
+			"balanceReport": {
+				"title": "Projektsaldo-Bericht",
+				"initialBudget": "Anfangsbudget",
+				"totalIncome": "Gesamteinnahmen",
+				"totalExpenses": "Gesamtausgaben",
+				"currentBalance": "Aktueller Saldo",
+				"budgetUtilization": "Budgetnutzung",
+				"exceeded": "Budget überschritten!",
+				"approaching": "Budgetgrenze nähert sich",
+				"onTrack": "Budget im Plan",
+				"financialSummary": "Finanzübersicht",
+				"totalIncomeGenerated": "Erzeugte Einnahmen",
+				"availableBalance": "Verfügbarer Saldo"
+			},
+			"documents": {
+				"uploadTitle": "Dokument hochladen",
+				"projectDocuments": "Projektdokumente",
+				"view": "Ansehen",
+				"download": "Herunterladen",
+				"empty": "Noch keine Dokumente hochgeladen",
+				"selectFile": "Datei auswählen",
+				"description": "Beschreibung",
+				"descriptionPlaceholder": "Dokument beschreiben...",
+				"uploading": "Hochladen...",
+				"uploadButton": "Dokument hochladen"
+			},
+			"forms": {
+				"itemName": "Artikelname",
+				"cost": "Kosten",
+				"category": "Kategorie",
+				"vendor": "Lieferant",
+				"description": "Beschreibung",
+				"amount": "Betrag"
+			}
+		},
+		"settings": { "title": "Einstellungen", "subtitle": "Kontoeinstellungen und App-Präferenzen verwalten" },
+		"signup": { "title": "Registrieren" },
+		"tasks": { "title": "Aufgabenplanung & Tracking", "tabs": { "overview": "Übersicht", "planner": "Planer", "kanban": "Kanban", "analytics": "Analysen" } },
+		"vehicleExpenses": { "title": "Fahrzeugausgaben" },
+		"gemBusiness": { "title": "Mein Edelstein-Geschäft verwalten", "inventory": "Inventar", "purchases": "Einkäufe", "sales": "Verkäufe" }
+	},
+	"buttons": {
+		"add": "Hinzufügen",
+		"save": "Speichern",
+		"back": "Zurück",
+		"edit": "Bearbeiten",
+		"delete": "Löschen",
+		"start": "Start",
+		"stop": "Stopp",
+		"done": "Fertig",
+		"print": "Drucken",
+		"signIn": "Anmelden",
+		"signUp": "Registrieren"
+	}
+}

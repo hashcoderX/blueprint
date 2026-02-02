@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 import {
   Trophy,
   Star,
@@ -52,6 +53,7 @@ const achievementCategories = [
 ];
 
 export default function Achievements() {
+    const { t } = useI18n();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [stats, setStats] = useState({
@@ -305,7 +307,7 @@ export default function Achievements() {
           <div className="min-w-0">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-powerbi-gray-900 dark:text-white flex items-center text-center sm:text-left">
               <Trophy className="w-8 h-8 mr-3 text-yellow-500" />
-              Achievements
+              {t('pages.achievements.title')}
             </h1>
             <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1 text-center sm:text-left">
               Track your financial milestones and earn rewards

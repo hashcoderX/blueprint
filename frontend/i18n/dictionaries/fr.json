@@ -1,0 +1,169 @@
+{
+	"header": {
+		"searchPlaceholder": "Rechercher des dépenses, objectifs, tâches...",
+		"darkModeOn": "Passer en mode clair",
+		"darkModeOff": "Passer en mode sombre",
+		"notifications": "Notifications",
+		"profileSettings": "Paramètres du profil",
+		"preferences": "Préférences",
+		"signOut": "Se déconnecter",
+		"language": "Langue"
+	},
+	"common": {
+		"save": "Save",
+		"saving": "Saving..."
+	},
+	"sidebar": {
+		"main": "Principal",
+		"more": "Plus",
+		"proTip": "Astuce",
+		"footerTip": "Suivez les dépenses quotidiennement pour de meilleurs insights",
+		"items": {
+			"dashboard": "Tableau de bord",
+			"goals": "Objectifs",
+			"achievements": "Réalisations",
+			"expenses": "Revenus et Dépenses",
+			"tasks": "Tâches",
+			"vehicleExpenses": "Entretien du véhicule",
+			"diary": "Journal",
+			"managePassword": "Gérer le mot de passe",
+			"manageProjects": "Gérer mes projets",
+			"manageGemBusiness": "Gérer mon activité de gemmes",
+			"analytics": "Analytique",
+			"settings": "Paramètres",
+			"help": "Aide"
+		},
+		"descriptions": {
+			"dashboardDesc": "Vue d'ensemble et insights",
+			"goalsDesc": "Objectifs financiers",
+			"achievementsDesc": "Étapes et récompenses",
+			"expensesDesc": "Suivi des revenus et dépenses",
+			"tasksDesc": "Liste des tâches",
+			"vehicleExpensesDesc": "Coûts du véhicule",
+			"diaryDesc": "Notes personnelles",
+			"managePasswordDesc": "Mettez à jour votre mot de passe",
+			"manageProjectsDesc": "Gestion et suivi de projets",
+			"manageGemBusinessDesc": "Gérer l'inventaire, les achats et les revenus",
+			"analyticsDesc": "Rapports détaillés",
+			"settingsDesc": "Préférences",
+			"helpDesc": "Support et FAQ"
+		}
+	},
+	"dashboard": {
+		"title": "Tableau de bord",
+		"subtitle": "Bon retour ! Voici votre aperçu financier.",
+		"stats": {
+			"totalExpenses": "Dépenses totales",
+			"goalsProgress": "Progression des objectifs",
+			"pendingTasks": "Tâches en attente",
+			"vehicleExpenses": "Dépenses du véhicule"
+		},
+		"spendingOverview": "Aperçu des dépenses",
+		"range": {
+			"last30Days": "30 derniers jours",
+			"last3Months": "3 derniers mois",
+			"lastYear": "Dernière année"
+		},
+		"noSpendingData": "Pas encore de données de dépenses",
+		"addExpensesHint": "Ajoutez des dépenses pour voir la répartition par catégorie"
+	},
+	"pages": {
+		"achievements": { "title": "Réalisations" },
+		"analytics": { "title": "Analytique" },
+		"diary": { "title": "Journal", "subtitle": "Écrivez vos pensées et suivez vos humeurs" },
+		"diaryView": { "title": "Vue du journal" },
+		"expenses": { "title": "Revenus et Dépenses" },
+		"goals": { "title": "Objectifs" },
+		"help": { "title": "Aide" },
+		"login": { "title": "Se connecter" },
+		"managePassword": { "title": "Gérer le mot de passe" },
+		"manageProjects": { "title": "Gérer mes projets" },
+		"manageProjectDetails": {
+			"title": "Détails du projet",
+			"subtitle": "Gérez le temps, le budget, les revenus et les achats pour ce projet",
+			"tabs": {
+				"budgeting": "Budget",
+				"purchases": "Achats",
+				"income": "Revenus",
+				"analytics": "Analytique",
+				"plReport": "Compte de résultats",
+				"balance": "Solde",
+				"documents": "Documents"
+			},
+			"budget": { "budget": "Budget", "spent": "Dépensé", "remaining": "Restant" },
+			"purchases": { "add": "Ajouter un achat", "list": "Achats", "uncategorized": "Sans catégorie", "save": "Enregistrer l'achat" },
+			"income": { "add": "Ajouter un revenu", "list": "Revenus", "save": "Enregistrer le revenu" },
+			"analytics": {
+				"title": "Revenus vs Dépenses",
+				"labels": { "income": "Revenus", "expenses": "Dépenses" },
+				"datasetAmount": "Montant",
+				"chartTitle": "Revenus vs Dépenses du projet"
+			},
+			"plReport": {
+				"title": "Compte de résultats",
+				"revenueIncome": "Revenus",
+				"noIncome": "Aucun revenu enregistré",
+				"totalIncome": "Revenus totaux",
+				"expenses": "Dépenses",
+				"noExpenses": "Aucune dépense enregistrée",
+				"totalExpenses": "Dépenses totales",
+				"netProfit": "Bénéfice net",
+				"netLoss": "Perte nette",
+				"profitableText": "Le projet génère des bénéfices",
+				"lossText": "Le projet est déficitaire"
+			},
+			"balanceReport": {
+				"title": "Rapport de solde du projet",
+				"initialBudget": "Budget initial",
+				"totalIncome": "Revenus totaux",
+				"totalExpenses": "Dépenses totales",
+				"currentBalance": "Solde actuel",
+				"budgetUtilization": "Utilisation du budget",
+				"exceeded": "Budget dépassé !",
+				"approaching": "À proximité de la limite de budget",
+				"onTrack": "Budget conforme",
+				"financialSummary": "Résumé financier",
+				"totalIncomeGenerated": "Revenus générés",
+				"availableBalance": "Solde disponible"
+			},
+			"documents": {
+				"uploadTitle": "Téléverser un document",
+				"projectDocuments": "Documents du projet",
+				"view": "Voir",
+				"download": "Télécharger",
+				"empty": "Aucun document téléversé",
+				"selectFile": "Sélectionner un fichier",
+				"description": "Description",
+				"descriptionPlaceholder": "Décrivez ce document...",
+				"uploading": "Téléversement...",
+				"uploadButton": "Téléverser le document"
+			},
+			"forms": {
+				"itemName": "Nom de l'article",
+				"cost": "Coût",
+				"category": "Catégorie",
+				"vendor": "Fournisseur",
+				"description": "Description",
+				"amount": "Montant"
+			}
+		},
+		"settings": { "title": "Paramètres", "subtitle": "Gérez les préférences de votre compte et les paramètres de l'application" },
+		"signup": { "title": "Créer un compte" },
+		"tasks": { "title": "Planification et suivi des tâches", "tabs": { "overview": "Vue d'ensemble", "planner": "Planificateur", "kanban": "Kanban", "analytics": "Analytique" } },
+		"vehicleExpenses": { "title": "Dépenses du véhicule" },
+		"gemBusiness": { "title": "Gérer mon activité de gemmes", "inventory": "Inventaire", "purchases": "Achats", "sales": "Ventes" }
+	},
+	"buttons": {
+		"add": "Ajouter",
+		"save": "Enregistrer",
+		"back": "Retour",
+		"edit": "Modifier",
+		"delete": "Supprimer",
+		"start": "Démarrer",
+		"stop": "Arrêter",
+		"done": "Terminé",
+		"print": "Imprimer",
+		"signIn": "Se connecter",
+		"signUp": "Créer un compte"
+	}
+}

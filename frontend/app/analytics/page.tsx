@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Chart as ChartJS,
@@ -36,6 +37,7 @@ type GoalStats = {
 type VehicleEntry = { id: number; description: string; amount: number; date: string; vehicle: string; type: 'income'|'expense' };
 
 export default function Analytics() {
+  const { t } = useI18n();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [income, setIncome] = useState<Income[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -159,10 +161,10 @@ export default function Analytics() {
           <div className="min-w-0">
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <span className="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">📊</span>
-              Analytics & Insights
+              {t('pages.analytics.title')}
             </h1>
             <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
-              Visualize trends, track KPIs, and get recommendations
+              {/* Optional subtitle translation key could be added */}
             </p>
           </div>
         </div>

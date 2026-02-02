@@ -1,0 +1,169 @@
+{
+	"header": {
+		"searchPlaceholder": "Search expenses, goals, tasks...",
+		"darkModeOn": "Switch to light mode",
+		"darkModeOff": "Switch to dark mode",
+		"notifications": "Notifications",
+		"profileSettings": "Profile Settings",
+		"preferences": "Preferences",
+		"signOut": "Sign Out",
+		"language": "Language"
+	},
+	"common": {
+		"save": "Save",
+		"saving": "Saving..."
+	},
+	"sidebar": {
+		"main": "Main",
+		"more": "More",
+		"proTip": "Pro Tip",
+		"footerTip": "Track expenses daily for better insights",
+		"items": {
+			"dashboard": "Dashboard",
+			"goals": "Goals",
+			"achievements": "Achievements",
+			"expenses": "Income & Expenses",
+			"tasks": "Tasks",
+			"vehicleExpenses": "Vehicle Maintains",
+			"diary": "Diary",
+			"managePassword": "Manage Password",
+			"manageProjects": "Manage My Projects",
+			"manageGemBusiness": "Manage My Gem Business",
+			"analytics": "Analytics",
+			"settings": "Settings",
+			"help": "Help"
+		},
+		"descriptions": {
+			"dashboardDesc": "Overview & insights",
+			"goalsDesc": "Financial targets",
+			"achievementsDesc": "Milestones & rewards",
+			"expensesDesc": "Track Income & spending",
+			"tasksDesc": "To-do list",
+			"vehicleExpensesDesc": "Car costs",
+			"diaryDesc": "Personal notes",
+			"managePasswordDesc": "Update your password",
+			"manageProjectsDesc": "Project management & tracking",
+			"manageGemBusinessDesc": "Manage inventory, purchases, and income",
+			"analyticsDesc": "Detailed reports",
+			"settingsDesc": "Preferences",
+			"helpDesc": "Support & FAQ"
+		}
+	},
+	"dashboard": {
+		"title": "Dashboard",
+		"subtitle": "Welcome back! Here's your financial overview.",
+		"stats": {
+			"totalExpenses": "Total Expenses",
+			"goalsProgress": "Goals Progress",
+			"pendingTasks": "Pending Tasks",
+			"vehicleExpenses": "Vehicle Expenses"
+		},
+		"spendingOverview": "Spending Overview",
+		"range": {
+			"last30Days": "Last 30 days",
+			"last3Months": "Last 3 months",
+			"lastYear": "Last year"
+		},
+		"noSpendingData": "No spending data yet",
+		"addExpensesHint": "Add expenses to see category breakdown"
+	},
+	"pages": {
+		"achievements": { "title": "Achievements" },
+		"analytics": { "title": "Analytics" },
+		"diary": { "title": "Diary", "subtitle": "Write your thoughts and track moods" },
+		"diaryView": { "title": "Diary View" },
+		"expenses": { "title": "Income & Expenses" },
+		"goals": { "title": "Goals" },
+		"help": { "title": "Help" },
+		"login": { "title": "Sign In" },
+		"managePassword": { "title": "Manage Password" },
+		"manageProjects": { "title": "Manage My Projects" },
+		"manageProjectDetails": {
+			"title": "Project Details",
+			"subtitle": "Manage time, budget, income and purchases for this project",
+			"tabs": {
+				"budgeting": "Budgeting",
+				"purchases": "Purchases",
+				"income": "Income",
+				"analytics": "Analytics",
+				"plReport": "P&L Report",
+				"balance": "Balance",
+				"documents": "Documents"
+			},
+			"budget": { "budget": "Budget", "spent": "Spent", "remaining": "Remaining" },
+			"purchases": { "add": "Add Purchase", "list": "Purchases", "uncategorized": "Uncategorized", "save": "Save Purchase" },
+			"income": { "add": "Add Income", "list": "Income", "save": "Save Income" },
+			"analytics": {
+				"title": "Income vs Expenses",
+				"labels": { "income": "Income", "expenses": "Expenses" },
+				"datasetAmount": "Amount",
+				"chartTitle": "Project Income vs Expenses"
+			},
+			"plReport": {
+				"title": "Profit & Loss Report",
+				"revenueIncome": "Revenue / Income",
+				"noIncome": "No income recorded",
+				"totalIncome": "Total Income",
+				"expenses": "Expenses",
+				"noExpenses": "No expenses recorded",
+				"totalExpenses": "Total Expenses",
+				"netProfit": "Net Profit",
+				"netLoss": "Net Loss",
+				"profitableText": "Project is generating profit",
+				"lossText": "Project is operating at a loss"
+			},
+			"balanceReport": {
+				"title": "Project Balance Report",
+				"initialBudget": "Initial Budget",
+				"totalIncome": "Total Income",
+				"totalExpenses": "Total Expenses",
+				"currentBalance": "Current Balance",
+				"budgetUtilization": "Budget Utilization",
+				"exceeded": "Budget exceeded!",
+				"approaching": "Approaching budget limit",
+				"onTrack": "Budget is on track",
+				"financialSummary": "Financial Summary",
+				"totalIncomeGenerated": "Total Income Generated",
+				"availableBalance": "Available Balance"
+			},
+			"documents": {
+				"uploadTitle": "Upload Document",
+				"projectDocuments": "Project Documents",
+				"view": "View",
+				"download": "Download",
+				"empty": "No documents uploaded yet",
+				"selectFile": "Select File",
+				"description": "Description",
+				"descriptionPlaceholder": "Describe this document...",
+				"uploading": "Uploading...",
+				"uploadButton": "Upload Document"
+			},
+			"forms": {
+				"itemName": "Item Name",
+				"cost": "Cost",
+				"category": "Category",
+				"vendor": "Vendor",
+				"description": "Description",
+				"amount": "Amount"
+			}
+		},
+		"settings": { "title": "Settings", "subtitle": "Manage your account preferences and application settings" },
+		"signup": { "title": "Sign Up" },
+		"tasks": { "title": "Task Planner & Tracking", "tabs": { "overview": "Overview", "planner": "Planner", "kanban": "Kanban", "analytics": "Analytics" } },
+		"vehicleExpenses": { "title": "Vehicle Expenses" },
+		"gemBusiness": { "title": "Manage My Gem Business", "inventory": "Inventory", "purchases": "Purchases", "sales": "Sales" }
+	},
+	"buttons": {
+		"add": "Add",
+		"save": "Save",
+		"back": "Back",
+		"edit": "Edit",
+		"delete": "Delete",
+		"start": "Start",
+		"stop": "Stop",
+		"done": "Done",
+		"print": "Print",
+		"signIn": "Sign In",
+		"signUp": "Sign Up"
+	}
+}

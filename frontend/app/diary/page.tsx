@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Moon, Sun, Cloud, CloudRain, Zap, Heart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface DiaryEntry {
   id: number;
@@ -16,6 +17,7 @@ interface DiaryEntry {
 
 export default function Diary() {
   const router = useRouter();
+  const { t } = useI18n();
   const [entry, setEntry] = useState<DiaryEntry | null>(null);
   const [content, setContent] = useState('');
   const [oneSentence, setOneSentence] = useState('');
@@ -166,9 +168,9 @@ export default function Diary() {
         {/* Header like other pages */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap min-w-0">
           <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white">Diary</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white">{t('pages.diary.title')}</h1>
             <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              {t('pages.diary.subtitle')}
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
@@ -176,7 +178,7 @@ export default function Diary() {
               onClick={() => router.push('/diary/view')}
               className="px-4 py-2 rounded-xl shadow bg-gray-600 text-white hover:bg-gray-700 flex-shrink-0 whitespace-nowrap"
             >
-              View Diary
+              {t('pages.diaryView.title')}
             </button>
             <button
               onClick={() => setIsNightMode(!isNightMode)}
