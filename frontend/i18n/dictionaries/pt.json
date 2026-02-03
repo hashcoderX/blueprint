@@ -71,7 +71,23 @@
 		"writeToday": "Escrever hoje",
 		"loadingDiary": "Carregando suas entradas recentes...",
 		"noEntriesYet": "Ainda não há entradas. Comece com \"Escrever hoje\".",
-		"loginToViewDiary": "Faça login para ver seu diário."
+		"loginToViewDiary": "Faça login para ver seu diário.",
+		"quickActions": "Quick Actions",
+		"recentActivity": "Recent Activity",
+		"viewAll": "View all",
+		"financialInsights": "Financial Insights",
+		"savingsRateLabel": "Savings Rate",
+		"aboveAverage": "Above average",
+		"budgetUtilization": "Budget Utilization",
+		"onTrack": "On track",
+		"goalAchievement": "Goal Achievement",
+		"keepItUp": "Keep it up!",
+		"quickActionsItems": {
+			"addExpense": { "title": "Add Expense", "description": "Record a new expense" },
+			"setGoal": { "title": "Set Goal", "description": "Create a new financial goal" },
+			"newTask": { "title": "New Task", "description": "Add a task to your list" },
+			"schedulePayment": { "title": "Schedule Payment", "description": "Set up recurring payment" }
+		}
 	},
 	"pages": {
 		"achievements": {
@@ -81,7 +97,13 @@
 			"categories": "Categorias",
 			"all": "Todas as conquistas",
 			"noAchievementsFound": "Nenhuma conquista encontrada",
-			"emptyHint": "Tente selecionar uma categoria diferente ou volte mais tarde para novas conquistas."
+			"emptyHint": "Tente selecionar uma categoria diferente ou volte mais tarde para novas conquistas.",
+			"stats": {
+				"totalAchievements": "Total Achievements",
+				"unlocked": "Unlocked",
+				"pointsEarned": "Points Earned",
+				"currentStreak": "Current Streak"
+			}
 		},
 		"analytics": {
 			"title": "Análises",

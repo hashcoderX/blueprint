@@ -327,7 +327,7 @@ export default function Achievements() {
           <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-yellow-100 text-sm font-medium">Total Achievements</p>
+                <p className="text-yellow-100 text-sm font-medium">{t('pages.achievements.stats.totalAchievements')}</p>
                 <p className="text-2xl sm:text-3xl font-bold">{stats.totalAchievements}</p>
               </div>
               <Trophy className="w-8 h-8 text-yellow-200" />
@@ -337,7 +337,7 @@ export default function Achievements() {
           <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm font-medium">Unlocked</p>
+                <p className="text-green-100 text-sm font-medium">{t('pages.achievements.stats.unlocked')}</p>
                 <p className="text-2xl sm:text-3xl font-bold">{stats.unlockedAchievements}</p>
               </div>
               <Award className="w-8 h-8 text-green-200" />
@@ -347,7 +347,7 @@ export default function Achievements() {
           <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium">Points Earned</p>
+                <p className="text-blue-100 text-sm font-medium">{t('pages.achievements.stats.pointsEarned')}</p>
                 <p className="text-2xl sm:text-3xl font-bold">{stats.totalPoints.toLocaleString()}</p>
               </div>
               <Star className="w-8 h-8 text-blue-200" />
@@ -357,7 +357,7 @@ export default function Achievements() {
           <div className="bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl p-4 sm:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm font-medium">Current Streak</p>
+                <p className="text-purple-100 text-sm font-medium">{t('pages.achievements.stats.currentStreak')}</p>
                 <p className="text-2xl sm:text-3xl font-bold">{stats.currentStreak} days</p>
               </div>
               <Zap className="w-8 h-8 text-purple-200" />

@@ -65,15 +65,26 @@ export default function I18nProvider({ children }: { children: React.ReactNode }
 
   const t = (key: string): string => {
     const parts = key.split('.');
-    let current: any = dict;
-    for (const p of parts) {
-      if (current && typeof current === 'object' && p in current) {
-        current = current[p];
-      } else {
-        return key; // fallback: show key
+
+    const resolve = (source: any, segments: string[]): string | undefined => {
+      let cur: any = source;
+      for (const seg of segments) {
+        if (cur && typeof cur === 'object' && seg in cur) {
+          cur = cur[seg];
+        } else {
+          return undefined;
+        }
       }
-    }
-    return typeof current === 'string' ? current : key;
+      return typeof cur === 'string' ? cur : undefined;
+    };
+
+    // Try current locale first
+    const primary = resolve(dict, parts);
+    if (primary !== undefined) return primary;
+
+    // Fallback to default (English) if missing
+    const fallback = resolve(dictionaries[defaultLocale], parts);
+    return fallback !== undefined ? fallback : key;
   };
 
   const value: I18nContextValue = {

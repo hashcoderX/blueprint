@@ -71,7 +71,23 @@
       "lastYear": "Last year"
     },
     "noSpendingData": "No spending data yet",
-    "addExpensesHint": "Add expenses to see category breakdown"
+    "addExpensesHint": "Add expenses to see category breakdown",
+    "quickActions": "Quick Actions",
+    "recentActivity": "Recent Activity",
+    "viewAll": "View all",
+    "financialInsights": "Financial Insights",
+    "savingsRateLabel": "Savings Rate",
+    "aboveAverage": "Above average",
+    "budgetUtilization": "Budget Utilization",
+    "onTrack": "On track",
+    "goalAchievement": "Goal Achievement",
+    "keepItUp": "Keep it up!",
+    "quickActionsItems": {
+      "addExpense": { "title": "Add Expense", "description": "Record a new expense" },
+      "setGoal": { "title": "Set Goal", "description": "Create a new financial goal" },
+      "newTask": { "title": "New Task", "description": "Add a task to your list" },
+      "schedulePayment": { "title": "Schedule Payment", "description": "Set up recurring payment" }
+    }
   }
   ,
   "pages": {
@@ -82,7 +98,13 @@
       "categories": "Categories",
       "all": "All Achievements",
       "noAchievementsFound": "No achievements found",
-      "emptyHint": "Try selecting a different category or check back later for new achievements."
+      "emptyHint": "Try selecting a different category or check back later for new achievements.",
+      "stats": {
+        "totalAchievements": "Total Achievements",
+        "unlocked": "Unlocked",
+        "pointsEarned": "Points Earned",
+        "currentStreak": "Current Streak"
+      }
     },
     "analytics": { "title": "Analytics", "monthlyIncomeVsExpenses": "Monthly Income vs Expenses", "expensesByCategory": "Expenses by Category" },
     "diary": { "title": "Diary", "subtitle": "Write your thoughts and track moods" },

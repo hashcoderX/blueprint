@@ -550,32 +550,32 @@ export default function Dashboard() {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white mb-4 sm:col-span-2">Quick Actions</h3>
+            <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white mb-4 sm:col-span-2">{t('dashboard.quickActions')}</h3>
             <QuickAction
               icon={Plus}
-              title="Add Expense"
-              description="Record a new expense"
+              title={t('dashboard.quickActionsItems.addExpense.title')}
+              description={t('dashboard.quickActionsItems.addExpense.description')}
               onClick={() => {}}
               color="red"
             />
             <QuickAction
               icon={Target}
-              title="Set Goal"
-              description="Create a new financial goal"
+              title={t('dashboard.quickActionsItems.setGoal.title')}
+              description={t('dashboard.quickActionsItems.setGoal.description')}
               onClick={() => {}}
               color="green"
             />
             <QuickAction
               icon={CheckSquare}
-              title="New Task"
-              description="Add a task to your list"
+              title={t('dashboard.quickActionsItems.newTask.title')}
+              description={t('dashboard.quickActionsItems.newTask.description')}
               onClick={() => {}}
               color="blue"
             />
             <QuickAction
               icon={Calendar}
-              title="Schedule Payment"
-              description="Set up recurring payment"
+              title={t('dashboard.quickActionsItems.schedulePayment.title')}
+              description={t('dashboard.quickActionsItems.schedulePayment.description')}
               onClick={() => {}}
               color="purple"
             />
@@ -645,9 +645,9 @@ export default function Dashboard() {
           {/* Recent Activity */}
           <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Recent Activity</h3>
-              <button className="text-sm text-powerbi-primary hover:text-powerbi-secondary font-medium transition-colors">
-                View all
+              <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('dashboard.recentActivity')}</h3>
+                <button className="text-sm text-powerbi-primary hover:text-powerbi-secondary font-medium transition-colors">
+                  {t('dashboard.viewAll')}
               </button>
             </div>
             <div className="space-y-3 max-h-80 overflow-y-auto">
@@ -660,7 +660,7 @@ export default function Dashboard() {
           {/* Financial Insights */}
           <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Financial Insights</h3>
+              <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('dashboard.financialInsights')}</h3>
               <Activity className="w-5 h-5 text-powerbi-gray-600 dark:text-powerbi-gray-400" />
             </div>
             <div className="space-y-4">
@@ -670,8 +670,8 @@ export default function Dashboard() {
                     <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <p className="font-medium text-powerbi-gray-900 dark:text-white">Savings Rate</p>
-                    <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Above average</p>
+                    <p className="font-medium text-powerbi-gray-900 dark:text-white">{t('dashboard.savingsRateLabel')}</p>
+                    <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t('dashboard.aboveAverage')}</p>
                   </div>
                 </div>
                 <span className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.savingsRate}%</span>
@@ -683,8 +683,8 @@ export default function Dashboard() {
                     <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <p className="font-medium text-powerbi-gray-900 dark:text-white">Budget Utilization</p>
-                    <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">On track</p>
+                    <p className="font-medium text-powerbi-gray-900 dark:text-white">{t('dashboard.budgetUtilization')}</p>
+                    <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t('dashboard.onTrack')}</p>
                   </div>
                 </div>
                 <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.budgetUtilization}%</span>
@@ -696,8 +696,8 @@ export default function Dashboard() {
                     <Target className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                   </div>
                   <div>
-                    <p className="font-medium text-powerbi-gray-900 dark:text-white">Goal Achievement</p>
-                    <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Keep it up!</p>
+                    <p className="font-medium text-powerbi-gray-900 dark:text-white">{t('dashboard.goalAchievement')}</p>
+                    <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">{t('dashboard.keepItUp')}</p>
                   </div>
                 </div>
                 <span className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.goalsProgress}%</span>
