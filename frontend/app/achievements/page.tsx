@@ -310,7 +310,7 @@ export default function Achievements() {
               {t('pages.achievements.title')}
             </h1>
             <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1 text-center sm:text-left">
-              Track your financial milestones and earn rewards
+              {t('pages.achievements.subtitle')}
             </p>
           </div>
           <button
@@ -318,7 +318,7 @@ export default function Achievements() {
             className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
-            Add Achievement
+            {t('pages.achievements.addButton')}
           </button>
         </div>
 
@@ -367,7 +367,7 @@ export default function Achievements() {
 
         {/* Category Filter */}
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Categories</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.achievements.categories')}</h3>
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setSelectedCategory('all')}
@@ -377,7 +377,7 @@ export default function Achievements() {
                   : 'bg-powerbi-gray-100 dark:bg-powerbi-gray-700 text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-200 dark:hover:bg-powerbi-gray-600'
               }`}
             >
-              All Achievements
+              {t('pages.achievements.all')}
             </button>
             {achievementCategories.map((category) => {
               const IconComponent = category.icon;
@@ -410,10 +410,10 @@ export default function Achievements() {
           <div className="text-center py-12">
             <Trophy className="w-16 h-16 text-powerbi-gray-300 dark:text-powerbi-gray-600 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-2">
-              No achievements found
+              {t('pages.achievements.noAchievementsFound')}
             </h3>
             <p className="text-powerbi-gray-500 dark:text-powerbi-gray-500">
-              Try selecting a different category or check back later for new achievements.
+              {t('pages.achievements.emptyHint')}
             </p>
           </div>
         )}

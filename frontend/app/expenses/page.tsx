@@ -401,7 +401,7 @@ export default function Expenses() {
           fill: true,
         },
         {
-          label: 'Income',
+          label: t('pages.manageProjectDetails.analytics.labels.income'),
           data: incomeData,
           borderColor: 'rgb(34, 197, 94)',
           backgroundColor: 'rgba(34, 197, 94, 0.1)',
@@ -409,7 +409,7 @@ export default function Expenses() {
           hidden: true, // Hidden by default
         },
         {
-          label: 'Expenses',
+          label: t('pages.manageProjectDetails.analytics.labels.expenses'),
           data: expenseData,
           borderColor: 'rgb(239, 68, 68)',
           backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -422,7 +422,7 @@ export default function Expenses() {
 
   const getIncomeExpensePieData = () => {
     return {
-      labels: ['Income', 'Expenses'],
+      labels: [t('pages.manageProjectDetails.analytics.labels.income'), t('pages.manageProjectDetails.analytics.labels.expenses')],
       datasets: [
         {
           data: [summary.totalIncome, summary.totalExpenses],
@@ -619,7 +619,7 @@ export default function Expenses() {
           <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm font-medium">Total Income</p>
+                <p className="text-green-100 text-sm font-medium">{t('pages.manageProjectDetails.balanceReport.totalIncome')}</p>
                 <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(summary.totalIncome)}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-200" />
@@ -629,7 +629,7 @@ export default function Expenses() {
           <div className="bg-gradient-to-br from-red-400 to-red-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-red-100 text-sm font-medium">Total Expenses</p>
+                <p className="text-red-100 text-sm font-medium">{t('pages.manageProjectDetails.balanceReport.totalExpenses')}</p>
                 <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(summary.totalExpenses)}</p>
               </div>
               <TrendingDown className="w-8 h-8 text-red-200" />
@@ -639,7 +639,7 @@ export default function Expenses() {
           <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium">Net Income</p>
+                <p className="text-blue-100 text-sm font-medium">{t('pages.expenses.netIncome')}</p>
                 <p className={`text-2xl sm:text-3xl font-bold ${summary.netIncome >= 0 ? 'text-white' : 'text-red-200'}`}>
                   {formatCurrency(summary.netIncome)}
                 </p>
@@ -663,10 +663,10 @@ export default function Expenses() {
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
           <div className="flex flex-wrap gap-2 mb-6">
             {[
-              { id: 'overview', label: 'Overview', icon: FileText },
-              { id: 'income', label: 'Income', icon: TrendingUp },
-              { id: 'expenses', label: 'Expenses', icon: TrendingDown },
-              { id: 'analytics', label: 'Analytics', icon: BarChart3 }
+              { id: 'overview', label: t('pages.tasks.tabs.overview'), icon: FileText },
+              { id: 'income', label: t('pages.manageProjectDetails.tabs.income'), icon: TrendingUp },
+              { id: 'expenses', label: t('pages.manageProjectDetails.plReport.expenses'), icon: TrendingDown },
+              { id: 'analytics', label: t('pages.tasks.tabs.analytics'), icon: BarChart3 }
             ].map((tab) => {
               const IconComponent = tab.icon;
               return (
@@ -746,7 +746,7 @@ export default function Expenses() {
                 <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
                   <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4 flex items-center">
                     <BarChart3 className="w-5 h-5 mr-2 text-purple-500" />
-                    Income vs Expenses
+                    {t('pages.manageProjectDetails.analytics.title')}
                   </h3>
                   <div className="h-64 sm:h-80 flex items-center justify-center">
                     <Pie
@@ -780,7 +780,7 @@ export default function Expenses() {
               <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
                 <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4 flex items-center">
                   <Wallet className="w-5 h-5 mr-2 text-green-500" />
-                  Income Categories Breakdown
+                  {t('pages.expenses.incomeCategoriesBreakdown')}
                 </h3>
                 <div className="h-64 sm:h-80">
                   <Pie

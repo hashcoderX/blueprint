@@ -128,8 +128,8 @@ export default function Analytics() {
     return {
       labels,
       datasets: [
-        { label: 'Expenses', data: expSeries, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.2)', tension: 0.3 },
-        { label: 'Income', data: incSeries, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)', tension: 0.3 },
+        { label: t('pages.manageProjectDetails.analytics.labels.expenses'), data: expSeries, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.2)', tension: 0.3 },
+        { label: t('pages.manageProjectDetails.analytics.labels.income'), data: incSeries, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)', tension: 0.3 },
       ]
     };
   }, [monthLabels, expenses, income]);
@@ -206,13 +206,13 @@ export default function Analytics() {
         {/* Trends and Breakdown */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
-            <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Monthly Income vs Expenses</h3>
+            <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.analytics.monthlyIncomeVsExpenses')}</h3>
             <div className="h-64 sm:h-80">
               <Line data={monthlyLine} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
             </div>
           </div>
           <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
-            <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Expenses by Category</h3>
+            <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.analytics.expensesByCategory')}</h3>
             <div className="h-64 sm:h-80">
               <Doughnut data={{
                 labels: expensesByCategory.labels,
@@ -232,7 +232,7 @@ export default function Analytics() {
             <div className="h-64 sm:h-80">
               <Bar data={{
                 labels: ['0–25%','25–50%','50–75%','75–100%'],
-                datasets: [{ label: 'Goals', data: goalsBuckets, backgroundColor: ['#ef4444','#f59e0b','#3b82f6','#10b981'] }]
+                datasets: [{ label: t('pages.goals.title'), data: goalsBuckets, backgroundColor: ['#ef4444','#f59e0b','#3b82f6','#10b981'] }]
               }} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
             </div>
           </div>

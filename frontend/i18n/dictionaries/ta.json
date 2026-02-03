@@ -59,25 +59,52 @@
       "vehicleExpenses": "Vehicle Expenses"
     },
     "spendingOverview": "Spending Overview",
+    "diaryTitle": "Your Diary",
+    "viewDiary": "View Diary",
     "range": {
       "last30Days": "Last 30 days",
       "last3Months": "Last 3 months",
       "lastYear": "Last year"
     },
     "noSpendingData": "No spending data yet",
-    "addExpensesHint": "Add expenses to see category breakdown"
+    "addExpensesHint": "Add expenses to see category breakdown",
+    "writeToday": "Write Today",
+    "loadingDiary": "Loading your recent entries...",
+    "noEntriesYet": "No entries yet. Start with \"Write Today\".",
+    "loginToViewDiary": "Log in to view your diary."
   },
   "pages": {
-    "achievements": { "title": "Achievements" },
-    "analytics": { "title": "Analytics" },
+    "achievements": {
+      "title": "Achievements",
+      "subtitle": "Track your financial milestones and earn rewards",
+      "addButton": "Add Achievement",
+      "categories": "Categories",
+      "all": "All Achievements",
+      "noAchievementsFound": "No achievements found",
+      "emptyHint": "Try selecting a different category or check back later for new achievements."
+    },
+    "analytics": {
+      "title": "Analytics",
+      "monthlyIncomeVsExpenses": "Monthly Income vs Expenses",
+      "expensesByCategory": "Expenses by Category"
+    },
     "diary": { "title": "Diary", "subtitle": "Write your thoughts and track moods" },
     "diaryView": { "title": "Diary View" },
-    "expenses": { "title": "Income & Expenses" },
-    "goals": { "title": "Goals" },
+    "expenses": {
+      "title": "Income & Expenses",
+      "netIncome": "Net Income",
+      "incomeCategoriesBreakdown": "Income Categories Breakdown"
+    },
+    "goals": {
+      "title": "Goals",
+      "totalGoals": "Total Goals",
+      "noGoalsFound": "No goals found",
+      "searchPlaceholder": "Search goals..."
+    },
     "help": { "title": "Help" },
     "login": { "title": "Sign In" },
     "managePassword": { "title": "Manage Password" },
-    "manageProjects": { "title": "Manage My Projects" },
+    "manageProjects": { "title": "Manage My Projects", "form": { "editTitle": "Edit Project", "createTitle": "Create New Project" } },
     "manageProjectDetails": {
       "title": "Project Details",
       "subtitle": "Manage time, budget, income and purchases for this project",

@@ -23,6 +23,8 @@
 			"goals": "Goals",
 			"achievements": "Achievements",
 			"expenses": "Income & Expenses",
+		"diaryTitle": "Your Diary",
+		"viewDiary": "View Diary",
 			"tasks": "Tasks",
 			"vehicleExpenses": "Vehicle Maintains",
 			"diary": "Diary",
@@ -60,14 +62,14 @@
 		},
 		"spendingOverview": "Spending Overview",
 		"range": {
-			"last30Days": "Last 30 days",
+			"analytics": { "title": "Analytics", "monthlyIncomeVsExpenses": "Monthly Income vs Expenses", "expensesByCategory": "Expenses by Category" },
 			"last3Months": "Last 3 months",
-			"lastYear": "Last year"
-		},
+			"expenses": { "title": "Income & Expenses", "netIncome": "Net Income", "incomeCategoriesBreakdown": "Income Categories Breakdown" },
+			"goals": { "title": "Goals", "totalGoals": "Total Goals", "noGoalsFound": "No goals found", "searchPlaceholder": "Search goals..." },
 		"noSpendingData": "No spending data yet",
 		"addExpensesHint": "Add expenses to see category breakdown"
 	},
-	"pages": {
+			"manageProjects": { "title": "Manage My Projects", "form": { "editTitle": "Edit Project", "createTitle": "Create New Project" } },
 		"achievements": { "title": "Achievements" },
 		"analytics": { "title": "Analytics" },
 		"diary": { "title": "Diary", "subtitle": "Write your thoughts and track moods" },

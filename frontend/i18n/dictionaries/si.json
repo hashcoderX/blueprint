@@ -54,27 +54,53 @@
     "subtitle": "පිළිගන්නා තැන! මෙන්න ඔබගේ මූල්‍ය අවලෝකනය.",
     "stats": {
       "totalExpenses": "සම්පූර්ණ වියදම්",
-      "goalsProgress": "ඉලක්ක ප්‍රගති",
-      "pendingTasks": "බಾಕියයි කාර්යයන්",
+      "goalsProgress": "ඉලක්ක ප්‍රගතිය",
+      "pendingTasks": "බාකි කාර්යයන්",
       "vehicleExpenses": "වාහන වියදම්"
     },
     "spendingOverview": "වියදම් අවලෝකනය",
+    "diaryTitle": "Your Diary",
+    "viewDiary": "View Diary",
+    "writeToday": "Write Today",
+    "loadingDiary": "Loading your recent entries...",
+    "noEntriesYet": "No entries yet. Start with \"Write Today\".",
+    "loginToViewDiary": "Log in to view your diary.",
     "range": {
       "last30Days": "අවසාන දින 30",
       "last3Months": "අවසාන මාස 3",
-      "lastYear": "අවසාන වර්ෂය"
+      "lastYear": "අවසාන වසර"
     },
     "noSpendingData": "තවමත් වියදම් දත්ත නොමැත",
     "addExpensesHint": "ප්‍රවර්ග වෙන්වීමේ වඩපත් එකතු කිරීමට වියදම් එක් කරන්න"
-  }
-  ,
+  },
   "pages": {
-    "achievements": { "title": "උපලබ්ධීන්" },
-    "analytics": { "title": "විශ්ලේෂණ" },
+    "achievements": {
+      "title": "උපලබ්ධීන්",
+      "subtitle": "Track your financial milestones and earn rewards",
+      "addButton": "Add Achievement",
+      "categories": "Categories",
+      "all": "All Achievements",
+      "noAchievementsFound": "No achievements found",
+      "emptyHint": "Try selecting a different category or check back later for new achievements."
+    },
+    "analytics": {
+      "title": "විශ්ලේෂණ",
+      "monthlyIncomeVsExpenses": "Monthly Income vs Expenses",
+      "expensesByCategory": "Expenses by Category"
+    },
     "diary": { "title": "දිනපොත", "subtitle": "ඔබගේ සිතිවිලි ලියාපදිංචි කර මනෝභාවයන් ට්රැක් කරන්න" },
     "diaryView": { "title": "දිනපොත් දර්ශනය" },
-    "expenses": { "title": "ආදායම් සහ වියදම්" },
-    "goals": { "title": "ඉලක්ක" },
+    "expenses": {
+      "title": "ආදායම් සහ වියදම්",
+      "netIncome": "Net Income",
+      "incomeCategoriesBreakdown": "Income Categories Breakdown"
+    },
+    "goals": {
+      "title": "ඉලක්ක",
+      "totalGoals": "Total Goals",
+      "noGoalsFound": "No goals found",
+      "searchPlaceholder": "Search goals..."
+    },
     "help": { "title": "උදව්" },
     "login": { "title": "පිවිසෙන්න" },
     "managePassword": { "title": "මුරපදය කළමනාකරණය" },

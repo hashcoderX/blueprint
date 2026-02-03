@@ -23,6 +23,8 @@
 			"goals": "Objectifs",
 			"achievements": "Réalisations",
 			"expenses": "Revenus et Dépenses",
+		"diaryTitle": "Votre journal",
+		"viewDiary": "Voir le journal",
 			"tasks": "Tâches",
 			"vehicleExpenses": "Entretien du véhicule",
 			"diary": "Journal",
@@ -60,14 +62,14 @@
 		},
 		"spendingOverview": "Aperçu des dépenses",
 		"range": {
-			"last30Days": "30 derniers jours",
+			"analytics": { "title": "Analyses", "monthlyIncomeVsExpenses": "Revenus mensuels vs Dépenses", "expensesByCategory": "Dépenses par catégorie" },
 			"last3Months": "3 derniers mois",
-			"lastYear": "Dernière année"
-		},
+			"expenses": { "title": "Revenus et Dépenses", "netIncome": "Revenu net", "incomeCategoriesBreakdown": "Répartition des catégories de revenus" },
+			"goals": { "title": "Objectifs", "totalGoals": "Objectifs totaux", "noGoalsFound": "Aucun objectif trouvé", "searchPlaceholder": "Rechercher des objectifs..." },
 		"noSpendingData": "Pas encore de données de dépenses",
 		"addExpensesHint": "Ajoutez des dépenses pour voir la répartition par catégorie"
 	},
-	"pages": {
+			"manageProjects": { "title": "Gérer mes projets", "form": { "editTitle": "Modifier le projet", "createTitle": "Créer un nouveau projet" } },
 		"achievements": { "title": "Réalisations" },
 		"analytics": { "title": "Analytique" },
 		"diary": { "title": "Journal", "subtitle": "Écrivez vos pensées et suivez vos humeurs" },

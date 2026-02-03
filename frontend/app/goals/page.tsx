@@ -356,7 +356,7 @@ export default function Goals() {
             <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-4 sm:p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100 text-sm font-medium">Total Goals</p>
+                  <p className="text-blue-100 text-sm font-medium">{t('pages.goals.totalGoals')}</p>
                   <p className="text-3xl font-bold">{stats.total_goals}</p>
                 </div>
                 <span className="text-blue-200">📋</span>
@@ -399,7 +399,7 @@ export default function Goals() {
               <Search className="w-5 h-5 text-powerbi-gray-500" />
               <input
                 type="text"
-                placeholder="Search goals..."
+                placeholder={t('pages.goals.searchPlaceholder')}
                 value={filters.search}
                 onChange={(e) => setFilters({...filters, search: e.target.value})}
                 className="w-full sm:w-64 px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
@@ -510,7 +510,7 @@ export default function Goals() {
         {goals.length === 0 && (
           <div className="text-center py-12">
             <Target className="w-16 h-16 text-powerbi-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-powerbi-gray-900 dark:text-white mb-2">No goals found</h3>
+            <h3 className="text-lg font-medium text-powerbi-gray-900 dark:text-white mb-2">{t('pages.goals.noGoalsFound')}</h3>
             <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-4">
               {filters.search || filters.category !== 'all' || filters.status !== 'all' || filters.priority !== 'all'
                 ? 'Try adjusting your filters or search terms.'

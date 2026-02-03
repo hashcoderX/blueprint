@@ -496,9 +496,9 @@ export default function ManageProjects() {
             {[
               { id: 'overview', label: t('pages.tasks.tabs.overview'), icon: BarChart3 },
               { id: 'projects', label: t('sidebar.items.manageProjects'), icon: FolderOpen },
-              { id: 'budgeting', label: 'Budgeting', icon: DollarSign },
+              { id: 'budgeting', label: t('pages.manageProjectDetails.tabs.budgeting'), icon: DollarSign },
               { id: 'purchases', label: t('sidebar.descriptions.expensesDesc'), icon: ShoppingCart },
-              { id: 'income', label: 'Income', icon: TrendingUp }
+              { id: 'income', label: t('pages.manageProjectDetails.tabs.income'), icon: TrendingUp }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -836,7 +836,7 @@ export default function ManageProjects() {
                 {/* Add Income Form */}
                 <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
                   <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">
-                    Add Income
+                    {t('pages.manageProjectDetails.income.add')}
                   </h3>
                   <form onSubmit={handleIncomeSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -907,7 +907,7 @@ export default function ManageProjects() {
                       type="submit"
                       className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl transition-colors"
                     >
-                      Add Income
+                      {t('pages.manageProjectDetails.income.add')}
                     </button>
                   </form>
                 </div>
@@ -916,7 +916,7 @@ export default function ManageProjects() {
                 <div className="bg-white dark:bg-powerbi-gray-800 rounded-xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700">
                   <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
                     <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">
-                      Income History
+                      {t('pages.manageProjectDetails.income.list')}
                     </h3>
                   </div>
                   <div className="p-4 sm:p-6">
@@ -956,7 +956,7 @@ export default function ManageProjects() {
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-xl w-full max-w-2xl my-8 mx-4 sm:mx-6 border border-powerbi-gray-200 dark:border-powerbi-gray-700 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="p-4 sm:p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">
-                  {editingProject ? 'Edit Project' : 'Create New Project'}
+                  {editingProject ? t('pages.manageProjects.form.editTitle') : t('pages.manageProjects.form.createTitle')}
                 </h2>
                 <button
                   onClick={() => {

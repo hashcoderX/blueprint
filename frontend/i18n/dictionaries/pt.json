@@ -10,8 +10,8 @@
 		"language": "Idioma"
 	},
 	"common": {
-		"save": "Save",
-		"saving": "Saving..."
+		"save": "Salvar",
+		"saving": "Salvando..."
 	},
 	"sidebar": {
 		"main": "Principal",
@@ -59,25 +59,52 @@
 			"vehicleExpenses": "Despesas do veículo"
 		},
 		"spendingOverview": "Visão geral dos gastos",
+		"diaryTitle": "Seu diário",
+		"viewDiary": "Ver diário",
 		"range": {
 			"last30Days": "Últimos 30 dias",
 			"last3Months": "Últimos 3 meses",
 			"lastYear": "Último ano"
 		},
 		"noSpendingData": "Ainda não há dados de gastos",
-		"addExpensesHint": "Adicione despesas para ver a divisão por categoria"
+		"addExpensesHint": "Adicione despesas para ver a divisão por categoria",
+		"writeToday": "Escrever hoje",
+		"loadingDiary": "Carregando suas entradas recentes...",
+		"noEntriesYet": "Ainda não há entradas. Comece com \"Escrever hoje\".",
+		"loginToViewDiary": "Faça login para ver seu diário."
 	},
 	"pages": {
-		"achievements": { "title": "Conquistas" },
-		"analytics": { "title": "Análises" },
+		"achievements": {
+			"title": "Conquistas",
+			"subtitle": "Acompanhe seus marcos financeiros e ganhe recompensas",
+			"addButton": "Adicionar conquista",
+			"categories": "Categorias",
+			"all": "Todas as conquistas",
+			"noAchievementsFound": "Nenhuma conquista encontrada",
+			"emptyHint": "Tente selecionar uma categoria diferente ou volte mais tarde para novas conquistas."
+		},
+		"analytics": {
+			"title": "Análises",
+			"monthlyIncomeVsExpenses": "Receita mensal vs Despesas",
+			"expensesByCategory": "Despesas por categoria"
+		},
 		"diary": { "title": "Diário", "subtitle": "Escreva seus pensamentos e acompanhe os humores" },
 		"diaryView": { "title": "Visualização do diário" },
-		"expenses": { "title": "Receitas e Despesas" },
-		"goals": { "title": "Objetivos" },
+		"expenses": {
+			"title": "Receitas e Despesas",
+			"netIncome": "Receita líquida",
+			"incomeCategoriesBreakdown": "Detalhamento de categorias de receita"
+		},
+		"goals": {
+			"title": "Objetivos",
+			"totalGoals": "Total de objetivos",
+			"noGoalsFound": "Nenhum objetivo encontrado",
+			"searchPlaceholder": "Pesquisar objetivos..."
+		},
 		"help": { "title": "Ajuda" },
 		"login": { "title": "Entrar" },
 		"managePassword": { "title": "Gerenciar senha" },
-		"manageProjects": { "title": "Gerenciar meus projetos" },
+		"manageProjects": { "title": "Gerenciar meus projetos", "form": { "editTitle": "Editar projeto", "createTitle": "Criar novo projeto" } },
 		"manageProjectDetails": {
 			"title": "Detalhes do projeto",
 			"subtitle": "Gerencie tempo, orçamento, receitas e compras deste projeto",

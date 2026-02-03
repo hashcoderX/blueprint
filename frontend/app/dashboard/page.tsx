@@ -585,27 +585,27 @@ export default function Dashboard() {
         {/* Diary Section */}
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Your Diary</h3>
+            <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('dashboard.diaryTitle')}</h3>
             <div className="flex gap-2">
               <button
                 onClick={() => router.push('/diary')}
                 className="px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white"
               >
-                Write Today
+                {t('dashboard.writeToday')}
               </button>
               <button
                 onClick={() => router.push('/diary/view')}
                 className="px-3 py-2 rounded-lg bg-powerbi-gray-900 hover:bg-black text-white dark:bg-powerbi-gray-700 dark:hover:bg-powerbi-gray-600"
               >
-                View Diary
+                {t('dashboard.viewDiary')}
               </button>
             </div>
           </div>
           {hasToken === null ? (
-            <div className="text-powerbi-gray-500">Loading your recent entries...</div>
+            <div className="text-powerbi-gray-500">{t('dashboard.loadingDiary')}</div>
           ) : hasToken ? (
             diaryLoading ? (
-              <div className="text-powerbi-gray-500">Loading your recent entries...</div>
+              <div className="text-powerbi-gray-500">{t('dashboard.loadingDiary')}</div>
             ) : (
               <div className="space-y-3">
                 {diary.slice(0, 4).map((d) => (
@@ -631,12 +631,12 @@ export default function Dashboard() {
                   </div>
                 ))}
                 {diary.length === 0 && (
-                  <div className="text-powerbi-gray-500">No entries yet. Start with “Write Today”.</div>
+                  <div className="text-powerbi-gray-500">{t('dashboard.noEntriesYet')}</div>
                 )}
               </div>
             )
           ) : (
-            <div className="text-powerbi-gray-500">Log in to view your diary.</div>
+            <div className="text-powerbi-gray-500">{t('dashboard.loginToViewDiary')}</div>
           )}
         </div>
 
