@@ -155,6 +155,35 @@
 		"vehicleExpenses": { "title": "Vehicle Expenses" },
 		"gemBusiness": { "title": "Manage My Gem Business", "inventory": "Inventory", "purchases": "Purchases", "sales": "Sales" }
 	},
+		"pages": {
+			"achievements": {
+				"title": "Achievements",
+				"subtitle": "Track your financial milestones and earn rewards",
+				"addButton": "Add Achievement",
+				"categories": "Categories",
+				"all": "All Achievements",
+				"noAchievementsFound": "No achievements found",
+				"emptyHint": "Try selecting a different category or check back later for new achievements.",
+				"categoriesList": {
+					"savings": "Savings",
+					"expenses": "Expenses",
+					"goals": "Goals",
+					"tasks": "Tasks",
+					"vehicle": "Vehicle",
+					"lifestyle": "Lifestyle",
+					"social": "Social",
+					"learning": "Learning"
+				},
+				"progressLabel": "Progress",
+				"deleteTooltip": "Delete Achievement",
+				"stats": {
+					"totalAchievements": "Total Achievements",
+					"unlocked": "Unlocked",
+					"pointsEarned": "Points Earned",
+					"currentStreak": "Current Streak"
+				}
+			}
+		},
 	"buttons": {
 		"add": "Add",
 		"save": "Save",

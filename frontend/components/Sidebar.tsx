@@ -32,20 +32,37 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
   const [userJobSubcategory, setUserJobSubcategory] = useState<string | null>(null);
   const { t } = useI18n();
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+
+  const parseJsonResponse = async (res: Response) => {
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Unexpected response type (${res.status}): ${text.substring(0,200)}`);
+    }
+    return res.json();
+  };
+
   useEffect(() => {
     // Get user job type from API
     const fetchUserProfile = async () => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const response = await fetch('http://localhost:3001/api/user/profile', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const userData = await response.json();
-            setUserJobType(userData.job_type || null);
-            setUserJobSubcategory(userData.job_subcategory || null);
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 8000);
+          const response = await fetch(`${API_BASE}/api/user/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
+            signal: controller.signal
+          }).catch((err) => { throw err; });
+          clearTimeout(timeout);
+          if (!response.ok) {
+            const msg = await response.text().catch(() => '');
+            throw new Error(`Profile fetch failed ${response.status}: ${msg.substring(0,200)}`);
           }
+          const userData = await parseJsonResponse(response);
+          setUserJobType(userData.job_type || null);
+          setUserJobSubcategory(userData.job_subcategory || null);
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);

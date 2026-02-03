@@ -145,6 +145,7 @@ tempConnection.connect((err) => {
           priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
           category VARCHAR(50) DEFAULT 'general',
           planned_date DATE NULL,
+          schedule_time TIME NULL,
           allocated_hours DECIMAL(6,2) DEFAULT 0,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -194,6 +195,28 @@ tempConnection.connect((err) => {
           date DATE NOT NULL,
           mood VARCHAR(50),
           one_sentence VARCHAR(255),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS notifications (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          body TEXT,
+          is_read BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS push_subscriptions (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          endpoint VARCHAR(255) NOT NULL,
+          p256dh VARCHAR(255) NOT NULL,
+          auth VARCHAR(255) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE KEY uniq_user_endpoint (user_id, endpoint),
+          INDEX idx_user_id (user_id),
           FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
 
@@ -533,6 +556,7 @@ tempConnection.connect((err) => {
             ALTER TABLE tasks 
               ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'general',
               ADD COLUMN IF NOT EXISTS planned_date DATE NULL,
+              ADD COLUMN IF NOT EXISTS schedule_time TIME NULL,
               ADD COLUMN IF NOT EXISTS allocated_hours DECIMAL(6,2) DEFAULT 0,
               ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
               ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
@@ -543,6 +567,19 @@ tempConnection.connect((err) => {
               console.error('Error altering tasks table:', alterTasksErr);
             } else {
               console.log('Tasks table altered successfully');
+            }
+          });
+
+          // Ensure planned_date supports date only (DATE)
+          const alterTasksPlannedDate = `
+            ALTER TABLE tasks 
+              MODIFY COLUMN planned_date DATE NULL
+          `;
+          connection.query(alterTasksPlannedDate, (alterPDSErr) => {
+            if (alterPDSErr) {
+              console.error('Error altering tasks.planned_date to DATE:', alterPDSErr);
+            } else {
+              console.log('tasks.planned_date column set to DATE');
             }
           });
 
@@ -632,12 +669,12 @@ tempConnection.connect((err) => {
             (11, 1, 'Social Butterfly', 'Share achievements with friends', 'Users', 'Social', 'Share 5 achievements', '100 points', 2, 5, FALSE, NULL, 'common'),
             (12, 1, 'Financial Scholar', 'Complete financial education modules', 'BookOpen', 'Learning', 'Complete 10 learning modules', '300 points', 6, 10, FALSE, NULL, 'epic');
 
-            INSERT IGNORE INTO tasks (id, user_id, title, status, priority, category, planned_date, allocated_hours) VALUES
-            (1, 1, 'Review budget', 'todo', 'high', 'job', CURRENT_DATE, 2.00),
-            (2, 1, 'Plan meal prep', 'todo', 'medium', 'personal', CURRENT_DATE, 1.00),
-            (3, 1, 'Update expense tracker', 'inProgress', 'high', 'job', CURRENT_DATE, 1.50),
-            (4, 1, 'Pay bills', 'done', 'low', 'personal', CURRENT_DATE, 0.50),
-            (5, 1, 'Check savings account', 'done', 'medium', 'job', CURRENT_DATE, 0.25);
+            INSERT IGNORE INTO tasks (id, user_id, title, status, priority, category, planned_date, schedule_time, allocated_hours) VALUES
+            (1, 1, 'Review budget', 'todo', 'high', 'job', CURRENT_DATE, '09:00:00', 2.00),
+            (2, 1, 'Plan meal prep', 'todo', 'medium', 'personal', CURRENT_DATE, '10:00:00', 1.00),
+            (3, 1, 'Update expense tracker', 'inProgress', 'high', 'job', CURRENT_DATE, '11:00:00', 1.50),
+            (4, 1, 'Pay bills', 'done', 'low', 'personal', CURRENT_DATE, '12:00:00', 0.50),
+            (5, 1, 'Check savings account', 'done', 'medium', 'job', CURRENT_DATE, '13:00:00', 0.25);
 
             INSERT IGNORE INTO vehicle_expenses (id, user_id, description, amount, date, vehicle) VALUES
             (1, 1, 'Fuel', 60.00, '2023-10-01', 'Toyota Camry'),

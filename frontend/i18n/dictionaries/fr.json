@@ -70,7 +70,33 @@
 		"addExpensesHint": "Ajoutez des dépenses pour voir la répartition par catégorie"
 	},
 			"manageProjects": { "title": "Gérer mes projets", "form": { "editTitle": "Modifier le projet", "createTitle": "Créer un nouveau projet" } },
-		"achievements": { "title": "Réalisations" },
+		"achievements": {
+			"title": "Réalisations",
+			"subtitle": "Track your financial milestones and earn rewards",
+			"addButton": "Add Achievement",
+			"categories": "Categories",
+			"all": "All Achievements",
+			"noAchievementsFound": "No achievements found",
+			"emptyHint": "Try selecting a different category or check back later for new achievements.",
+			"categoriesList": {
+				"savings": "Savings",
+				"expenses": "Expenses",
+				"goals": "Goals",
+				"tasks": "Tasks",
+				"vehicle": "Vehicle",
+				"lifestyle": "Lifestyle",
+				"social": "Social",
+				"learning": "Learning"
+			},
+			"progressLabel": "Progress",
+			"deleteTooltip": "Delete Achievement",
+			"stats": {
+				"totalAchievements": "Total Achievements",
+				"unlocked": "Unlocked",
+				"pointsEarned": "Points Earned",
+				"currentStreak": "Current Streak"
+			}
+		},
 		"analytics": { "title": "Analytique" },
 		"diary": { "title": "Journal", "subtitle": "Écrivez vos pensées et suivez vos humeurs" },
 		"diaryView": { "title": "Vue du journal" },

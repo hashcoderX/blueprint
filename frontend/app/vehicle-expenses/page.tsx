@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 
 type EntryType = 'expense' | 'income';
@@ -26,6 +27,7 @@ interface Vehicle {
 // removed unused currency helper to satisfy lint
 
 export default function VehicleExpenses() {
+  const { t } = useI18n();
   const [entries, setEntries] = useState<VehicleEntry[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(false);
@@ -125,15 +127,15 @@ export default function VehicleExpenses() {
       });
       const data = await parseJsonResponse(res);
       if (!data.error) {
-        setMessage({ type: 'success', text: 'Entry added' });
+        setMessage({ type: 'success', text: t('pages.vehicleExpenses.messages.entryAdded') });
         setShowAdd(false);
         fetchEntries();
       } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to add' });
+        setMessage({ type: 'error', text: data.error || t('pages.vehicleExpenses.messages.failedToAdd') });
       }
     } catch (e) {
       console.error('Add entry error:', e);
-      setMessage({ type: 'error', text: 'Failed to add' });
+      setMessage({ type: 'error', text: t('pages.vehicleExpenses.messages.failedToAdd') });
     } finally {
       setTimeout(() => setMessage(null), 2500);
     }
@@ -150,16 +152,16 @@ export default function VehicleExpenses() {
       });
       const data = await parseJsonResponse(res);
       if (!data.error) {
-        setMessage({ type: 'success', text: 'Entry updated' });
+        setMessage({ type: 'success', text: t('pages.vehicleExpenses.messages.entryUpdated') });
         setShowEdit(false);
         setSelected(null);
         fetchEntries();
       } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to update' });
+        setMessage({ type: 'error', text: data.error || t('pages.vehicleExpenses.messages.failedToUpdate') });
       }
     } catch (e) {
       console.error('Update entry error:', e);
-      setMessage({ type: 'error', text: 'Failed to update' });
+      setMessage({ type: 'error', text: t('pages.vehicleExpenses.messages.failedToUpdate') });
     } finally {
       setTimeout(() => setMessage(null), 2500);
     }
@@ -170,14 +172,14 @@ export default function VehicleExpenses() {
     try {
       const res = await fetch(`http://localhost:3001/api/vehicle-expenses/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
-        setMessage({ type: 'success', text: 'Entry deleted' });
+        setMessage({ type: 'success', text: t('pages.vehicleExpenses.messages.entryDeleted') });
         fetchEntries();
       } else {
-        setMessage({ type: 'error', text: 'Failed to delete' });
+        setMessage({ type: 'error', text: t('pages.vehicleExpenses.messages.failedToDelete') });
       }
     } catch (e) {
       console.error('Delete entry error:', e);
-      setMessage({ type: 'error', text: 'Failed to delete' });
+      setMessage({ type: 'error', text: t('pages.vehicleExpenses.messages.failedToDelete') });
     } finally {
       setTimeout(() => setMessage(null), 2500);
     }
@@ -222,16 +224,16 @@ export default function VehicleExpenses() {
       });
       const data = await parseJsonResponse(res);
       if (!data.error) {
-        setMessage({ type: 'success', text: 'Vehicle added' });
+        setMessage({ type: 'success', text: t('pages.vehicleExpenses.messages.vehicleAdded') });
         setShowAddVehicle(false);
         fetchVehicles();
         setVehicleForm({ name: '', make: '', model: '', year: new Date().getFullYear(), vehicle_no: '' });
       } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to add vehicle' });
+        setMessage({ type: 'error', text: data.error || t('pages.vehicleExpenses.messages.failedToAddVehicle') });
       }
     } catch (e) {
       console.error('Add vehicle error:', e);
-      setMessage({ type: 'error', text: 'Failed to add vehicle' });
+      setMessage({ type: 'error', text: t('pages.vehicleExpenses.messages.failedToAddVehicle') });
     } finally {
       setTimeout(() => setMessage(null), 2500);
     }
@@ -248,16 +250,16 @@ export default function VehicleExpenses() {
       });
       const data = await parseJsonResponse(res);
       if (!data.error) {
-        setMessage({ type: 'success', text: 'Vehicle updated' });
+        setMessage({ type: 'success', text: t('pages.vehicleExpenses.messages.vehicleUpdated') });
         setShowEditVehicle(false);
         setSelectedVehicle(null);
         fetchVehicles();
       } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to update vehicle' });
+        setMessage({ type: 'error', text: data.error || t('pages.vehicleExpenses.messages.failedToUpdateVehicle') });
       }
     } catch (e) {
       console.error('Update vehicle error:', e);
-      setMessage({ type: 'error', text: 'Failed to update vehicle' });
+      setMessage({ type: 'error', text: t('pages.vehicleExpenses.messages.failedToUpdateVehicle') });
     } finally {
       setTimeout(() => setMessage(null), 2500);
     }
@@ -268,14 +270,14 @@ export default function VehicleExpenses() {
     try {
       const res = await fetch(`http://localhost:3001/api/vehicles/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
-        setMessage({ type: 'success', text: 'Vehicle deleted' });
+        setMessage({ type: 'success', text: t('pages.vehicleExpenses.messages.vehicleDeleted') });
         fetchVehicles();
       } else {
-        setMessage({ type: 'error', text: 'Failed to delete vehicle' });
+        setMessage({ type: 'error', text: t('pages.vehicleExpenses.messages.failedToDeleteVehicle') });
       }
     } catch (e) {
       console.error('Delete vehicle error:', e);
-      setMessage({ type: 'error', text: 'Failed to delete vehicle' });
+      setMessage({ type: 'error', text: t('pages.vehicleExpenses.messages.failedToDeleteVehicle') });
     } finally {
       setTimeout(() => setMessage(null), 2500);
     }
@@ -308,13 +310,13 @@ export default function VehicleExpenses() {
           <div className="min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <span className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">🚗</span>
-              Vehicle Income & Expenses
+              {t('pages.vehicleExpenses.title')}
             </h1>
-            <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">Track costs and earnings by vehicle {loading && <span className="ml-2 text-xs italic">(Loading...)</span>}</p>
+            <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">Track costs and earnings by vehicle {loading && <span className="ml-2 text-xs italic">({t('common.loading')})</span>}</p>
           </div>
           <div className="flex gap-3 flex-wrap">
-            {activeTab === 'entries' && <button onClick={openAdd} className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap">+ Add Entry</button>}
-            {activeTab === 'vehicles' && <button onClick={openAddVehicle} className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap">+ Add Vehicle</button>}
+            {activeTab === 'entries' && <button onClick={openAdd} className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap">{t('pages.vehicleExpenses.addEntry')}</button>}
+            {activeTab === 'vehicles' && <button onClick={openAddVehicle} className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap">{t('pages.vehicleExpenses.addVehicle')}</button>}
           </div>
         </div>
 
@@ -325,13 +327,13 @@ export default function VehicleExpenses() {
               onClick={() => setActiveTab('entries')} 
               className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 rounded-xl text-sm sm:text-base font-medium transition-colors ${activeTab === 'entries' ? 'bg-powerbi-primary text-white' : 'text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white'}`}
             >
-              Entries
+              {t('pages.vehicleExpenses.tabs.entries')}
             </button>
             <button 
               onClick={() => setActiveTab('vehicles')} 
               className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 rounded-xl text-sm sm:text-base font-medium transition-colors ${activeTab === 'vehicles' ? 'bg-powerbi-primary text-white' : 'text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-900 dark:hover:text-white'}`}
             >
-              Vehicles
+              {t('pages.vehicleExpenses.tabs.vehicles')}
             </button>
           </div>
         </div>
@@ -342,18 +344,21 @@ export default function VehicleExpenses() {
               <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl p-6 text-white">
                 <div className="flex items-center justify-between"><div>
                   <p className="text-emerald-100 text-sm font-medium">Income</p>
+                    <p className="text-emerald-100 text-sm font-medium">{t('pages.vehicleExpenses.income')}</p>
                   <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(totals.income)}</p>
                 </div><span className="text-emerald-200">💵</span></div>
               </div>
               <div className="bg-gradient-to-br from-rose-400 to-rose-600 rounded-2xl p-6 text-white">
                 <div className="flex items-center justify-between"><div>
                   <p className="text-rose-100 text-sm font-medium">Expenses</p>
+                    <p className="text-rose-100 text-sm font-medium">{t('pages.vehicleExpenses.expenses')}</p>
                   <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(totals.expense)}</p>
                 </div><span className="text-rose-200">🧾</span></div>
               </div>
               <div className={`rounded-2xl p-6 text-white ${totals.net >= 0 ? 'bg-gradient-to-br from-blue-400 to-blue-600' : 'bg-gradient-to-br from-amber-400 to-amber-600'}`}>
                 <div className="flex items-center justify-between"><div>
                   <p className="text-white/80 text-sm font-medium">Net</p>
+                    <p className="text-white/80 text-sm font-medium">{t('pages.vehicleExpenses.net')}</p>
                   <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(totals.net)}</p>
                 </div><span className="opacity-80">⚖️</span></div>
               </div>
@@ -361,11 +366,11 @@ export default function VehicleExpenses() {
 
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">Entries</h3>
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">{t('pages.vehicleExpenses.tabs.entries')}</h3>
                 <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                  <label className="text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300">Vehicle</label>
+                  <label className="text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300">{t('pages.vehicleExpenses.vehicleLabel')}</label>
                   <select className="bg-white dark:bg-powerbi-gray-900 border rounded px-2 py-1 w-full sm:w-auto" value={filterVehicle} onChange={e => setFilterVehicle(e.target.value)}>
-                    <option value="all">All</option>
+                    <option value="all">{t('common.all')}</option>
                     {vehicleOptions.map(v => (<option key={v} value={v}>{v}</option>))}
                   </select>
                 </div>
@@ -374,19 +379,19 @@ export default function VehicleExpenses() {
                 <table className="w-full">
                   <thead className="bg-powerbi-gray-50 dark:bg-powerbi-gray-700">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Description</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Vehicle</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.type')}</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.description')}</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.vehicle')}</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.amount')}</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.date')}</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-600">
                     {filtered.map((e) => (
                       <tr key={e.id} onClick={() => openDetails(e)} className="cursor-pointer hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs ${e.type === 'income' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200'}`}>{e.type}</span>
+                          <span className={`px-2 py-1 rounded-full text-xs ${e.type === 'income' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200'}`}>{t(`pages.vehicleExpenses.types.${e.type}`)}</span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">{e.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">{e.vehicle}</td>
@@ -394,14 +399,14 @@ export default function VehicleExpenses() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-600 dark:text-powerbi-gray-300">{e.date}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-2 justify-end">
-                            <button onClick={() => openEdit(e)} className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded">Edit</button>
-                            <button onClick={() => handleDelete(e.id)} className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">Delete</button>
+                            <button onClick={() => openEdit(e)} className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded">{t('buttons.edit')}</button>
+                            <button onClick={() => handleDelete(e.id)} className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">{t('buttons.delete')}</button>
                           </div>
                         </td>
                       </tr>
                     ))}
                     {!filtered.length && (
-                      <tr><td colSpan={6} className="px-6 py-8 text-center text-sm text-powerbi-gray-600 dark:text-powerbi-gray-300">No entries</td></tr>
+                      <tr><td colSpan={6} className="px-6 py-8 text-center text-sm text-powerbi-gray-600 dark:text-powerbi-gray-300">{t('pages.vehicleExpenses.noEntries')}</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -413,18 +418,18 @@ export default function VehicleExpenses() {
         {activeTab === 'vehicles' && (
           <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">Vehicles</h3>
+              <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">{t('pages.vehicleExpenses.tabs.vehicles')}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-powerbi-gray-50 dark:bg-powerbi-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Make</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Model</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Year</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Vehicle No</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.name')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.make')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.model')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.year')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.vehicleNo')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">{t('pages.vehicleExpenses.tableHeaders.actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-600">
@@ -437,14 +442,14 @@ export default function VehicleExpenses() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">{v.vehicle_no || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                         <div className="flex gap-2 justify-end">
-                          <button onClick={() => openEditVehicle(v)} className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded">Edit</button>
-                          <button onClick={() => handleDeleteVehicle(v.id)} className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">Delete</button>
+                          <button onClick={() => openEditVehicle(v)} className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded">{t('buttons.edit')}</button>
+                          <button onClick={() => handleDeleteVehicle(v.id)} className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">{t('buttons.delete')}</button>
                         </div>
                       </td>
                     </tr>
                   ))}
                   {!vehicles.length && (
-                    <tr><td colSpan={6} className="px-6 py-8 text-center text-sm text-powerbi-gray-600 dark:text-powerbi-gray-300">No vehicles</td></tr>
+                    <tr><td colSpan={6} className="px-6 py-8 text-center text-sm text-powerbi-gray-600 dark:text-powerbi-gray-300">{t('pages.vehicleExpenses.noVehicles')}</td></tr>
                   )}
                 </tbody>
               </table>
@@ -457,39 +462,39 @@ export default function VehicleExpenses() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Entry</h3>
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.vehicleExpenses.addEntry')}</h3>
                 <form onSubmit={submitAdd} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Type</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.type')}</label>
                     <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value as EntryType })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white">
-                      <option value="expense">Expense</option>
-                      <option value="income">Income</option>
+                      <option value="expense">{t('pages.vehicleExpenses.types.expense')}</option>
+                      <option value="income">{t('pages.vehicleExpenses.types.income')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Description</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.description')}</label>
                     <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Vehicle</label>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.vehicle')}</label>
                       <select value={form.vehicle} onChange={e => setForm({ ...form, vehicle: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white">
-                        <option value="">Select vehicle</option>
+                        <option value="">{t('pages.vehicleExpenses.labels.selectVehicle')}</option>
                         {vehicleOptions.map(v => (<option key={v} value={v}>{v}</option>))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Amount</label>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.amount')}</label>
                       <input type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: Number(e.target.value) })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Date</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.date')}</label>
                     <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
-                    <button type="button" onClick={() => setShowAdd(false)} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200">Cancel</button>
-                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl">Add</button>
+                    <button type="button" onClick={() => setShowAdd(false)} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200">{t('buttons.cancel')}</button>
+                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl">{t('buttons.add')}</button>
                   </div>
                 </form>
               </div>
@@ -502,39 +507,39 @@ export default function VehicleExpenses() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Edit Entry</h3>
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.vehicleExpenses.editEntry')}</h3>
                 <form onSubmit={submitEdit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Type</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.type')}</label>
                     <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value as EntryType })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white">
-                      <option value="expense">Expense</option>
-                      <option value="income">Income</option>
+                      <option value="expense">{t('pages.vehicleExpenses.types.expense')}</option>
+                      <option value="income">{t('pages.vehicleExpenses.types.income')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Description</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.description')}</label>
                     <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Vehicle</label>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.vehicle')}</label>
                       <select value={form.vehicle} onChange={e => setForm({ ...form, vehicle: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white">
                         <option value="">Select vehicle</option>
                         {vehicleOptions.map(v => (<option key={v} value={v}>{v}</option>))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Amount</label>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.amount')}</label>
                       <input type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: Number(e.target.value) })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Date</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.date')}</label>
                     <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
-                    <button type="button" onClick={() => { setShowEdit(false); setSelected(null); }} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200">Cancel</button>
-                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl">Save</button>
+                    <button type="button" onClick={() => { setShowEdit(false); setSelected(null); }} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200">{t('buttons.cancel')}</button>
+                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl">{t('buttons.save')}</button>
                   </div>
                 </form>
               </div>
@@ -547,33 +552,33 @@ export default function VehicleExpenses() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Vehicle</h3>
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.vehicleExpenses.addVehicle')}</h3>
                 <form onSubmit={submitAddVehicle} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Name</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.name')}</label>
                     <input value={vehicleForm.name} onChange={e => setVehicleForm({ ...vehicleForm, name: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Make</label>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.make')}</label>
                       <input value={vehicleForm.make} onChange={e => setVehicleForm({ ...vehicleForm, make: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Model</label>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.model')}</label>
                       <input value={vehicleForm.model} onChange={e => setVehicleForm({ ...vehicleForm, model: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Year</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.year')}</label>
                     <input type="number" min="1900" max={new Date().getFullYear() + 1} value={vehicleForm.year} onChange={e => setVehicleForm({ ...vehicleForm, year: Number(e.target.value) })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Vehicle No</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.vehicleNo')}</label>
                     <input value={vehicleForm.vehicle_no} onChange={e => setVehicleForm({ ...vehicleForm, vehicle_no: e.target.value })} placeholder="e.g. ABC-123" className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
-                    <button type="button" onClick={() => setShowAddVehicle(false)} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200">Cancel</button>
-                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl">Add</button>
+                    <button type="button" onClick={() => setShowAddVehicle(false)} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200">{t('buttons.cancel')}</button>
+                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl">{t('buttons.add')}</button>
                   </div>
                 </form>
               </div>
@@ -586,33 +591,33 @@ export default function VehicleExpenses() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Edit Vehicle</h3>
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('buttons.edit')} {t('pages.vehicleExpenses.tabs.vehicles')}</h3>
                 <form onSubmit={submitEditVehicle} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Name</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.name')}</label>
                     <input value={vehicleForm.name} onChange={e => setVehicleForm({ ...vehicleForm, name: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Make</label>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.make')}</label>
                       <input value={vehicleForm.make} onChange={e => setVehicleForm({ ...vehicleForm, make: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Model</label>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.model')}</label>
                       <input value={vehicleForm.model} onChange={e => setVehicleForm({ ...vehicleForm, model: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Year</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.year')}</label>
                     <input type="number" min="1900" max={new Date().getFullYear() + 1} value={vehicleForm.year} onChange={e => setVehicleForm({ ...vehicleForm, year: Number(e.target.value) })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Vehicle No</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.vehicleNo')}</label>
                     <input value={vehicleForm.vehicle_no} onChange={e => setVehicleForm({ ...vehicleForm, vehicle_no: e.target.value })} placeholder="e.g. ABC-123" className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
-                    <button type="button" onClick={() => { setShowEditVehicle(false); setSelectedVehicle(null); }} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200">Cancel</button>
-                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl">Save</button>
+                    <button type="button" onClick={() => { setShowEditVehicle(false); setSelectedVehicle(null); }} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200">{t('buttons.cancel')}</button>
+                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl">{t('buttons.save')}</button>
                   </div>
                 </form>
               </div>
@@ -626,7 +631,7 @@ export default function VehicleExpenses() {
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-6">
-                  <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Entry Details</h3>
+                  <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('pages.vehicleExpenses.detailsTitle')}</h3>
                   <button
                     onClick={() => { setShowDetails(false); setSelectedEntry(null); }}
                     className="text-powerbi-gray-400 hover:text-powerbi-gray-600 dark:hover:text-powerbi-gray-200"
@@ -645,23 +650,23 @@ export default function VehicleExpenses() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Description</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.vehicleExpenses.labels.description')}</label>
                     <p className="text-powerbi-gray-900 dark:text-white text-lg">{selectedEntry.description}</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Vehicle</label>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.vehicleExpenses.labels.vehicle')}</label>
                       <p className="text-powerbi-gray-900 dark:text-white">{selectedEntry.vehicle}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Date</label>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.vehicleExpenses.labels.date')}</label>
                       <p className="text-powerbi-gray-900 dark:text-white">{selectedEntry.date}</p>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Amount</label>
+                    <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">{t('pages.vehicleExpenses.labels.amount')}</label>
                     <p className={`text-2xl font-bold ${selectedEntry.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                       {selectedEntry.type === 'income' ? '+' : '-'}{formatCurrency(selectedEntry.amount)}
                     </p>
@@ -673,13 +678,13 @@ export default function VehicleExpenses() {
                     onClick={() => { setShowDetails(false); setSelectedEntry(null); }}
                     className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200"
                   >
-                    Close
+                    {t('buttons.close')}
                   </button>
                   <button
                     onClick={() => { setShowDetails(false); openEdit(selectedEntry); }}
                     className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl"
                   >
-                    Edit Entry
+                    {t('pages.vehicleExpenses.editEntry')}
                   </button>
                 </div>
               </div>

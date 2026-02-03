@@ -4,6 +4,9 @@
     "darkModeOn": "Switch to light mode",
     "darkModeOff": "Switch to dark mode",
     "notifications": "Notifications",
+    "notificationsEnabled": "Notifications enabled.",
+    "notificationsPrompt": "Enable notifications to receive alerts.",
+    "notificationsEmpty": "No notifications yet.",
     "profileSettings": "Profile Settings",
     "preferences": "Preferences",
     "signOut": "Sign Out",
@@ -11,7 +14,9 @@
   },
   "common": {
     "save": "Save",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "loading": "Loading...",
+    "all": "All"
   },
   "sidebar": {
     "main": "Main",
@@ -99,6 +104,18 @@
       "all": "All Achievements",
       "noAchievementsFound": "No achievements found",
       "emptyHint": "Try selecting a different category or check back later for new achievements.",
+      "categoriesList": {
+        "savings": "Savings",
+        "expenses": "Expenses",
+        "goals": "Goals",
+        "tasks": "Tasks",
+        "vehicle": "Vehicle",
+        "lifestyle": "Lifestyle",
+        "social": "Social",
+        "learning": "Learning"
+      },
+      "progressLabel": "Progress",
+      "deleteTooltip": "Delete Achievement",
       "stats": {
         "totalAchievements": "Total Achievements",
         "unlocked": "Unlocked",
@@ -186,8 +203,76 @@
     },
     "settings": { "title": "Settings", "subtitle": "Manage your account preferences and application settings" },
     "signup": { "title": "Sign Up" },
-    "tasks": { "title": "Task Planner & Tracking", "tabs": { "overview": "Overview", "planner": "Planner", "kanban": "Kanban", "analytics": "Analytics" } },
-    "vehicleExpenses": { "title": "Vehicle Expenses" },
+    "tasks": {
+      "title": "Task Planner & Tracking",
+      "tabs": { "overview": "Overview", "planner": "Planner", "kanban": "Kanban", "analytics": "Analytics" },
+      "addTask": "Add Task",
+      "planFor": "Plan for",
+      "showAll": "Show all",
+      "noTasks": "No tasks",
+      "thisMonthByCategory": "This Month by Category",
+      "shareOfTime": "Share of Time",
+      "deleteTask": "Delete Task",
+      "deleteConfirm": "Are you sure you want to delete this task? This action cannot be undone and will also delete all associated time logs.",
+      "timeSessions": "Time Sessions",
+      "started": "Started:",
+      "ended": "Ended:"
+    },
+    "vehicleExpenses": {
+      "title": "Vehicle Expenses",
+      "tabs": { "entries": "Entries", "vehicles": "Vehicles" },
+      "addEntry": "+ Add Entry",
+      "addVehicle": "+ Add Vehicle",
+      "noEntries": "No entries",
+      "noVehicles": "No vehicles",
+      "net": "Net",
+      "vehicleLabel": "Vehicle",
+      "income": "Income",
+      "expenses": "Expenses",
+      "tableHeaders": {
+        "type": "Type",
+        "description": "Description",
+        "vehicle": "Vehicle",
+        "amount": "Amount",
+        "date": "Date",
+        "actions": "Actions",
+        "name": "Name",
+        "make": "Make",
+        "model": "Model",
+        "year": "Year",
+        "vehicleNo": "Vehicle No"
+      },
+      "labels": {
+        "type": "Type",
+        "description": "Description",
+        "vehicle": "Vehicle",
+        "amount": "Amount",
+        "date": "Date",
+        "name": "Name",
+        "make": "Make",
+        "model": "Model",
+        "year": "Year",
+        "vehicleNo": "Vehicle No",
+        "selectVehicle": "Select vehicle"
+      },
+      "types": { "expense": "Expense", "income": "Income" },
+      "detailsTitle": "Entry Details",
+      "editEntry": "Edit Entry",
+      "messages": {
+        "entryAdded": "Entry added",
+        "failedToAdd": "Failed to add",
+        "entryUpdated": "Entry updated",
+        "failedToUpdate": "Failed to update",
+        "entryDeleted": "Entry deleted",
+        "failedToDelete": "Failed to delete",
+        "vehicleAdded": "Vehicle added",
+        "failedToAddVehicle": "Failed to add vehicle",
+        "vehicleUpdated": "Vehicle updated",
+        "failedToUpdateVehicle": "Failed to update vehicle",
+        "vehicleDeleted": "Vehicle deleted",
+        "failedToDeleteVehicle": "Failed to delete vehicle"
+      }
+    },
     "gemBusiness": { "title": "Manage My Gem Business", "inventory": "Inventory", "purchases": "Purchases", "sales": "Sales" }
   },
   "buttons": {
@@ -201,6 +286,12 @@
     "done": "Done",
     "print": "Print",
     "signIn": "Sign In",
-    "signUp": "Sign Up"
+    "signUp": "Sign Up",
+    "cancel": "Cancel",
+    "close": "Close",
+    "enable": "Enable",
+    "sendTest": "Send Test",
+    "loading": "Loading...",
+    "markAllRead": "Mark all as read"
   }
 }

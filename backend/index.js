@@ -6,6 +6,7 @@ const dbPromise = require('./db');
 const EncryptionService = require('./encryption');
 const path = require('path');
 const fs = require('fs');
+const webPush = require('web-push');
 
 const app = express();
 const port = 3001;
@@ -15,6 +16,22 @@ app.use(cors());
 app.use(express.json());
 // Serve uploaded files statically for image previews
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// --- Web Push (VAPID) setup ---
+let vapidKeys;
+const vapidPath = path.join(__dirname, 'vapid.json');
+try {
+  if (fs.existsSync(vapidPath)) {
+    vapidKeys = JSON.parse(fs.readFileSync(vapidPath, 'utf-8'));
+  }
+} catch {}
+if (!vapidKeys || !vapidKeys.publicKey || !vapidKeys.privateKey) {
+  vapidKeys = webPush.generateVAPIDKeys();
+  try { fs.writeFileSync(vapidPath, JSON.stringify(vapidKeys, null, 2)); } catch {}
+}
+webPush.setVapidDetails('mailto:admin@example.com', vapidKeys.publicKey, vapidKeys.privateKey);
+// Store subscriptions per user (endpoint -> subscription)
+const userSubscriptions = new Map();
 
 // Auth middleware
 const authenticateToken = (req, res, next) => {
@@ -732,10 +749,10 @@ app.get('/api/tasks', authenticateToken, async (req, res) => {
     const db = await dbPromise;
     const { date } = req.query; // optional planned day filter YYYY-MM-DD
     const params = [req.user.id];
-    let sql = 'SELECT * FROM tasks WHERE user_id = ?';
+    let sql = 'SELECT id, user_id, title, status, priority, category, DATE(planned_date) as planned_date, schedule_time, allocated_hours, created_at, updated_at FROM tasks WHERE user_id = ?';
     if (date) {
-      sql += ' AND planned_date = ?';
-      params.push(date);
+      sql += ' AND DATE(planned_date) = ?';
+      params.push(String(date));
     }
     sql += ' ORDER BY planned_date IS NULL, planned_date ASC, FIELD(status, "inProgress","todo","done"), priority DESC, created_at DESC';
     db.query(sql, params, (err, results) => {
@@ -750,7 +767,7 @@ app.get('/api/tasks', authenticateToken, async (req, res) => {
 app.post('/api/tasks', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
-    const { title, status = 'todo', priority = 'medium', category = 'general', planned_date = null, allocated_hours = 0 } = req.body;
+    const { title, status = 'todo', priority = 'medium', category = 'general', planned_date = null, schedule_time = null, allocated_hours = 0 } = req.body;
 
     // Verify user exists before inserting
     db.query('SELECT id FROM users WHERE id = ?', [req.user.id], (userErr, userResults) => {
@@ -758,11 +775,11 @@ app.post('/api/tasks', authenticateToken, async (req, res) => {
       if (userResults.length === 0) return res.status(401).json({ error: 'User not found' });
 
       // User exists, proceed with task insertion
-      const sql = 'INSERT INTO tasks (user_id, title, status, priority, category, planned_date, allocated_hours) VALUES (?, ?, ?, ?, ?, ?, ?)';
-      const vals = [req.user.id, title, status, priority, category, planned_date, allocated_hours];
+      const sql = 'INSERT INTO tasks (user_id, title, status, priority, category, planned_date, schedule_time, allocated_hours) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+      const vals = [req.user.id, title, status, priority, category, planned_date, schedule_time, allocated_hours];
       db.query(sql, vals, (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ id: result.insertId, title, status, priority, category, planned_date, allocated_hours });
+        res.json({ id: result.insertId, title, status, priority, category, planned_date, schedule_time, allocated_hours });
       });
     });
   } catch (err) {
@@ -770,12 +787,12 @@ app.post('/api/tasks', authenticateToken, async (req, res) => {
   }
 });
 
-// Update task (status, priority, category, planned_date, allocated_hours, title)
+// Update task (status, priority, category, planned_date, schedule_time, allocated_hours, title)
 app.patch('/api/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
     const { id } = req.params;
-    const allowed = ['title','status','priority','category','planned_date','allocated_hours'];
+    const allowed = ['title','status','priority','category','planned_date','schedule_time','allocated_hours'];
     const fields = [];
     const values = [];
     allowed.forEach((k) => {
@@ -2759,6 +2776,245 @@ app.get('/api/business/report', authenticateToken, async (req, res) => {
         expenses_count: expenses ? expenses.count : 0,
         expenses_total: expenses ? expenses.total : 0
       }
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// --- Notifications API ---
+// Get VAPID public key for client subscription
+app.get('/api/notifications/vapidPublicKey', authenticateToken, (req, res) => {
+  res.json({ publicKey: vapidKeys.publicKey });
+});
+
+// Subscribe current user to push notifications (persist to DB)
+app.post('/api/notifications/subscribe', authenticateToken, async (req, res) => {
+  try {
+    const { subscription } = req.body || {};
+    if (!subscription || !subscription.endpoint || !subscription.keys || !subscription.keys.p256dh || !subscription.keys.auth) {
+      return res.status(400).json({ error: 'Invalid subscription' });
+    }
+    const db = await dbPromise;
+    await new Promise((resolve, reject) => {
+      db.query(
+        'INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE p256dh = VALUES(p256dh), auth = VALUES(auth)',
+        [req.user.id, subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth],
+        (err) => (err ? reject(err) : resolve())
+      );
+    });
+    // Also cache in memory for immediate use (optional)
+    const map = userSubscriptions.get(req.user.id) || new Map();
+    map.set(subscription.endpoint, subscription);
+    userSubscriptions.set(req.user.id, map);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to save subscription' });
+  }
+});
+
+// Send a test push notification to current user
+app.post('/api/notifications/test', authenticateToken, async (req, res) => {
+  const db = await dbPromise;
+  const rows = await new Promise((resolve, reject) => {
+    db.query('SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = ?', [req.user.id], (err, r) => (err ? reject(err) : resolve(r || [])));
+  });
+  if (!rows || rows.length === 0) return res.status(404).json({ error: 'No subscriptions' });
+  const payload = JSON.stringify({ title: 'Blueprint', body: 'Push test notification' });
+  let sent = 0, failed = 0;
+  await Promise.all(rows.map(async (row) => {
+    const sub = { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } };
+    try {
+      await webPush.sendNotification(sub, payload);
+      sent++;
+    } catch (e) {
+      failed++;
+      if (e && (e.statusCode === 410 || e.statusCode === 404)) {
+        await new Promise((resolve) => db.query('DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?', [req.user.id, row.endpoint], () => resolve()));
+      }
+    }
+  }));
+  // Persist a record for in-app notification list
+  try {
+    const db = await dbPromise;
+    await new Promise((resolve, reject) => {
+      db.query(
+        'INSERT INTO notifications (user_id, title, body, is_read) VALUES (?, ?, ?, ?)',
+        [req.user.id, 'Blueprint', 'Push test notification', false],
+        (err) => (err ? reject(err) : resolve())
+      );
+    });
+  } catch {}
+  res.json({ sent, failed });
+});
+
+// Send a task reminder to current user (manual trigger)
+app.post('/api/notifications/tasks/remind-now', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const userId = req.user.id;
+    const subs = await new Promise((resolve, reject) => {
+      db.query('SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = ?', [userId], (err, r) => (err ? reject(err) : resolve(r || [])));
+    });
+    if (!subs || subs.length === 0) return res.status(404).json({ error: 'No subscriptions' });
+
+    // Count today's scheduled tasks not done
+    const count = await new Promise((resolve, reject) => {
+      db.query(
+        "SELECT COUNT(*) AS cnt FROM tasks WHERE user_id = ? AND status IN ('todo','inProgress') AND DATE(planned_date) = CURDATE()",
+        [userId],
+        (err, rows) => (err ? reject(err) : resolve(rows && rows[0] ? rows[0].cnt : 0))
+      );
+    });
+
+    if (!count || count <= 0) return res.json({ sent: 0, message: 'No tasks scheduled today' });
+
+    // Avoid duplicate daily reminders
+    const exists = await new Promise((resolve, reject) => {
+      db.query(
+        'SELECT id FROM notifications WHERE user_id = ? AND title = ? AND DATE(created_at) = CURDATE() LIMIT 1',
+        [userId, 'Task Reminder'],
+        (err, rows) => (err ? reject(err) : resolve(rows && rows.length > 0))
+      );
+    });
+
+    if (exists) return res.json({ sent: 0, message: 'Reminder already sent today' });
+
+    const payload = JSON.stringify({ title: 'Task Reminder', body: `You have ${count} tasks scheduled today.` });
+    let sent = 0, failed = 0;
+    await Promise.all(subs.map(async (row) => {
+      const sub = { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } };
+      try {
+        await webPush.sendNotification(sub, payload);
+        sent++;
+      } catch (e) {
+        failed++;
+        if (e && (e.statusCode === 410 || e.statusCode === 404)) {
+          await new Promise((resolve) => db.query('DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?', [userId, row.endpoint], () => resolve()));
+        }
+      }
+    }));
+
+    // Save notification record
+    try {
+      await new Promise((resolve, reject) => {
+        db.query(
+          'INSERT INTO notifications (user_id, title, body, is_read) VALUES (?, ?, ?, ?)',
+          [userId, 'Task Reminder', `You have ${count} tasks scheduled today.`, false],
+          (err) => (err ? reject(err) : resolve())
+        );
+      });
+    } catch {}
+
+    res.json({ sent, failed });
+  } catch (err) {
+    console.error('Task reminder error:', err);
+    res.status(500).json({ error: 'Failed to send task reminder' });
+  }
+});
+
+// Background scheduler: send daily task reminders for users with subscriptions
+const scheduleTaskReminders = async () => {
+  try {
+    const db = await dbPromise;
+    // Get distinct user IDs who have subscriptions in DB
+    const userIds = await new Promise((resolve, reject) => {
+      db.query('SELECT DISTINCT user_id FROM push_subscriptions', (err, rows) => (err ? reject(err) : resolve(rows.map(r => r.user_id))));
+    });
+    if (userIds.length === 0) return;
+
+    for (const userId of userIds) {
+      const subs = await new Promise((resolve, reject) => {
+        db.query('SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = ?', [userId], (err, r) => (err ? reject(err) : resolve(r || [])));
+      });
+      if (!subs || subs.length === 0) continue;
+
+      // Count today's scheduled tasks not done
+      const count = await new Promise((resolve, reject) => {
+        db.query(
+          "SELECT COUNT(*) AS cnt FROM tasks WHERE user_id = ? AND status IN ('todo','inProgress') AND DATE(planned_date) = CURDATE()",
+          [userId],
+          (err, rows) => (err ? reject(err) : resolve(rows && rows[0] ? rows[0].cnt : 0))
+        );
+      });
+      if (!count || count <= 0) continue;
+
+      // Skip if already sent today
+      const exists = await new Promise((resolve, reject) => {
+        db.query(
+          'SELECT id FROM notifications WHERE user_id = ? AND title = ? AND DATE(created_at) = CURDATE() LIMIT 1',
+          [userId, 'Task Reminder'],
+          (err, rows) => (err ? reject(err) : resolve(rows && rows.length > 0))
+        );
+      });
+      if (exists) continue;
+
+      const payload = JSON.stringify({ title: 'Task Reminder', body: `You have ${count} tasks scheduled today.` });
+      await Promise.all(subs.map(async (row) => {
+        const sub = { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } };
+        try {
+          await webPush.sendNotification(sub, payload);
+        } catch (e) {
+          if (e && (e.statusCode === 410 || e.statusCode === 404)) {
+            await new Promise((resolve) => db.query('DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?', [userId, row.endpoint], () => resolve()));
+          }
+        }
+      }));
+
+      // Save notification record
+      try {
+        await new Promise((resolve, reject) => {
+          db.query(
+            'INSERT INTO notifications (user_id, title, body, is_read) VALUES (?, ?, ?, ?)',
+            [userId, 'Task Reminder', `You have ${count} tasks scheduled today.`, false],
+            (err) => (err ? reject(err) : resolve())
+          );
+        });
+      } catch {}
+    }
+  } catch (e) {
+    // swallow scheduler errors
+  }
+};
+
+// Run every 15 minutes
+setInterval(scheduleTaskReminders, 15 * 60 * 1000);
+// Initial run after server starts
+setTimeout(scheduleTaskReminders, 10 * 1000);
+// List recent notifications for the current user
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const limit = Math.min(Number(req.query.limit) || 20, 100);
+    db.query(
+      'SELECT id, title, body, is_read, created_at FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
+      [req.user.id, limit],
+      (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Mark notification(s) as read
+app.post('/api/notifications/mark-read', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id, all } = req.body || {};
+    if (all) {
+      db.query('UPDATE notifications SET is_read = 1 WHERE user_id = ?', [req.user.id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+      });
+      return;
+    }
+    if (!id) return res.status(400).json({ error: 'Notification id required' });
+    db.query('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?', [id, req.user.id], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true });
     });
   } catch (err) {
     res.status(500).json({ error: 'Database not ready' });

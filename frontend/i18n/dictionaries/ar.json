@@ -155,6 +155,35 @@
 		"vehicleExpenses": { "title": "مصروفات المركبة" },
 		"gemBusiness": { "title": "إدارة نشاط الأحجار الكريمة", "inventory": "المخزون", "purchases": "المشتريات", "sales": "المبيعات" }
 	},
+		"pages": {
+			"achievements": {
+				"title": "الإنجازات",
+				"subtitle": "Track your financial milestones and earn rewards",
+				"addButton": "Add Achievement",
+				"categories": "Categories",
+				"all": "All Achievements",
+				"noAchievementsFound": "No achievements found",
+				"emptyHint": "Try selecting a different category or check back later for new achievements.",
+				"categoriesList": {
+					"savings": "Savings",
+					"expenses": "Expenses",
+					"goals": "Goals",
+					"tasks": "Tasks",
+					"vehicle": "Vehicle",
+					"lifestyle": "Lifestyle",
+					"social": "Social",
+					"learning": "Learning"
+				},
+				"progressLabel": "Progress",
+				"deleteTooltip": "Delete Achievement",
+				"stats": {
+					"totalAchievements": "Total Achievements",
+					"unlocked": "Unlocked",
+					"pointsEarned": "Points Earned",
+					"currentStreak": "Current Streak"
+				}
+			}
+		},
 	"buttons": {
 		"add": "إضافة",
 		"save": "حفظ",

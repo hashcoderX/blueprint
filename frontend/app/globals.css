@@ -56,11 +56,18 @@
   --color-powerbi-data-8: #FFB900;
 }
 
+/* Support system dark preference by default */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+/* Explicit dark mode via `.dark` class on html */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {

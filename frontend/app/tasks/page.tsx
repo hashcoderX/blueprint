@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '../../components/DashboardLayout';
+import { useI18n } from '../../i18n/I18nProvider';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Chart as ChartJS,
@@ -23,12 +24,30 @@ interface Task {
   priority: 'low' | 'medium' | 'high';
   category: string;
   planned_date?: string | null;
+  schedule_time?: string | null;
   allocated_hours?: number;
 }
 
 interface ActiveLog { task_id: number; start_time: string; }
 type ActiveTabType = 'overview' | 'planner' | 'kanban' | 'analytics';
 interface TaskTimeLog { task_id: number; start_time: string; end_time?: string | null; minutes?: number; }
+
+const formatTime = (timeStr: string): string => {
+  if (!timeStr) return '-';
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12;
+  return `${hour12}:${String(minutes).padStart(2, '0')} ${ampm}`;
+};
+
+const formatDateOnly = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '-';
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const formatDate = (dateStr: string | null | undefined): string => {
   if (!dateStr) return '-';
@@ -40,10 +59,40 @@ const formatDate = (dateStr: string | null | undefined): string => {
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const ampm = hours >= 12 ? 'PM' : 'AM';
   const hour12 = hours % 12 || 12;
-  return `${year}-${month}-${day} ${hour12}.${minutes} ${ampm}`;
+  return `${year}-${month}-${day} ${hour12}:${minutes} ${ampm}`;
+};
+
+// Helpers to correctly handle local datetime with <input type="datetime-local">
+const toLocalInputDatetime = (d: Date): string => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const inputToServerDatetime = (input: string): string => {
+  // Converts 'YYYY-MM-DDTHH:MM' to 'YYYY-MM-DD HH:MM:SS'
+  if (!input) return '';
+  const [datePart, timePart] = input.split('T');
+  if (!datePart || !timePart) return input;
+  const [hh, mm] = timePart.split(':');
+  const ss = '00';
+  return `${datePart} ${hh}:${mm}:${ss}`;
+};
+
+const serverToLocalInputDatetime = (serverStr: string): string => {
+  if (!serverStr) return '';
+  // Try to build a Date from server value (supports 'YYYY-MM-DD HH:MM:SS' or ISO)
+  const isoLike = serverStr.includes('T') ? serverStr : serverStr.replace(' ', 'T');
+  const d = new Date(isoLike);
+  if (isNaN(d.getTime())) return '';
+  return toLocalInputDatetime(d);
 };
 
 export default function Tasks() {
+  const { t } = useI18n();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeLogs, setActiveLogs] = useState<Record<number, string>>({});
   const [accumulatedMinutes, setAccumulatedMinutes] = useState<Record<number, number>>({});
@@ -54,7 +103,8 @@ export default function Tasks() {
     title: '',
     priority: 'medium' as Task['priority'],
     category: 'job',
-    planned_date: new Date().toISOString().slice(0, 16),
+    planned_date: new Date().toISOString().slice(0, 10), // date only
+    schedule_time: '09:00', // default time
     allocated_hours: 1,
   });
   const [summary, setSummary] = useState<{ month: string; data: { category: string; hours: number }[] }>({ month: '', data: [] });
@@ -75,6 +125,7 @@ export default function Tasks() {
     priority: 'medium' as Task['priority'],
     category: 'job',
     planned_date: '',
+    schedule_time: '',
     allocated_hours: 0,
   });
 
@@ -313,14 +364,19 @@ export default function Tasks() {
     e.preventDefault();
     if (!token || !form.title.trim()) return;
     try {
+      const payload = {
+        ...form,
+        planned_date: form.planned_date || null,
+        schedule_time: form.schedule_time || null,
+      };
       const res = await fetch('http://localhost:3001/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await parseJsonResponse(res);
       if (!data.error) {
-        setForm({ ...form, title: '', planned_date: new Date().toISOString().slice(0, 16), allocated_hours: 1 });
+        setForm({ ...form, title: '', planned_date: new Date().toISOString().slice(0, 10), schedule_time: '09:00', allocated_hours: 1 });
         setShowAddForm(false);
         setMessage({ type: 'success', text: 'Task added successfully!' });
         fetchTasks();
@@ -406,7 +462,8 @@ export default function Tasks() {
       title: task.title,
       priority: task.priority,
       category: task.category,
-      planned_date: task.planned_date ? new Date(task.planned_date).toISOString().slice(0, 16) : '',
+      planned_date: task.planned_date ? task.planned_date.split(' ')[0] : '', // date part
+      schedule_time: task.schedule_time || '', // time part
       allocated_hours: typeof task.allocated_hours === 'number' ? task.allocated_hours : 0,
     });
     setShowEditModal(true);
@@ -420,6 +477,7 @@ export default function Tasks() {
       priority: editForm.priority,
       category: editForm.category,
       planned_date: editForm.planned_date || null,
+      schedule_time: editForm.schedule_time || null,
       allocated_hours: editForm.allocated_hours,
     };
     await handleUpdate(editTask.id, patch);
@@ -516,7 +574,8 @@ export default function Tasks() {
               <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Category</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Priority</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Planned</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Time</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Alloc (h)</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
@@ -532,22 +591,23 @@ export default function Tasks() {
                   <span className={`px-2 py-1 rounded-full text-xs ${priorityColors[task.priority]}`}>{task.priority}</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white capitalize">{task.status.replace(/([A-Z])/g, ' $1')}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">{formatDate(task.planned_date)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">{formatDateOnly(task.planned_date)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">{task.schedule_time ? formatTime(task.schedule_time) : '-'}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">{task.allocated_hours || 0}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right" onClick={(e) => e.stopPropagation()}>
                   <div className="flex gap-2 justify-end">
-                    <button onClick={() => openEdit(task)} className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded">Edit</button>
+                    <button onClick={() => openEdit(task)} className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded">{t('buttons.edit')}</button>
                     {task.status !== 'done' && (
                       <>
                         {runningSince(task.id) ? (
-                          <button onClick={() => handleStop(task.id)} className="text-xs bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded">Stop</button>
+                          <button onClick={() => handleStop(task.id)} className="text-xs bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded">{t('buttons.stop')}</button>
                         ) : (
-                          <button onClick={() => handleStart(task.id)} className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded">Start</button>
+                          <button onClick={() => handleStart(task.id)} className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded">{t('buttons.start')}</button>
                         )}
-                        <button onClick={() => handleDone(task.id)} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">Done</button>
+                        <button onClick={() => handleDone(task.id)} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">{t('buttons.done')}</button>
                       </>
                     )}
-                    <button onClick={() => handleDelete(task.id)} className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">Delete</button>
+                    <button onClick={() => handleDelete(task.id)} className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">{t('buttons.delete')}</button>
                   </div>
                 </td>
               </tr>
@@ -566,7 +626,7 @@ export default function Tasks() {
           <div className="min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">
               <span className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 mr-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/20">⏱</span>
-              Task Planner & Tracking
+              {t('pages.tasks.title')}
             </h1>
             <p className="text-sm sm:text-base text-powerbi-gray-600 dark:text-powerbi-gray-400 mt-1">
               Plan your day, track time, and see monthly summaries
@@ -578,7 +638,7 @@ export default function Tasks() {
               className="inline-flex items-center gap-2 bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors flex-shrink-0 whitespace-nowrap"
             >
               <span className="w-5 h-5">+</span>
-              Add Task
+              {t('pages.tasks.addTask')}
             </button>
           </div>
         </div>
@@ -621,10 +681,10 @@ export default function Tasks() {
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
           <div className="flex flex-wrap gap-2 mb-6">
             {[
-              { id: 'overview', label: 'Overview' },
-              { id: 'planner', label: 'Planner' },
-              { id: 'kanban', label: 'Kanban' },
-              { id: 'analytics', label: 'Analytics' }
+              { id: 'overview', label: t('pages.tasks.tabs.overview') },
+              { id: 'planner', label: t('pages.tasks.tabs.planner') },
+              { id: 'kanban', label: t('pages.tasks.tabs.kanban') },
+              { id: 'analytics', label: t('pages.tasks.tabs.analytics') }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -658,11 +718,11 @@ export default function Tasks() {
           {activeTab === 'planner' && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <label className="text-sm text-powerbi-gray-700 dark:text-powerbi-gray-200">Plan for</label>
+                <label className="text-sm text-powerbi-gray-700 dark:text-powerbi-gray-200">{t('pages.tasks.planFor')}</label>
                 <input type="date" className="bg-white dark:bg-powerbi-gray-900 border rounded px-2 py-1 w-full sm:w-auto"
                        value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
                 <label className="inline-flex items-center gap-2 text-sm text-powerbi-gray-700 dark:text-powerbi-gray-200 sm:ml-3">
-                  <input type="checkbox" checked={showAll} onChange={e => setShowAll(e.target.checked)} /> Show all
+                  <input type="checkbox" checked={showAll} onChange={e => setShowAll(e.target.checked)} /> {t('pages.tasks.showAll')}
                 </label>
               </div>
               <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 overflow-hidden">
@@ -689,7 +749,7 @@ export default function Tasks() {
                             <div className="flex flex-wrap gap-2 mt-2 items-center">
                               <span className={`inline-block px-2 py-1 text-xs rounded-full ${priorityColors[task.priority]}`}>{task.priority}</span>
                               <span className={`inline-block px-2 py-1 text-xs rounded-full ${categoryColors[task.category] || categoryColors.general}`}>{task.category}</span>
-                              {task.planned_date && <span className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-300">Plan: {formatDate(task.planned_date)}</span>}
+                              {task.planned_date && <span className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-300">Plan: {formatDateOnly(task.planned_date)} {formatTime(task.schedule_time)}</span>}
                               {typeof task.allocated_hours === 'number' && task.allocated_hours > 0 && (
                                 <span className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-300">Alloc: {task.allocated_hours}h</span>
                               )}
@@ -702,18 +762,18 @@ export default function Tasks() {
                               </div>
                             )}
                             <div className="flex gap-2 justify-end">
-                                <button onClick={(e) => { e.stopPropagation(); openEdit(task); }} className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded">Edit</button>
+                                <button onClick={(e) => { e.stopPropagation(); openEdit(task); }} className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded">{t('buttons.edit')}</button>
                               {task.status !== 'done' && (
                                 <>
                                   {runningSince(task.id) ? (
-                                    <button onClick={(e) => { e.stopPropagation(); handleStop(task.id); }} className="text-xs bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded">Pause</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleStop(task.id); }} className="text-xs bg-orange-600 hover:bg-orange-700 text-white px-2 py-1 rounded">{t('buttons.stop')}</button>
                                   ) : (
-                                    <button onClick={(e) => { e.stopPropagation(); handleStart(task.id); }} className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded">Start</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleStart(task.id); }} className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded">{t('buttons.start')}</button>
                                   )}
-                                  <button onClick={(e) => { e.stopPropagation(); handleDone(task.id); }} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">Done</button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleDone(task.id); }} className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded">{t('buttons.done')}</button>
                                 </>
                               )}
-                              <button onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }} className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">Delete</button>
+                              <button onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }} className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">{t('buttons.delete')}</button>
                             </div>
                           </div>
                         </div>
@@ -732,13 +792,13 @@ export default function Tasks() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
-                  <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">This Month by Category</h3>
+                  <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.tasks.thisMonthByCategory')}</h3>
                   <div className="h-64 sm:h-80">
                     <Bar data={monthChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
                   </div>
                 </div>
                 <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
-                  <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Share of Time</h3>
+                  <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.tasks.shareOfTime')}</h3>
                   <div className="h-64 sm:h-80">
                     <Doughnut
                       data={monthChart}
@@ -761,7 +821,7 @@ export default function Tasks() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Edit Task</h3>
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('buttons.edit')} {t('pages.tasks.title')}</h3>
                 <form onSubmit={submitEdit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Title</label>
@@ -793,10 +853,17 @@ export default function Tasks() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Planned Date & Time</label>
-                      <input type="datetime-local" value={editForm.planned_date} onChange={e => setEditForm({ ...editForm, planned_date: e.target.value })}
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Planned Date</label>
+                      <input type="date" value={editForm.planned_date} onChange={e => setEditForm({ ...editForm, planned_date: e.target.value })}
                              className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white" />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Schedule Time</label>
+                      <input type="time" value={editForm.schedule_time} onChange={e => setEditForm({ ...editForm, schedule_time: e.target.value })}
+                             className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Allocated Hours</label>
                       <input type="number" min={0} step={0.25} value={editForm.allocated_hours}
@@ -805,9 +872,9 @@ export default function Tasks() {
                     </div>
                   </div>
                   <div className="flex justify-end gap-3 pt-4">
-                    <button type="button" onClick={() => { setShowEditModal(false); setEditTask(null); }}
-                            className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors">Cancel</button>
-                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl transition-colors">Save</button>
+                        <button type="button" onClick={() => { setShowEditModal(false); setEditTask(null); }}
+                          className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors">{t('buttons.cancel')}</button>
+                        <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl transition-colors">{t('common.save')}</button>
                   </div>
                 </form>
               </div>
@@ -819,7 +886,7 @@ export default function Tasks() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Add Task</h3>
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.tasks.addTask')}</h3>
                 <form onSubmit={handleCreate} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Title</label>
@@ -851,10 +918,17 @@ export default function Tasks() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Planned Date & Time</label>
-                      <input type="datetime-local" value={form.planned_date} onChange={e => setForm({ ...form, planned_date: e.target.value })}
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Planned Date</label>
+                      <input type="date" value={form.planned_date} onChange={e => setForm({ ...form, planned_date: e.target.value })}
                              className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white" />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Schedule Time</label>
+                      <input type="time" value={form.schedule_time} onChange={e => setForm({ ...form, schedule_time: e.target.value })}
+                             className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Allocated Hours</label>
                       <input type="number" min={0} step={0.25} value={form.allocated_hours}
@@ -863,9 +937,9 @@ export default function Tasks() {
                     </div>
                   </div>
                   <div className="flex justify-end gap-3 pt-4">
-                    <button type="button" onClick={() => setShowAddForm(false)}
-                            className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors">Cancel</button>
-                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl transition-colors">Add Task</button>
+                        <button type="button" onClick={() => setShowAddForm(false)}
+                          className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors">{t('buttons.cancel')}</button>
+                        <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl transition-colors">{t('pages.tasks.addTask')}</button>
                   </div>
                 </form>
               </div>
@@ -878,15 +952,15 @@ export default function Tasks() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">Delete Task</h3>
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">{t('pages.tasks.deleteTask')}</h3>
                 <p className="text-powerbi-gray-600 dark:text-powerbi-gray-300 mb-6">
-                  Are you sure you want to delete this task? This action cannot be undone and will also delete all associated time logs.
+                  {t('pages.tasks.deleteConfirm')}
                 </p>
                 <div className="flex justify-end gap-3">
-                  <button type="button" onClick={() => { setShowDeleteModal(false); setTaskToDelete(null); }}
-                          className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors">Cancel</button>
-                  <button type="button" onClick={confirmDelete}
-                          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition-colors">Delete</button>
+                    <button type="button" onClick={() => { setShowDeleteModal(false); setTaskToDelete(null); }}
+                      className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors">{t('buttons.cancel')}</button>
+                    <button type="button" onClick={confirmDelete}
+                      className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition-colors">{t('buttons.delete')}</button>
                 </div>
               </div>
             </div>
@@ -919,7 +993,7 @@ export default function Tasks() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div>
                     <h4 className="text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Planned Date & Time</h4>
-                    <p className="text-powerbi-gray-900 dark:text-white">{formatDate(selectedTask.planned_date)}</p>
+                    <p className="text-powerbi-gray-900 dark:text-white">{formatDateOnly(selectedTask.planned_date)} {formatTime(selectedTask.schedule_time)}</p>
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Allocated Hours</h4>
@@ -939,7 +1013,7 @@ export default function Tasks() {
                 </div>
 
                 <div className="mb-6">
-                  <h4 className="text-lg font-medium text-powerbi-gray-900 dark:text-white mb-4">Time Sessions</h4>
+                  <h4 className="text-lg font-medium text-powerbi-gray-900 dark:text-white mb-4">{t('pages.tasks.timeSessions')}</h4>
                   {taskTimeLogs.length > 0 ? (
                     <div className="space-y-3 max-h-60 overflow-y-auto">
                       {taskTimeLogs.map((log, idx) => (
@@ -947,17 +1021,17 @@ export default function Tasks() {
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-300">
-                                Started: {formatDate(log.start_time)}
+                                {t('pages.tasks.started')} {formatDate(log.start_time)}
                               </p>
                               {log.end_time && (
                                 <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-300">
-                                  Ended: {formatDate(log.end_time)}
+                                  {t('pages.tasks.ended')} {formatDate(log.end_time)}
                                 </p>
                               )}
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">
-                                {log.minutes ? formatTimeSpent(log.minutes) : 'Running...'}
+                                {log.minutes ? formatTimeSpent(log.minutes) : t('tasks.running')}
                               </p>
                               {log.minutes && (
                                 <p className="text-xs text-powerbi-gray-500 dark:text-powerbi-gray-400">
@@ -975,18 +1049,18 @@ export default function Tasks() {
                 </div>
 
                 <div className="flex justify-end gap-3">
-                  <button onClick={() => setShowTaskDetailModal(false)} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors">Close</button>
+                  <button onClick={() => setShowTaskDetailModal(false)} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors">{t('buttons.close')}</button>
                   {selectedTask.status !== 'done' && (
                     <>
                       {runningSince(selectedTask.id) ? (
-                        <button onClick={() => { handleStop(selectedTask.id); setShowTaskDetailModal(false); }} className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl transition-colors">Stop Timer</button>
+                        <button onClick={() => { handleStop(selectedTask.id); setShowTaskDetailModal(false); }} className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl transition-colors">{t('buttons.stop')}</button>
                       ) : (
-                        <button onClick={() => { handleStart(selectedTask.id); setShowTaskDetailModal(false); }} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl transition-colors">Start Timer</button>
+                        <button onClick={() => { handleStart(selectedTask.id); setShowTaskDetailModal(false); }} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl transition-colors">{t('buttons.start')}</button>
                       )}
-                      <button onClick={() => { handleDone(selectedTask.id); setShowTaskDetailModal(false); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-colors">Mark Done</button>
+                      <button onClick={() => { handleDone(selectedTask.id); setShowTaskDetailModal(false); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-colors">{t('buttons.done')}</button>
                     </>
                   )}
-                  <button onClick={() => { handleDelete(selectedTask.id); setShowTaskDetailModal(false); }} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition-colors">Delete Task</button>
+                  <button onClick={() => { handleDelete(selectedTask.id); setShowTaskDetailModal(false); }} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition-colors">{t('pages.tasks.deleteTask')}</button>
                 </div>
               </div>
             </div>

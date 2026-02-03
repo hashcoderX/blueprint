@@ -42,14 +42,14 @@ interface Achievement {
 }
 
 const achievementCategories = [
-  { name: 'Savings', icon: PiggyBank, color: 'green' },
-  { name: 'Expenses', icon: DollarSign, color: 'red' },
-  { name: 'Goals', icon: Target, color: 'blue' },
-  { name: 'Tasks', icon: CheckSquare, color: 'purple' },
-  { name: 'Vehicle', icon: Car, color: 'orange' },
-  { name: 'Lifestyle', icon: Heart, color: 'pink' },
-  { name: 'Social', icon: Users, color: 'indigo' },
-  { name: 'Learning', icon: BookOpen, color: 'teal' }
+  { name: 'Savings', labelKey: 'savings', icon: PiggyBank, color: 'green' },
+  { name: 'Expenses', labelKey: 'expenses', icon: DollarSign, color: 'red' },
+  { name: 'Goals', labelKey: 'goals', icon: Target, color: 'blue' },
+  { name: 'Tasks', labelKey: 'tasks', icon: CheckSquare, color: 'purple' },
+  { name: 'Vehicle', labelKey: 'vehicle', icon: Car, color: 'orange' },
+  { name: 'Lifestyle', labelKey: 'lifestyle', icon: Heart, color: 'pink' },
+  { name: 'Social', labelKey: 'social', icon: Users, color: 'indigo' },
+  { name: 'Learning', labelKey: 'learning', icon: BookOpen, color: 'teal' }
 ];
 
 export default function Achievements() {
@@ -221,7 +221,7 @@ export default function Achievements() {
         <button
           onClick={(e) => { e.stopPropagation(); handleDeleteAchievement(achievement.id); }}
           className="absolute top-4 right-4 p-2 text-powerbi-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors z-10"
-          title="Delete Achievement"
+          title={t('pages.achievements.deleteTooltip')}
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -262,7 +262,7 @@ export default function Achievements() {
             {!achievement.unlocked && (
               <div className="mb-3">
                 <div className="flex justify-between text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1">
-                  <span>Progress</span>
+                  <span>{t('pages.achievements.progressLabel')}</span>
                   <span>{achievement.progress} / {achievement.max_progress}</span>
                 </div>
                 <div className="w-full bg-powerbi-gray-200 dark:bg-powerbi-gray-700 rounded-full h-2">
@@ -392,7 +392,7 @@ export default function Achievements() {
                   }`}
                 >
                   <IconComponent className="w-4 h-4 mr-2" />
-                  {category.name}
+                  {t(`pages.achievements.categoriesList.${category.labelKey}`)}
                 </button>
               );
             })}
