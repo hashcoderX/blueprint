@@ -477,6 +477,18 @@ app.post('/api/support/tickets', authenticateToken, (req, res) => {
   };
   tickets.push(ticket);
   writeSupportJson('support_tickets.json', tickets);
+  // Mirror ticket into instant chat so admins see it in Support Desk
+  try {
+    const chat = readSupportJson('support_chat.json');
+    chat.push({
+      id: Date.now() + 1,
+      user_id: req.user.id,
+      type: 'user',
+      message: `[Ticket ${ticket.id}] ${ticket.subject}\n${ticket.message}\n(Priority: ${ticket.priority})`,
+      created_at: new Date().toISOString()
+    });
+    writeSupportJson('support_chat.json', chat);
+  } catch {}
   res.json(ticket);
 });
 
