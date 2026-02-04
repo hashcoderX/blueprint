@@ -387,7 +387,7 @@ app.post('/api/support/chat', authenticateToken, (req, res) => {
 // Admin: list all chat threads
 app.get('/api/support/chat/all', authenticateToken, (req, res) => {
   try {
-    if (req.user.role !== 'super_admin') {
+    if (!['super_admin', 'admin'].includes(String(req.user.role))) {
       return res.status(403).json({ error: 'Access denied' });
     }
     const messages = readSupportJson('support_chat.json');
@@ -407,7 +407,7 @@ app.get('/api/support/chat/all', authenticateToken, (req, res) => {
 // Admin: reply to a user's chat
 app.post('/api/support/chat/reply', authenticateToken, (req, res) => {
   try {
-    if (req.user.role !== 'super_admin') {
+    if (!['super_admin', 'admin'].includes(String(req.user.role))) {
       return res.status(403).json({ error: 'Access denied' });
     }
     const { user_id, message } = req.body || {};

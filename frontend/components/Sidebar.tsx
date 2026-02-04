@@ -133,6 +133,16 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
       });
     }
 
+    // Add Support Desk for admin
+    if (userRole === 'admin') {
+      baseItems.splice(8, 0, {
+        key: 'supportDesk',
+        href: '/help/admin',
+        icon: HelpCircle,
+        descKey: 'supportDeskDesc'
+      });
+    }
+
     return baseItems;
   };
 
