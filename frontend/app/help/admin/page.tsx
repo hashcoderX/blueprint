@@ -90,7 +90,7 @@ export default function SupportDeskPage() {
               {threads.map((th) => (
                 <button key={th.user_id} onClick={() => setSelectedUserId(th.user_id)} className={`w-full text-left px-3 py-2 rounded-lg border ${selectedUserId === th.user_id ? 'border-powerbi-primary bg-powerbi-blue-50 dark:bg-powerbi-blue-900/20' : 'border-powerbi-gray-200 dark:border-powerbi-gray-700'} hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700`}>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-powerbi-gray-900 dark:text-white">User #{th.user_id}</span>
+                    <span className="text-sm font-medium text-powerbi-gray-900 dark:text-white">User #{th.user_id}{th.user && th.user.username ? ` - ${th.user.username}` : ''}</span>
                     <span className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">{th.messages.length} messages</span>
                   </div>
                 </button>
@@ -104,7 +104,7 @@ export default function SupportDeskPage() {
               <>
                 <div className="flex items-center mb-3">
                   <MessageSquare className="w-5 h-5 text-powerbi-gray-600 dark:text-powerbi-gray-400 mr-2" />
-                  <h3 className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">Conversation with User #{currentThread.user_id}</h3>
+                  <h3 className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">Conversation with User #{currentThread.user_id}{(currentThread as any).user && (currentThread as any).user.username ? ` - ${(currentThread as any).user.username}` : ''}</h3>
                 </div>
                 <div className="border border-powerbi-gray-200 dark:border-powerbi-gray-700 rounded-xl p-4 max-h-[55vh] overflow-y-auto space-y-3">
                   {currentThread.messages.map((m) => (

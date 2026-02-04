@@ -385,7 +385,7 @@ app.post('/api/support/chat', authenticateToken, (req, res) => {
 });
 
 // Admin: list all chat threads
-app.get('/api/support/chat/all', authenticateToken, (req, res) => {
+app.get('/api/support/chat/all', authenticateToken, async (req, res) => {
   try {
     if (!['super_admin', 'admin'].includes(String(req.user.role))) {
       return res.status(403).json({ error: 'Access denied' });
@@ -397,7 +397,28 @@ app.get('/api/support/chat/all', authenticateToken, (req, res) => {
       if (!threadsMap.has(key)) threadsMap.set(key, []);
       threadsMap.get(key).push(m);
     }
-    const threads = Array.from(threadsMap.entries()).map(([user_id, msgs]) => ({ user_id, messages: msgs }));
+    const userIds = Array.from(threadsMap.keys());
+    let usersById = {};
+    if (userIds.length > 0) {
+      try {
+        const db = await dbPromise;
+        const placeholders = userIds.map(() => '?').join(',');
+        const sql = `SELECT id, username, fullname FROM users WHERE id IN (${placeholders})`;
+        await new Promise((resolve, reject) => {
+          db.query(sql, userIds, (err, rows) => {
+            if (err) return reject(err);
+            usersById = (rows || []).reduce((acc, row) => {
+              acc[row.id] = { id: row.id, username: row.username, fullname: row.fullname };
+              return acc;
+            }, {});
+            resolve();
+          });
+        });
+      } catch (e) {
+        // If user lookup fails, proceed without names
+      }
+    }
+    const threads = Array.from(threadsMap.entries()).map(([user_id, msgs]) => ({ user_id, user: usersById[user_id] || null, messages: msgs }));
     res.json(threads);
   } catch (e) {
     res.status(500).json({ error: 'Failed to load chat threads' });
