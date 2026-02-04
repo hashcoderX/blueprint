@@ -384,6 +384,54 @@ app.post('/api/support/chat', authenticateToken, (req, res) => {
   res.json(item);
 });
 
+// Admin: list all chat threads
+app.get('/api/support/chat/all', authenticateToken, (req, res) => {
+  try {
+    if (req.user.role !== 'super_admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const messages = readSupportJson('support_chat.json');
+    const threadsMap = new Map();
+    for (const m of messages) {
+      const key = m.user_id;
+      if (!threadsMap.has(key)) threadsMap.set(key, []);
+      threadsMap.get(key).push(m);
+    }
+    const threads = Array.from(threadsMap.entries()).map(([user_id, msgs]) => ({ user_id, messages: msgs }));
+    res.json(threads);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to load chat threads' });
+  }
+});
+
+// Admin: reply to a user's chat
+app.post('/api/support/chat/reply', authenticateToken, (req, res) => {
+  try {
+    if (req.user.role !== 'super_admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const { user_id, message } = req.body || {};
+    const uid = Number(user_id);
+    if (!Number.isFinite(uid) || !message || !String(message).trim()) {
+      return res.status(400).json({ error: 'user_id and message are required' });
+    }
+    const messages = readSupportJson('support_chat.json');
+    const item = {
+      id: Date.now(),
+      user_id: uid,
+      type: 'admin',
+      admin_id: req.user.id,
+      message: String(message).slice(0, 2000),
+      created_at: new Date().toISOString()
+    };
+    messages.push(item);
+    writeSupportJson('support_chat.json', messages);
+    res.json(item);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to send reply' });
+  }
+});
+
 // Ticketing: create/list/update
 app.get('/api/support/tickets', authenticateToken, (req, res) => {
   const tickets = readSupportJson('support_tickets.json').filter(t => t.user_id === req.user.id);

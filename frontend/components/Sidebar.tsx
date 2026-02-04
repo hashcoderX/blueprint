@@ -125,6 +125,12 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
         icon: Users,
         descKey: 'userListDesc'
       });
+      baseItems.splice(9, 0, {
+        key: 'supportDesk',
+        href: '/help/admin',
+        icon: HelpCircle,
+        descKey: 'supportDeskDesc'
+      });
     }
 
     return baseItems;

@@ -35,6 +35,7 @@
       "manageProjects": "Manage My Projects",
       "manageGemBusiness": "Manage My Gem Business",
       "userList": "User List",
+      "supportDesk": "Support Desk",
       "analytics": "Analytics",
       "settings": "Settings",
       "help": "Help"
@@ -51,6 +52,7 @@
       "manageProjectsDesc": "Project management & tracking",
       "manageGemBusinessDesc": "Manage inventory, purchases, and income",
       "userListDesc": "Manage users",
+      "supportDeskDesc": "View and reply to user chats",
       "analyticsDesc": "Detailed reports",
       "settingsDesc": "Preferences",
       "helpDesc": "Support & FAQ"
