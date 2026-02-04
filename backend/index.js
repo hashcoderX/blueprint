@@ -304,6 +304,127 @@ app.get('/', (req, res) => {
   res.send('Hello from backend!');
 });
 
+// --- Support & Helpdesk API ---
+const ensureSupportStorage = () => {
+  const baseDir = path.join(__dirname, 'uploads', 'support');
+  try {
+    if (!fs.existsSync(path.join(__dirname, 'uploads'))) fs.mkdirSync(path.join(__dirname, 'uploads'));
+    if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir);
+    const files = ['support_messages.json', 'support_chat.json', 'support_tickets.json'];
+    for (const f of files) {
+      const fp = path.join(baseDir, f);
+      if (!fs.existsSync(fp)) fs.writeFileSync(fp, '[]');
+    }
+  } catch (e) {
+    // ignore
+  }
+  return baseDir;
+};
+
+const readSupportJson = (file) => {
+  try {
+    const dir = ensureSupportStorage();
+    const fp = path.join(dir, file);
+    const txt = fs.readFileSync(fp, 'utf-8');
+    return JSON.parse(txt || '[]');
+  } catch {
+    return [];
+  }
+};
+
+const writeSupportJson = (file, data) => {
+  try {
+    const dir = ensureSupportStorage();
+    const fp = path.join(dir, file);
+    fs.writeFileSync(fp, JSON.stringify(data, null, 2));
+  } catch {}
+};
+
+// Contact administration desk (stores message)
+app.post('/api/support/contact', authenticateToken, (req, res) => {
+  const { subject, message } = req.body || {};
+  if (!subject || !message) {
+    return res.status(400).json({ error: 'Subject and message are required' });
+  }
+  const items = readSupportJson('support_messages.json');
+  const item = {
+    id: Date.now(),
+    user_id: req.user.id,
+    subject: String(subject).slice(0, 200),
+    message: String(message).slice(0, 5000),
+    to_email: 'support@codemint.space',
+    created_at: new Date().toISOString()
+  };
+  items.push(item);
+  writeSupportJson('support_messages.json', items);
+  res.json({ success: true, item });
+});
+
+// Simple instant messaging with support (persisted log)
+app.get('/api/support/chat', authenticateToken, (req, res) => {
+  const messages = readSupportJson('support_chat.json').filter(m => m.user_id === req.user.id);
+  res.json(messages);
+});
+
+app.post('/api/support/chat', authenticateToken, (req, res) => {
+  const { message } = req.body || {};
+  if (!message || !String(message).trim()) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
+  const messages = readSupportJson('support_chat.json');
+  const item = {
+    id: Date.now(),
+    user_id: req.user.id,
+    type: 'user',
+    message: String(message).slice(0, 2000),
+    created_at: new Date().toISOString()
+  };
+  messages.push(item);
+  writeSupportJson('support_chat.json', messages);
+  res.json(item);
+});
+
+// Ticketing: create/list/update
+app.get('/api/support/tickets', authenticateToken, (req, res) => {
+  const tickets = readSupportJson('support_tickets.json').filter(t => t.user_id === req.user.id);
+  res.json(tickets);
+});
+
+app.post('/api/support/tickets', authenticateToken, (req, res) => {
+  const { subject, message, priority } = req.body || {};
+  if (!subject || !message) {
+    return res.status(400).json({ error: 'Subject and message are required' });
+  }
+  const tickets = readSupportJson('support_tickets.json');
+  const ticket = {
+    id: Date.now(),
+    user_id: req.user.id,
+    subject: String(subject).slice(0, 200),
+    message: String(message).slice(0, 5000),
+    priority: ['low','medium','high'].includes(String(priority)) ? String(priority) : 'medium',
+    status: 'open',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+  tickets.push(ticket);
+  writeSupportJson('support_tickets.json', tickets);
+  res.json(ticket);
+});
+
+app.patch('/api/support/tickets/:id', authenticateToken, (req, res) => {
+  const id = Number(req.params.id);
+  const { status } = req.body || {};
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid ticket id' });
+  if (!['open','closed'].includes(String(status))) return res.status(400).json({ error: 'Invalid status' });
+  const tickets = readSupportJson('support_tickets.json');
+  const idx = tickets.findIndex(t => t.id === id && t.user_id === req.user.id);
+  if (idx === -1) return res.status(404).json({ error: 'Ticket not found' });
+  tickets[idx].status = String(status);
+  tickets[idx].updated_at = new Date().toISOString();
+  writeSupportJson('support_tickets.json', tickets);
+  res.json(tickets[idx]);
+});
+
 // Get all users (super_admin only)
 app.get('/api/users', authenticateToken, async (req, res) => {
   try {
