@@ -31,7 +31,9 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
   const { t, locale, setLocale } = useI18n();
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifLoading, setNotifLoading] = useState(false);
-  const [showNotifMenu, setShowNotifMenu] = useState(false);
+  const [showNotifModal, setShowNotifModal] = useState(false);
+  const [showNotifDetailModal, setShowNotifDetailModal] = useState(false);
+  const [selectedNotif, setSelectedNotif] = useState<NotificationItem | null>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
   const parseJsonResponse = async (res: Response) => {
@@ -273,8 +275,8 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
         {/* Notifications */}
         <div className="relative">
           <button suppressHydrationWarning onClick={async () => {
-            const next = !showNotifMenu;
-            setShowNotifMenu(next);
+            const next = !showNotifModal;
+            setShowNotifModal(next);
             if (next && !notifFetchLoading) {
               try {
                 setNotifFetchLoading(true);
@@ -302,14 +304,17 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
               </span>
             )}
           </button>
-          {showNotifMenu && (
-            <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-powerbi-gray-800 rounded-xl shadow-xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 py-3 z-50">
-              <div className="px-4 py-2">
-                <p className="text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300">
-                  {t('header.notifications')}
-                </p>
+        </div>
+
+        {/* Notifications Modal */}
+        {showNotifModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-2xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 w-full max-w-md max-h-[85vh] overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                <p className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">{t('header.notifications')}</p>
+                <button onClick={() => setShowNotifModal(false)} className="text-powerbi-gray-500 hover:text-powerbi-gray-700 dark:hover:text-powerbi-gray-200">✕</button>
               </div>
-              <div className="px-4 max-h-64 overflow-y-auto">
+              <div className="px-5 py-3 overflow-y-auto" style={{ maxHeight: '60vh' }}>
                 {notifFetchLoading && (
                   <p className="text-xs text-powerbi-gray-500 dark:text-powerbi-gray-400">{t('common.loading')}</p>
                 )}
@@ -319,38 +324,80 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
                 {!notifFetchLoading && notifItems.length > 0 && (
                   <ul className="space-y-2">
                     {notifItems.map((n) => (
-                      <li key={n.id} className="p-2 rounded-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 flex flex-col gap-1">
+                      <li key={n.id} onClick={() => { setSelectedNotif(n); setShowNotifDetailModal(true); }} className="cursor-pointer p-3 rounded-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700 transition">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-powerbi-gray-900 dark:text-white">{n.title}</span>
                           {!n.is_read && <span className="ml-2 inline-block w-2 h-2 rounded-full bg-powerbi-error" />}
                         </div>
-                        {n.body && <span className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">{n.body}</span>}
+                        {n.body && <span className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400 line-clamp-2">{n.body}</span>}
                         <span className="text-xs text-powerbi-gray-500">{new Date(n.created_at).toLocaleString()}</span>
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
-              <div className="px-4 pt-2 flex gap-2 items-center justify-between">
+              <div className="px-5 py-3 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex gap-2 items-center justify-between">
                 {notifItems.length > 0 && (
                   <button suppressHydrationWarning onClick={markAllNotificationsRead} className="px-3 py-2 text-xs bg-powerbi-gray-100 dark:bg-powerbi-gray-700 text-powerbi-gray-700 dark:text-powerbi-gray-300 rounded-lg hover:bg-powerbi-gray-200 dark:hover:bg-powerbi-gray-600 transition">
                     {t('buttons.markAllRead')}
                   </button>
                 )}
                 {!notifEnabled && (
-                  <button suppressHydrationWarning onClick={() => !notifLoading && enableNotifications()} className="px-3 py-2 text-sm bg-powerbi-primary text-white rounded-lg hover:opacity-90 transition disabled:opacity-50" disabled={notifLoading}>
+                  <button suppressHydrationWarning onClick={() => !notifLoading && enableNotifications()} className="ml-auto px-3 py-2 text-sm bg-powerbi-primary text-white rounded-lg hover:opacity-90 transition disabled:opacity-50" disabled={notifLoading}>
                     {notifLoading ? t('buttons.loading') : t('buttons.enable')}
                   </button>
                 )}
                 {notifEnabled && (
-                  <button suppressHydrationWarning onClick={sendTestNotification} className="px-3 py-2 text-sm bg-powerbi-secondary text-white rounded-lg hover:opacity-90 transition">
+                  <button suppressHydrationWarning onClick={sendTestNotification} className="ml-auto px-3 py-2 text-sm bg-powerbi-secondary text-white rounded-lg hover:opacity-90 transition">
                     {t('buttons.sendTest')}
                   </button>
                 )}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Notification Detail Modal */}
+        {showNotifDetailModal && selectedNotif && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-2xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 w-full max-w-lg max-h-[85vh] overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700">
+                <p className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">{selectedNotif.title}</p>
+                <button onClick={() => setShowNotifDetailModal(false)} className="text-powerbi-gray-500 hover:text-powerbi-gray-700 dark:hover:text-powerbi-gray-200">✕</button>
+              </div>
+              <div className="px-5 py-4 space-y-2 overflow-y-auto" style={{ maxHeight: '60vh' }}>
+                <p className="text-xs text-powerbi-gray-500">{new Date(selectedNotif.created_at).toLocaleString()}</p>
+                {selectedNotif.body ? (
+                  <p className="text-sm text-powerbi-gray-800 dark:text-powerbi-gray-100 whitespace-pre-wrap">{selectedNotif.body}</p>
+                ) : (
+                  <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-300">{t('header.notificationsEmpty')}</p>
+                )}
+              </div>
+              <div className="px-5 py-3 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-end gap-2">
+                <button
+                  onClick={async () => {
+                    try {
+                      const token = localStorage.getItem('token');
+                      if (!token || !selectedNotif) return;
+                      const res = await fetch(`${API_BASE}/api/notifications/mark-read`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ id: selectedNotif.id })
+                      });
+                      if (res.ok) {
+                        setNotifItems((items) => items.map((i) => i.id === selectedNotif.id ? { ...i, is_read: true } : i));
+                      }
+                    } catch (e) { console.error('mark read failed', e); }
+                  }}
+                  className="px-3 py-2 text-sm bg-powerbi-gray-100 dark:bg-powerbi-gray-700 text-powerbi-gray-800 dark:text-powerbi-gray-200 rounded-lg hover:bg-powerbi-gray-200 dark:hover:bg-powerbi-gray-600 transition"
+                >
+                  {t('buttons.markAllRead')}
+                </button>
+                <button onClick={() => setShowNotifDetailModal(false)} className="px-3 py-2 text-sm bg-powerbi-primary text-white rounded-lg hover:opacity-90 transition">OK</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* User Menu */}
         <div className="relative">
@@ -416,10 +463,10 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
           onClick={() => setShowUserMenu(false)}
         />
       )}
-      {showNotifMenu && (
+      {showNotifModal && (
         <div
           className="fixed inset-0 z-40"
-          onClick={() => setShowNotifMenu(false)}
+          onClick={() => setShowNotifModal(false)}
         />
       )}
     </header>

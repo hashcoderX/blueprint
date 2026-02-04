@@ -34,6 +34,7 @@
       "managePassword": "Manage Password",
       "manageProjects": "Manage My Projects",
       "manageGemBusiness": "Manage My Gem Business",
+      "userList": "User List",
       "analytics": "Analytics",
       "settings": "Settings",
       "help": "Help"
@@ -49,6 +50,7 @@
       "managePasswordDesc": "Update your password",
       "manageProjectsDesc": "Project management & tracking",
       "manageGemBusinessDesc": "Manage inventory, purchases, and income",
+      "userListDesc": "Manage users",
       "analyticsDesc": "Detailed reports",
       "settingsDesc": "Preferences",
       "helpDesc": "Support & FAQ"

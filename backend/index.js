@@ -304,6 +304,84 @@ app.get('/', (req, res) => {
   res.send('Hello from backend!');
 });
 
+// Get all users (super_admin only)
+app.get('/api/users', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    // Check if user is super_admin
+    db.query('SELECT role FROM users WHERE id = ?', [req.user.id], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0 || results[0].role !== 'super_admin') {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      // Pagination parameters
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+
+      // Get total count
+      db.query('SELECT COUNT(*) as total FROM users', [], (err2, countResult) => {
+        if (err2) return res.status(500).json({ error: err2.message });
+
+        const total = countResult[0].total;
+        const totalPages = Math.ceil(total / limit);
+
+        // Get paginated users
+        db.query(
+          'SELECT id, username, fullname, email, phone, address, country, currency, job_type, job_subcategory, role, status, is_paid, created_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?',
+          [limit, offset],
+          (err3, userResults) => {
+            if (err3) return res.status(500).json({ error: err3.message });
+            res.json({
+              users: userResults,
+              pagination: {
+                currentPage: page,
+                totalPages,
+                totalUsers: total,
+                limit
+              }
+            });
+          }
+        );
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Update user status (super_admin only)
+app.put('/api/users/:id/status', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Check if user is super_admin
+    db.query('SELECT role FROM users WHERE id = ?', [req.user.id], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0 || results[0].role !== 'super_admin') {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      // Validate status
+      if (!['active', 'inactive'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status. Must be active or inactive' });
+      }
+
+      // Update user status
+      db.query('UPDATE users SET status = ? WHERE id = ?', [status, id], (err2, result) => {
+        if (err2) return res.status(500).json({ error: err2.message });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'User not found' });
+        res.json({ message: 'User status updated successfully' });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
 // Expenses API
 app.get('/api/expenses', authenticateToken, async (req, res) => {
   try {
@@ -368,6 +446,38 @@ app.post('/api/income', authenticateToken, async (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ id: result.insertId, description, amount, date, category: category || 'salary' });
       });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Delete expense
+app.delete('/api/expenses/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+
+    db.query('DELETE FROM expenses WHERE id = ? AND user_id = ?', [id, req.user.id], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Expense not found or access denied' });
+      res.json({ message: 'Expense deleted successfully' });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Delete income
+app.delete('/api/income/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+
+    db.query('DELETE FROM income WHERE id = ? AND user_id = ?', [id, req.user.id], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'Income not found or access denied' });
+      res.json({ message: 'Income deleted successfully' });
     });
   } catch (err) {
     res.status(500).json({ error: 'Database not ready' });

@@ -12,7 +12,8 @@ import {
   Wallet,
   FileText,
   Calculator,
-  BarChart3
+  BarChart3,
+  Trash2
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -44,6 +45,7 @@ interface Expense {
   amount: number;
   date: string;
   category: string;
+  source?: string;
 }
 
 interface Income {
@@ -52,6 +54,7 @@ interface Income {
   amount: number;
   date: string;
   category: string;
+  source?: string;
 }
 
 interface VehicleEntry {
@@ -61,6 +64,7 @@ interface VehicleEntry {
   vehicle: string;
   amount: number;
   date: string;
+  source?: string;
 }
 
 type ActiveTabType = 'overview' | 'income' | 'expenses' | 'analytics';
@@ -86,6 +90,19 @@ export default function Expenses() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formType, setFormType] = useState<'income' | 'expense'>('expense');
   const [userCurrency, setUserCurrency] = useState<string>('USD');
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    transactionId: number | null;
+    transactionSource: string | null;
+    transactionDescription: string | null;
+  }>({
+    isOpen: false,
+    transactionId: null,
+    transactionSource: null,
+    transactionDescription: null
+  });
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const fetchUserProfile = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -190,13 +207,15 @@ export default function Expenses() {
       let validIncome = [];
 
       if (!expensesData.error && Array.isArray(expensesData)) {
-        setExpenses(expensesData);
-        validExpenses = expensesData;
+        const expensesWithSource = expensesData.map(item => ({ ...item, source: 'expenses' }));
+        setExpenses(expensesWithSource);
+        validExpenses = expensesWithSource;
       }
 
       if (!incomeData.error && Array.isArray(incomeData)) {
-        setIncome(incomeData);
-        validIncome = incomeData;
+        const incomeWithSource = incomeData.map(item => ({ ...item, source: 'income' }));
+        setIncome(incomeWithSource);
+        validIncome = incomeWithSource;
       }
 
       // Add vehicle expenses and income to the respective arrays
@@ -206,22 +225,30 @@ export default function Expenses() {
           description: `${v.description} (${v.vehicle})`,
           amount: v.amount,
           date: v.date,
-          category: 'Vehicle'
+          category: 'Vehicle',
+          source: 'vehicle-expenses'
         }));
         const vehicleIncome = vehicleData.filter((v: VehicleEntry) => v.type === 'income').map((v: VehicleEntry) => ({
           id: v.id,
           description: `${v.description} (${v.vehicle})`,
           amount: v.amount,
           date: v.date,
-          category: 'Vehicle'
+          category: 'Vehicle',
+          source: 'vehicle-expenses'
         }));
 
         validExpenses = [...validExpenses, ...vehicleExpenses];
         validIncome = [...validIncome, ...vehicleIncome];
 
         // Update state to include vehicle data for display
-        setExpenses([...expensesData, ...vehicleExpenses]);
-        setIncome([...incomeData, ...vehicleIncome]);
+        setExpenses([
+          ...((Array.isArray(expensesData) ? expensesData : []).map((item: any) => ({ ...item, source: 'expenses' }))),
+          ...vehicleExpenses
+        ]);
+        setIncome([
+          ...((Array.isArray(incomeData) ? incomeData : []).map((item: any) => ({ ...item, source: 'income' }))),
+          ...vehicleIncome
+        ]);
       }
 
       calculateSummary(validExpenses, validIncome);
@@ -317,6 +344,84 @@ export default function Expenses() {
     link.click();
     document.body.removeChild(link);
   };
+
+  const openDeleteModal = (id: number, source: string, description: string) => {
+    setDeleteError(null);
+    setDeleteModal({
+      isOpen: true,
+      transactionId: id,
+      transactionSource: source,
+      transactionDescription: description
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteLoading(false);
+    setDeleteError(null);
+    setDeleteModal({
+      isOpen: false,
+      transactionId: null,
+      transactionSource: null,
+      transactionDescription: null
+    });
+  };
+
+  const confirmDeleteTransaction = async () => {
+    if (!deleteModal.transactionId || !deleteModal.transactionSource) return;
+
+    try {
+      setIsDeleteLoading(true);
+      setDeleteError(null);
+      const token = localStorage.getItem('token');
+      let endpoint = '';
+
+      if (deleteModal.transactionSource === 'expenses') {
+        endpoint = 'expenses';
+      } else if (deleteModal.transactionSource === 'income') {
+        endpoint = 'income';
+      } else if (deleteModal.transactionSource === 'vehicle-expenses') {
+        endpoint = 'vehicle-expenses';
+      }
+
+      if (!endpoint) {
+        throw new Error('Invalid transaction source');
+      }
+
+      const response = await fetch(`http://localhost:3001/api/${endpoint}/${deleteModal.transactionId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete transaction');
+      }
+
+      // Refresh data after successful deletion
+      await fetchData();
+      setIsDeleteLoading(false);
+      closeDeleteModal();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete transaction';
+      setDeleteError(message);
+      setIsDeleteLoading(false);
+    }
+  };
+
+  // Improve modal UX: lock background scroll and close on ESC
+  useEffect(() => {
+    if (!deleteModal.isOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeDeleteModal();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [deleteModal.isOpen]);
 
   const generatePLReport = () => {
     const headers = ['Date', 'Description', 'Category', 'Debit', 'Credit', 'Balance'];
@@ -547,11 +652,12 @@ export default function Expenses() {
               <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Description</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Category</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Amount</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-powerbi-gray-500 dark:text-powerbi-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-powerbi-gray-200 dark:divide-powerbi-gray-600">
             {data.map((item) => (
-              <tr key={item.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700">
+              <tr key={`${(item as any).source || type}-${item.id}`} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">
                   {new Date(item.date).toLocaleDateString()}
                 </td>
@@ -573,6 +679,16 @@ export default function Expenses() {
                     : 'text-red-600 dark:text-red-400'
                 }`}>
                   {formatCurrency(parseFloat(item.amount.toString()))}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <button
+                    type="button"
+                    onClick={() => openDeleteModal(item.id, item.source || 'expenses', item.description)}
+                    className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 transition-colors duration-200"
+                    title="Delete transaction"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -958,6 +1074,59 @@ export default function Expenses() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 z-[1000]" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+          <div className="absolute inset-0 bg-black/60" onClick={closeDeleteModal}></div>
+          <div className="absolute inset-0 flex items-center justify-center p-4">
+            <div className="w-full max-w-md p-6 bg-white dark:bg-powerbi-gray-800 shadow-xl rounded-2xl">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full dark:bg-red-900/20">
+                <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+
+              <h3 id="delete-modal-title" className="text-lg font-semibold text-center text-powerbi-gray-900 dark:text-white mb-2">
+                Delete Transaction
+              </h3>
+
+              <p className="text-sm text-center text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-6">
+                Are you sure you want to delete this transaction?
+              </p>
+
+              {deleteModal.transactionDescription && (
+                <div className="p-3 mb-6 bg-powerbi-gray-50 dark:bg-powerbi-gray-700 rounded-lg">
+                  <p className="text-sm font-medium text-powerbi-gray-900 dark:text-white">
+                    {deleteModal.transactionDescription}
+                  </p>
+                </div>
+              )}
+
+              {deleteError && (
+                <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 text-sm">
+                  {deleteError}
+                </div>
+              )}
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={closeDeleteModal}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-powerbi-gray-700 bg-powerbi-gray-100 border border-transparent rounded-lg hover:bg-powerbi-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-powerbi-gray-500 dark:bg-powerbi-gray-700 dark:text-powerbi-gray-300 dark:hover:bg-powerbi-gray-600 transition-colors duration-200"
+                  autoFocus
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteTransaction}
+                  disabled={isDeleteLoading}
+                  className={`flex-1 px-4 py-2 text-sm font-medium text-white border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200 ${isDeleteLoading ? 'bg-red-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'}`}
+                >
+                  {isDeleteLoading ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

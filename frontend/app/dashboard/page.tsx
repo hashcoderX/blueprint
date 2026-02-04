@@ -555,28 +555,28 @@ export default function Dashboard() {
               icon={Plus}
               title={t('dashboard.quickActionsItems.addExpense.title')}
               description={t('dashboard.quickActionsItems.addExpense.description')}
-              onClick={() => {}}
+              onClick={() => router.push('/expenses')}
               color="red"
             />
             <QuickAction
               icon={Target}
               title={t('dashboard.quickActionsItems.setGoal.title')}
               description={t('dashboard.quickActionsItems.setGoal.description')}
-              onClick={() => {}}
+              onClick={() => router.push('/goals')}
               color="green"
             />
             <QuickAction
               icon={CheckSquare}
               title={t('dashboard.quickActionsItems.newTask.title')}
               description={t('dashboard.quickActionsItems.newTask.description')}
-              onClick={() => {}}
+              onClick={() => router.push('/tasks')}
               color="blue"
             />
             <QuickAction
               icon={Calendar}
               title={t('dashboard.quickActionsItems.schedulePayment.title')}
               description={t('dashboard.quickActionsItems.schedulePayment.description')}
-              onClick={() => {}}
+              onClick={() => router.push('/expenses')}
               color="purple"
             />
           </div>

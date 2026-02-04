@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useI18n } from '../i18n/I18nProvider';
 import {
@@ -15,7 +15,8 @@ import {
   HelpCircle,
   Key,
   FolderOpen,
-  X
+  X,
+  Users
 } from 'lucide-react';
 
 // Removed legacy navItems; using dynamic items via getNavItems()
@@ -28,8 +29,10 @@ const secondaryItemsBase = [
 
 export default function Sidebar({ className, mobile = false, onClose }: { className?: string; mobile?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [userJobType, setUserJobType] = useState<string | null>(null);
   const [userJobSubcategory, setUserJobSubcategory] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const { t } = useI18n();
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
@@ -57,12 +60,21 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
           }).catch((err) => { throw err; });
           clearTimeout(timeout);
           if (!response.ok) {
+            // Handle invalid/expired token: clear and redirect to login
+            if (response.status === 401 || response.status === 403) {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              // Avoid throwing; redirect user to login
+              router.push('/login');
+              return;
+            }
             const msg = await response.text().catch(() => '');
             throw new Error(`Profile fetch failed ${response.status}: ${msg.substring(0,200)}`);
           }
           const userData = await parseJsonResponse(response);
           setUserJobType(userData.job_type || null);
           setUserJobSubcategory(userData.job_subcategory || null);
+          setUserRole(userData.role || null);
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -105,62 +117,77 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
       });
     }
 
+    // Add User List for super_admin
+    if (userRole === 'super_admin') {
+      baseItems.splice(8, 0, {
+        key: 'userList',
+        href: '/user-list',
+        icon: Users,
+        descKey: 'userListDesc'
+      });
+    }
+
     return baseItems;
   };
 
   return (
-    <div className={`${mobile ? 'fixed left-0 top-0 h-screen w-72 z-30 flex flex-col' : 'hidden lg:flex lg:w-64 lg:h-screen lg:fixed lg:left-0 lg:top-0 z-10 flex-col'} bg-white dark:bg-powerbi-gray-800 shadow-2xl border-r border-powerbi-gray-200 dark:border-powerbi-gray-700 ${className || ''}`}>
+    <div className={`${mobile ? 'fixed left-0 top-0 h-screen w-72 z-30 flex flex-col' : 'hidden lg:flex lg:w-64 lg:h-screen lg:fixed lg:left-0 lg:top-0 z-10 flex flex-col'} bg-gradient-to-b from-white to-powerbi-gray-50 dark:from-powerbi-gray-800 dark:to-powerbi-gray-900 shadow-2xl border-r border-powerbi-gray-200/50 dark:border-powerbi-gray-700/50 backdrop-blur-sm ${className || ''}`}>
       {/* Logo Section */}
-      <div className="p-6 border-b border-powerbi-gray-200 dark:border-powerbi-gray-700 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-powerbi-primary to-powerbi-secondary rounded-xl flex items-center justify-center shadow-lg">
-            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+      <div className="p-6 border-b border-powerbi-gray-200/30 dark:border-powerbi-gray-700/30 bg-gradient-to-r from-powerbi-primary/5 to-transparent flex items-center justify-between relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-powerbi-primary/3 to-transparent opacity-50"></div>
+        <div className="flex items-center space-x-4 relative z-10">
+          <div className="w-12 h-12 bg-gradient-to-br from-powerbi-primary via-powerbi-secondary to-powerbi-accent-dark rounded-2xl flex items-center justify-center shadow-xl transform hover:scale-105 transition-transform duration-200">
+            <svg className="w-7 h-7 text-white drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97.99 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
             </svg>
           </div>
           <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-powerbi-primary to-powerbi-secondary bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-powerbi-primary via-powerbi-secondary to-powerbi-accent-dark bg-clip-text text-transparent drop-shadow-sm">
               Blueprint
             </h1>
-            <p className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">
+            <p className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400 font-medium tracking-wide">
               Personal Finance
             </p>
           </div>
         </div>
         {mobile && (
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 text-powerbi-gray-600 dark:text-powerbi-gray-400" aria-label="Close sidebar">
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-powerbi-gray-100/80 dark:hover:bg-powerbi-gray-700/80 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-white transition-all duration-200 backdrop-blur-sm relative z-10" aria-label="Close sidebar">
             <X className="w-5 h-5" />
           </button>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 mt-6 overflow-y-auto">
+      <nav className="flex-1 mt-6 overflow-y-auto custom-scrollbar">
         {/* Main Navigation */}
-        <div className="px-4 mb-6">
-          <h3 className="text-xs font-semibold text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider mb-3">
+        <div className="px-4 mb-8">
+          <h3 className="text-xs font-bold text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider mb-4 px-2">
             {t('sidebar.main')}
           </h3>
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {getNavItems().map((item) => {
               const isActive = pathname === item.href;
               return (
                 <li key={item.key}>
                   <Link
                     href={item.href}
-                    className={`group flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                    className={`group flex items-center px-4 py-3 rounded-2xl transition-all duration-300 ease-out transform hover:scale-[1.02] ${
                       isActive
-                        ? 'bg-powerbi-primary/10 text-powerbi-primary border-r-2 border-powerbi-primary'
-                        : 'text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 hover:text-powerbi-gray-900 dark:hover:text-white'
+                        ? 'bg-gradient-to-r from-powerbi-primary/15 to-powerbi-primary/5 text-powerbi-primary border-r-4 border-powerbi-primary shadow-lg shadow-powerbi-primary/10'
+                        : 'text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-gradient-to-r hover:from-powerbi-gray-100/80 hover:to-powerbi-gray-50/80 dark:hover:from-powerbi-gray-700/80 dark:hover:to-powerbi-gray-600/80 hover:text-powerbi-gray-900 dark:hover:text-white hover:shadow-md'
                     }`}
                   >
-                    <item.icon className={`w-5 h-5 mr-3 transition-colors ${
-                      isActive ? 'text-powerbi-primary' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 group-hover:text-powerbi-primary'
+                    <item.icon className={`w-5 h-5 mr-4 transition-all duration-300 ${
+                      isActive ? 'text-powerbi-primary scale-110' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 group-hover:text-powerbi-primary group-hover:scale-105'
                     }`} />
-                    <div className="flex-1">
-                      <div className="font-medium">{t(`sidebar.items.${item.key}`)}</div>
-                      <div className={`text-xs transition-opacity ${
-                        isActive ? 'text-powerbi-primary/70' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 opacity-0 group-hover:opacity-100'
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-semibold text-sm transition-all duration-200 ${
+                        isActive ? 'text-powerbi-primary' : 'text-powerbi-gray-800 dark:text-powerbi-gray-200 group-hover:text-powerbi-gray-900 dark:group-hover:text-white'
+                      }`}>
+                        {t(`sidebar.items.${item.key}`)}
+                      </div>
+                      <div className={`text-xs mt-0.5 transition-all duration-300 ${
+                        isActive ? 'text-powerbi-primary/80 opacity-100' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0'
                       }`}>
                         {t(`sidebar.descriptions.${item.descKey}`)}
                       </div>
@@ -173,30 +200,34 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
         </div>
 
         {/* Secondary Navigation */}
-        <div className="px-4">
-          <h3 className="text-xs font-semibold text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider mb-3">
+        <div className="px-4 pb-6">
+          <h3 className="text-xs font-bold text-powerbi-gray-500 dark:text-powerbi-gray-400 uppercase tracking-wider mb-4 px-2">
             {t('sidebar.more')}
           </h3>
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {secondaryItemsBase.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <li key={item.key}>
                   <Link
                     href={item.href}
-                    className={`group flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                    className={`group flex items-center px-4 py-3 rounded-2xl transition-all duration-300 ease-out transform hover:scale-[1.02] ${
                       isActive
-                        ? 'bg-powerbi-primary/10 text-powerbi-primary border-r-2 border-powerbi-primary'
-                        : 'text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 hover:text-powerbi-gray-900 dark:hover:text-white'
+                        ? 'bg-gradient-to-r from-powerbi-primary/15 to-powerbi-primary/5 text-powerbi-primary border-r-4 border-powerbi-primary shadow-lg shadow-powerbi-primary/10'
+                        : 'text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-gradient-to-r hover:from-powerbi-gray-100/80 hover:to-powerbi-gray-50/80 dark:hover:from-powerbi-gray-700/80 dark:hover:to-powerbi-gray-600/80 hover:text-powerbi-gray-900 dark:hover:text-white hover:shadow-md'
                     }`}
                   >
-                    <item.icon className={`w-5 h-5 mr-3 transition-colors ${
-                      isActive ? 'text-powerbi-primary' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 group-hover:text-powerbi-primary'
+                    <item.icon className={`w-5 h-5 mr-4 transition-all duration-300 ${
+                      isActive ? 'text-powerbi-primary scale-110' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 group-hover:text-powerbi-primary group-hover:scale-105'
                     }`} />
-                    <div className="flex-1">
-                      <div className="font-medium">{t(`sidebar.items.${item.key}`)}</div>
-                      <div className={`text-xs transition-opacity ${
-                        isActive ? 'text-powerbi-primary/70' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 opacity-0 group-hover:opacity-100'
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-semibold text-sm transition-all duration-200 ${
+                        isActive ? 'text-powerbi-primary' : 'text-powerbi-gray-800 dark:text-powerbi-gray-200 group-hover:text-powerbi-gray-900 dark:group-hover:text-white'
+                      }`}>
+                        {t(`sidebar.items.${item.key}`)}
+                      </div>
+                      <div className={`text-xs mt-0.5 transition-all duration-300 ${
+                        isActive ? 'text-powerbi-primary/80 opacity-100' : 'text-powerbi-gray-500 dark:text-powerbi-gray-400 opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0'
                       }`}>
                         {t(`sidebar.descriptions.${item.descKey}`)}
                       </div>
@@ -209,24 +240,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
         </div>
       </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-powerbi-gray-200 dark:border-powerbi-gray-700">
-        <div className="bg-gradient-to-r from-powerbi-primary/10 to-powerbi-secondary/10 rounded-xl p-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-powerbi-primary to-powerbi-secondary rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">
-                {t('sidebar.proTip')}
-              </p>
-              <p className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">
-                {t('sidebar.footerTip')}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Footer removed: ProTip feature disabled */}
     </div>
   );
 }
