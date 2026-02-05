@@ -192,6 +192,7 @@ export default function Dashboard() {
   const [userCurrency, setUserCurrency] = useState('USD');
   const [userIsPaid, setUserIsPaid] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const [spendingByCategory, setSpendingByCategory] = useState<Record<string, number>>({});
 
@@ -204,6 +205,7 @@ export default function Dashboard() {
         setUserCurrency(user.currency || 'USD');
         setUserIsPaid(Boolean(user.is_paid));
         setUserRole(user.role || null);
+        setUserCreatedAt(user.created_at || null);
       }
     } catch (e) {
       console.error('Error loading user profile:', e);
@@ -447,6 +449,12 @@ export default function Dashboard() {
 
   
 
+  // Access gating: Pro or staff, or Free within 7-day trial
+  const created = userCreatedAt ? new Date(userCreatedAt) : null;
+  const trialActive = created ? (Date.now() - created.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+  const isStaff = userRole === 'admin' || userRole === 'super_admin';
+  const hasFullAccess = userIsPaid || isStaff || trialActive;
+
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
@@ -463,7 +471,7 @@ export default function Dashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-          {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
+          {hasFullAccess && (
             <StatCard
               title={t('dashboard.stats.totalExpenses')}
               value={stats.totalExpenses}
@@ -487,7 +495,7 @@ export default function Dashboard() {
             icon={CheckSquare}
             color="blue"
           />
-          {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
+          {hasFullAccess && (
             <StatCard
               title={t('dashboard.stats.vehicleExpenses')}
               value={stats.vehicleExpenses}
@@ -559,7 +567,7 @@ export default function Dashboard() {
           {/* Quick Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white mb-4 sm:col-span-2">{t('dashboard.quickActions')}</h3>
-            {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
+            {hasFullAccess && (
               <QuickAction
                 icon={Plus}
                 title={t('dashboard.quickActionsItems.addExpense.title')}
@@ -582,7 +590,7 @@ export default function Dashboard() {
               onClick={() => router.push('/tasks')}
               color="blue"
             />
-            {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
+            {hasFullAccess && (
               <QuickAction
                 icon={Calendar}
                 title={t('dashboard.quickActionsItems.schedulePayment.title')}
@@ -595,7 +603,7 @@ export default function Dashboard() {
         </div>
 
         {/* Diary Section (Pro only) */}
-        {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
+        {hasFullAccess && (
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('dashboard.diaryTitle')}</h3>
@@ -672,7 +680,7 @@ export default function Dashboard() {
           </div>
 
           {/* Financial Insights (Pro only) */}
-          {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
+          {hasFullAccess && (
           <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('dashboard.financialInsights')}</h3>

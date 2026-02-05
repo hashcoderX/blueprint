@@ -35,6 +35,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
   const [userJobSubcategory, setUserJobSubcategory] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userIsPaid, setUserIsPaid] = useState<boolean>(false);
+  const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
   const { t } = useI18n();
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
@@ -78,6 +79,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
           setUserJobSubcategory(userData.job_subcategory || null);
           setUserRole(userData.role || null);
           setUserIsPaid(Boolean(userData.is_paid));
+          setUserCreatedAt(userData.created_at || null);
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -147,12 +149,21 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
     }
 
     const isStaff = userRole === 'admin' || userRole === 'super_admin';
-    if (!userIsPaid && !isStaff) {
+    const created = userCreatedAt ? new Date(userCreatedAt) : null;
+    const trialActive = created ? (Date.now() - created.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+    const hasFullAccess = userIsPaid || isStaff || trialActive;
+    if (!hasFullAccess) {
       // Free plan: show only goals, achievements, tasks
       return baseItems.filter(item => ['goals', 'achievements', 'tasks'].includes(item.key));
     }
     return baseItems;
   };
+
+  // Compute access level (Pro/staff or within 7-day trial)
+  const created = userCreatedAt ? new Date(userCreatedAt) : null;
+  const trialActive = created ? (Date.now() - created.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+  const isStaff = userRole === 'admin' || userRole === 'super_admin';
+  const hasFullAccess = userIsPaid || isStaff || trialActive;
 
   return (
     <div className={`${mobile ? 'fixed left-0 top-0 h-screen w-72 z-30 flex flex-col' : 'hidden lg:flex lg:w-64 lg:h-screen lg:fixed lg:left-0 lg:top-0 z-10 flex flex-col'} bg-gradient-to-b from-white to-powerbi-gray-50 dark:from-powerbi-gray-800 dark:to-powerbi-gray-900 shadow-2xl border-r border-powerbi-gray-200/50 dark:border-powerbi-gray-700/50 backdrop-blur-sm ${className || ''}`}>
@@ -229,7 +240,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
             {t('sidebar.more')}
           </h3>
           <ul className="space-y-2">
-            {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) ? secondaryItemsBase.map((item) => {
+            {hasFullAccess ? secondaryItemsBase.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <li key={item.key}>
