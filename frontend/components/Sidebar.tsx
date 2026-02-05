@@ -34,6 +34,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
   const [userJobType, setUserJobType] = useState<string | null>(null);
   const [userJobSubcategory, setUserJobSubcategory] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userIsPaid, setUserIsPaid] = useState<boolean>(false);
   const { t } = useI18n();
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
@@ -76,6 +77,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
           setUserJobType(userData.job_type || null);
           setUserJobSubcategory(userData.job_subcategory || null);
           setUserRole(userData.role || null);
+          setUserIsPaid(Boolean(userData.is_paid));
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -144,6 +146,11 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
       });
     }
 
+    const isStaff = userRole === 'admin' || userRole === 'super_admin';
+    if (!userIsPaid && !isStaff) {
+      // Free plan: show only goals, achievements, tasks
+      return baseItems.filter(item => ['goals', 'achievements', 'tasks'].includes(item.key));
+    }
     return baseItems;
   };
 
@@ -222,7 +229,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
             {t('sidebar.more')}
           </h3>
           <ul className="space-y-2">
-            {secondaryItemsBase.map((item) => {
+            {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) ? secondaryItemsBase.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <li key={item.key}>
@@ -252,7 +259,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
                   </Link>
                 </li>
               );
-            })}
+            }) : null}
           </ul>
         </div>
       </nav>
