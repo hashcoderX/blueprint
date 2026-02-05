@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import CardPaymentForm, { CardPaymentValue } from '../../components/CardPaymentForm';
 import { useRouter } from 'next/navigation';
 
 export default function Signup() {
@@ -15,8 +16,15 @@ export default function Signup() {
     currency: 'USD',
     phone: '',
     subscription_plan: 'free',
+    payment_method: '',
+    card_number: '',
+    expiry_month: '',
+    expiry_year: '',
+    billing_address: '',
+    postal_code: '',
     accept_terms: false,
   });
+  const [paymentValid, setPaymentValid] = useState(false);
   const [error, setError] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
   const router = useRouter();
@@ -127,11 +135,36 @@ export default function Signup() {
       return;
     }
 
+    // If paid plan selected, validate card inputs (basic client-side checks)
+    const isPaid = formData.subscription_plan !== 'free';
+    if (isPaid && !paymentValid) {
+      setError('Please complete valid payment details');
+      return;
+    }
+
     try {
       const res = await fetch('http://localhost:3001/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          username: formData.username,
+          fullname: formData.fullname,
+          email: formData.email,
+          password: formData.password,
+          job_type: formData.job_type,
+          job_subcategory: formData.job_subcategory,
+          country: formData.country,
+          currency: formData.currency,
+          phone: formData.phone,
+          subscription_plan: formData.subscription_plan,
+          ...(isPaid ? {
+            payment_method: 'card',
+            card_number: formData.card_number,
+            expiry_month: formData.expiry_month,
+            expiry_year: formData.expiry_year,
+            billing_address: `${formData.billing_address}${formData.postal_code ? `, ${formData.postal_code}` : ''}`
+          } : {})
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -838,19 +871,39 @@ export default function Signup() {
               {currentStep === 4 && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white border-b border-powerbi-gray-200 dark:border-powerbi-gray-600 pb-2">Plan & Terms</h3>
-                <div>
-                  <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-1">Choose Your Plan</label>
-                  <select
-                    name="subscription_plan"
-                    value={formData.subscription_plan}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white transition-all duration-200 hover:shadow-md"
-                  >
-                    <option value="free">Free</option>
-                    <option value="basic">Basic - $9.99/mo</option>
-                    <option value="premium">Premium - $29.99/mo</option>
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button type="button" onClick={() => setFormData({ ...formData, subscription_plan: 'free', payment_method: '', card_number: '', expiry_month: '', expiry_year: '', billing_address: '', postal_code: '' })} className={`p-4 rounded-xl border ${formData.subscription_plan === 'free' ? 'border-powerbi-primary bg-powerbi-blue-50 dark:bg-powerbi-blue-900/20' : 'border-powerbi-gray-300 dark:border-powerbi-gray-600'} text-left`}>
+                    <div className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">Free</div>
+                    <div className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">Core features</div>
+                  </button>
+                  <button type="button" onClick={() => setFormData({ ...formData, subscription_plan: 'monthly' })} className={`p-4 rounded-xl border ${formData.subscription_plan === 'monthly' ? 'border-powerbi-primary bg-powerbi-blue-50 dark:bg-powerbi-blue-900/20' : 'border-powerbi-gray-300 dark:border-powerbi-gray-600'} text-left`}>
+                    <div className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">$2.99/month</div>
+                    <div className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">Monthly plan</div>
+                  </button>
+                  <button type="button" onClick={() => setFormData({ ...formData, subscription_plan: 'yearly' })} className={`p-4 rounded-xl border ${formData.subscription_plan === 'yearly' ? 'border-powerbi-primary bg-powerbi-blue-50 dark:bg-powerbi-blue-900/20' : 'border-powerbi-gray-300 dark:border-powerbi-gray-600'} text-left`}>
+                    <div className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">$29.99/year</div>
+                    <div className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">Best value</div>
+                  </button>
                 </div>
+
+                {/* Payment details for paid plans */}
+                {formData.subscription_plan !== 'free' && (
+                  <div className="space-y-4 mt-4">
+                    <h4 className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">Secure Payment Details</h4>
+                    <CardPaymentForm
+                      country={formData.country}
+                      value={{
+                        card_number: formData.card_number,
+                        expiry_month: formData.expiry_month,
+                        expiry_year: formData.expiry_year,
+                        billing_address: formData.billing_address,
+                        postal_code: formData.postal_code,
+                      }}
+                      onChange={(v) => setFormData({ ...formData, ...v })}
+                      onValidityChange={(valid) => setPaymentValid(valid)}
+                    />
+                  </div>
+                )}
 
                 <div className="flex items-start space-x-3 p-4 bg-powerbi-blue-50 dark:bg-powerbi-gray-700/50 rounded-lg border border-powerbi-blue-200 dark:border-powerbi-gray-600">
                   <input
@@ -870,6 +923,7 @@ export default function Signup() {
                     <a href="#" className="text-powerbi-primary hover:text-powerbi-secondary font-medium underline">
                       Privacy Policy
                     </a>
+                    . Payments are processed securely; we do not store raw card numbers.
                   </label>
                 </div>
                 </div>
@@ -906,7 +960,7 @@ export default function Signup() {
                     type="submit"
                     className="px-6 py-3 bg-gradient-to-r from-powerbi-primary to-powerbi-secondary hover:from-powerbi-secondary hover:to-powerbi-primary text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:ring-offset-2 shadow-lg hover:shadow-xl border-0 ml-auto w-full sm:w-auto shrink-0"
                   >
-                    Start Free
+                    {formData.subscription_plan === 'free' ? 'Start Free' : 'Complete Signup'}
                   </button>
                 )}
               </div>

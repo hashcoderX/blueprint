@@ -153,40 +153,7 @@ export default function HelpPage() {
           </p>
         </div>
 
-        {/* Contact Administration Desk */}
-        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-8">
-          <div className="flex items-center mb-4">
-            <Mail className="w-5 h-5 text-blue-600 mr-2" />
-            <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">Contact Administration Desk</h3>
-          </div>
-          <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-4">
-            Email: <a className="text-blue-600 hover:underline" href="mailto:support@codemint.space">support@codemint.space</a>
-          </p>
-          <form onSubmit={submitContact} className="space-y-3">
-            <input
-              type="text"
-              value={contactSubject}
-              onChange={(e) => setContactSubject(e.target.value)}
-              placeholder="Subject"
-              className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
-              required
-            />
-            <textarea
-              value={contactMessage}
-              onChange={(e) => setContactMessage(e.target.value)}
-              placeholder="Your message"
-              className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white min-h-28"
-              required
-            />
-            {contactError && <div className="text-sm text-red-600">{contactError}</div>}
-            {contactSuccess && <div className="text-sm text-green-600 flex items-center"><CheckCircle className="w-4 h-4 mr-1" /> {contactSuccess}</div>}
-            <div className="flex justify-end">
-              <button disabled={contactLoading} className="inline-flex items-center gap-2 bg-powerbi-primary text-white px-4 py-2 rounded-xl hover:brightness-110 disabled:opacity-50">
-                <Send className="w-4 h-4" /> {contactLoading ? 'Sending...' : 'Send'}
-              </button>
-            </div>
-          </form>
-        </div>
+        
 
         {/* Instant Message */}
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-8">

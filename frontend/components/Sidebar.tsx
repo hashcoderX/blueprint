@@ -25,6 +25,7 @@ const secondaryItemsBase = [
   { key: 'analytics', href: '/analytics', icon: BarChart3, descKey: 'analyticsDesc' },
   { key: 'settings', href: '/settings', icon: Settings, descKey: 'settingsDesc' },
   { key: 'help', href: '/help', icon: HelpCircle, descKey: 'helpDesc' },
+  { key: 'tutorials', href: '/tutorials', icon: BookOpen, descKey: 'tutorialsDesc' },
 ];
 
 export default function Sidebar({ className, mobile = false, onClose }: { className?: string; mobile?: boolean; onClose?: () => void }) {

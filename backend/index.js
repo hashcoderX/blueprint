@@ -103,21 +103,27 @@ app.post('/api/register', async (req, res) => {
           // Handle subscription
           if (subscription_plan && subscription_plan !== 'free') {
             const planDetails = {
-              free: { amount: 0, name: 'Free Plan' },
-              basic: { amount: 9.99, name: 'Basic Plan' },
-              premium: { amount: 29.99, name: 'Premium Plan' },
-              enterprise: { amount: 99.99, name: 'Enterprise Plan' }
+              free: { amount: 0, name: 'Free Plan', billing_cycle: 'none', cycleMonths: 0 },
+              monthly: { amount: 2.99, name: 'Monthly Plan', billing_cycle: 'monthly', cycleMonths: 1 },
+              yearly: { amount: 29.99, name: 'Yearly Plan', billing_cycle: 'yearly', cycleMonths: 12 },
+              basic: { amount: 9.99, name: 'Basic Plan', billing_cycle: 'monthly', cycleMonths: 1 },
+              premium: { amount: 29.99, name: 'Premium Plan', billing_cycle: 'monthly', cycleMonths: 1 },
+              enterprise: { amount: 99.99, name: 'Enterprise Plan', billing_cycle: 'monthly', cycleMonths: 1 }
             };
 
-            const plan = planDetails[subscription_plan] || planDetails.free;
+            const plan = planDetails[subscription_plan] || planDetails.monthly;
             const startDate = new Date();
             const endDate = new Date();
-            endDate.setMonth(endDate.getMonth() + 1); // Monthly billing
+            if (plan.cycleMonths && plan.cycleMonths > 0) {
+              endDate.setMonth(endDate.getMonth() + plan.cycleMonths);
+            } else {
+              endDate.setMonth(endDate.getMonth() + 1);
+            }
 
             await new Promise((resolve, reject) => {
               db.query(
                 'INSERT INTO subscriptions (user_id, plan_name, plan_type, status, amount, currency, billing_cycle, current_period_start, current_period_end, payment_method_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [userId, plan.name, subscription_plan, 'active', plan.amount, currency || 'USD', 'monthly', startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0], paymentMethodId],
+                [userId, plan.name, subscription_plan, 'active', plan.amount, currency || 'USD', plan.billing_cycle, startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0], paymentMethodId],
                 (err) => err ? reject(err) : resolve()
               );
             });
@@ -340,6 +346,110 @@ const writeSupportJson = (file, data) => {
   } catch {}
 };
 
+// --- Tutorials API (JSON storage) ---
+const ensureTutorialsStorage = () => {
+  const baseDir = path.join(__dirname, 'uploads');
+  try {
+    if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir);
+    const fp = path.join(baseDir, 'tutorials.json');
+    if (!fs.existsSync(fp)) fs.writeFileSync(fp, '[]');
+  } catch {}
+  return baseDir;
+};
+
+const readTutorialsJson = () => {
+  try {
+    const dir = ensureTutorialsStorage();
+    const fp = path.join(dir, 'tutorials.json');
+    const txt = fs.readFileSync(fp, 'utf-8');
+    return JSON.parse(txt || '[]');
+  } catch {
+    return [];
+  }
+};
+
+const writeTutorialsJson = (data) => {
+  try {
+    const dir = ensureTutorialsStorage();
+    const fp = path.join(dir, 'tutorials.json');
+    fs.writeFileSync(fp, JSON.stringify(data, null, 2));
+  } catch {}
+};
+
+// List tutorials (authenticated users). Super/admin see all; users see only published.
+app.get('/api/tutorials', authenticateToken, (req, res) => {
+  const items = readTutorialsJson();
+  const role = String(req.user.role || 'user');
+  const list = ['super_admin', 'admin'].includes(role) ? items : items.filter(t => !!t.published);
+  res.json(list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+});
+
+// Create tutorial (super_admin only)
+app.post('/api/tutorials', authenticateToken, (req, res) => {
+  if (String(req.user.role) !== 'super_admin') {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  const { title, content, category, video_url, tags, published } = req.body || {};
+  if (!title || !content) {
+    return res.status(400).json({ error: 'Title and content are required' });
+  }
+  const items = readTutorialsJson();
+  const item = {
+    id: Date.now(),
+    author_id: req.user.id,
+    title: String(title).slice(0, 200),
+    content: String(content).slice(0, 10000),
+    category: category ? String(category).slice(0, 100) : 'General',
+    video_url: video_url ? String(video_url).slice(0, 500) : null,
+    tags: Array.isArray(tags) ? tags.slice(0, 20).map(String) : [],
+    published: published === false ? false : true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+  items.push(item);
+  writeTutorialsJson(items);
+  res.status(201).json(item);
+});
+
+// Update tutorial (super_admin only)
+app.put('/api/tutorials/:id', authenticateToken, (req, res) => {
+  if (String(req.user.role) !== 'super_admin') {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid tutorial id' });
+  const items = readTutorialsJson();
+  const idx = items.findIndex(t => t.id === id);
+  if (idx === -1) return res.status(404).json({ error: 'Tutorial not found' });
+  const { title, content, category, video_url, tags, published } = req.body || {};
+  items[idx] = {
+    ...items[idx],
+    title: title !== undefined ? String(title).slice(0, 200) : items[idx].title,
+    content: content !== undefined ? String(content).slice(0, 10000) : items[idx].content,
+    category: category !== undefined ? String(category).slice(0, 100) : items[idx].category,
+    video_url: video_url !== undefined ? (video_url ? String(video_url).slice(0, 500) : null) : items[idx].video_url,
+    tags: tags !== undefined ? (Array.isArray(tags) ? tags.slice(0, 20).map(String) : items[idx].tags) : items[idx].tags,
+    published: published !== undefined ? !!published : items[idx].published,
+    updated_at: new Date().toISOString()
+  };
+  writeTutorialsJson(items);
+  res.json(items[idx]);
+});
+
+// Delete tutorial (super_admin only)
+app.delete('/api/tutorials/:id', authenticateToken, (req, res) => {
+  if (String(req.user.role) !== 'super_admin') {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid tutorial id' });
+  const items = readTutorialsJson();
+  const next = items.filter(t => t.id !== id);
+  if (next.length === items.length) return res.status(404).json({ error: 'Tutorial not found' });
+  writeTutorialsJson(next);
+  res.json({ success: true });
+});
+
 // Contact administration desk (stores message)
 app.post('/api/support/contact', authenticateToken, (req, res) => {
   const { subject, message } = req.body || {};
@@ -457,6 +567,44 @@ app.post('/api/support/chat/reply', authenticateToken, (req, res) => {
 app.get('/api/support/tickets', authenticateToken, (req, res) => {
   const tickets = readSupportJson('support_tickets.json').filter(t => t.user_id === req.user.id);
   res.json(tickets);
+});
+
+// Admin: list all tickets across users
+app.get('/api/support/tickets/all', authenticateToken, async (req, res) => {
+  try {
+    if (!['super_admin', 'admin'].includes(String(req.user.role))) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const tickets = readSupportJson('support_tickets.json');
+    // Enrich with user info
+    const userIds = Array.from(new Set(tickets.map(t => t.user_id)));
+    let usersById = {};
+    if (userIds.length > 0) {
+      try {
+        const db = await dbPromise;
+        const placeholders = userIds.map(() => '?').join(',');
+        const sql = `SELECT id, username, fullname FROM users WHERE id IN (${placeholders})`;
+        await new Promise((resolve, reject) => {
+          db.query(sql, userIds, (err, rows) => {
+            if (err) return reject(err);
+            usersById = (rows || []).reduce((acc, row) => {
+              acc[row.id] = { id: row.id, username: row.username, fullname: row.fullname };
+              return acc;
+            }, {});
+            resolve();
+          });
+        });
+      } catch (e) {
+        // ignore lookup errors
+      }
+    }
+    const enriched = tickets
+      .map(t => ({ ...t, user: usersById[t.user_id] || null }))
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    res.json(enriched);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to load tickets' });
+  }
 });
 
 app.post('/api/support/tickets', authenticateToken, (req, res) => {

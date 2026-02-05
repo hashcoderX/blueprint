@@ -39,6 +39,8 @@
       "analytics": "Analytics",
       "settings": "Settings",
       "help": "Help"
+      ,
+      "tutorials": "Tutorials"
     },
     "descriptions": {
       "dashboardDesc": "Overview & insights",
@@ -55,7 +57,8 @@
       "supportDeskDesc": "View and reply to user chats",
       "analyticsDesc": "Detailed reports",
       "settingsDesc": "Preferences",
-      "helpDesc": "Support & FAQ"
+      "helpDesc": "Support & FAQ",
+      "tutorialsDesc": "Guides and how-tos"
     }
   },
   "dashboard": {
@@ -100,6 +103,7 @@
   }
   ,
   "pages": {
+    "tutorials": { "title": "Tutorials" },
     "achievements": {
       "title": "Achievements",
       "subtitle": "Track your financial milestones and earn rewards",
