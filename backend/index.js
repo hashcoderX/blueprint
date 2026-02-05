@@ -1854,6 +1854,121 @@ app.get('/api/subscription', authenticateToken, async (req, res) => {
   }
 });
 
+// Update default payment method
+app.put('/api/payment-method', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { card_number, expiry_month, expiry_year, billing_address, payment_type = 'credit_card' } = req.body || {};
+    if (!card_number || !expiry_month || !expiry_year) {
+      return res.status(400).json({ error: 'Missing payment details' });
+    }
+    if (!EncryptionService.validateCardNumber(card_number)) {
+      return res.status(400).json({ error: 'Invalid card number' });
+    }
+    const encryptedCardNumber = EncryptionService.encrypt(card_number);
+    const lastFour = String(card_number).replace(/\D/g, '').slice(-4);
+
+    // Set all existing defaults to false
+    await new Promise((resolve, reject) => db.query('UPDATE payment_methods SET is_default = FALSE WHERE user_id = ?', [req.user.id], (e) => e ? reject(e) : resolve()));
+
+    // Insert new payment method as default
+    const insertResult = await new Promise((resolve, reject) => db.query(
+      'INSERT INTO payment_methods (user_id, payment_type, card_type, last_four, expiry_month, expiry_year, encrypted_card_number, billing_address, is_default, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [req.user.id, payment_type, 'visa', lastFour, Number(expiry_month), Number(expiry_year), encryptedCardNumber, billing_address || null, true, 'active'],
+      (err, result) => err ? reject(err) : resolve(result)
+    ));
+
+    const paymentMethodId = insertResult.insertId;
+
+    // Update active subscription to reference new payment method
+    await new Promise((resolve) => db.query(
+      'UPDATE subscriptions SET payment_method_id = ? WHERE user_id = ? AND status = "active"',
+      [paymentMethodId, req.user.id], () => resolve()
+    ));
+
+    res.json({ success: true, payment_method_id: paymentMethodId, last_four: lastFour });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Upgrade to Pro (monthly or yearly)
+app.post('/api/subscription/upgrade', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { plan_type, payment_method = 'credit_card', card_number, expiry_month, expiry_year, billing_address, currency } = req.body || {};
+    if (!['monthly','yearly'].includes(plan_type)) {
+      return res.status(400).json({ error: 'Invalid plan_type' });
+    }
+    if (!card_number || !expiry_month || !expiry_year) {
+      return res.status(400).json({ error: 'Missing payment details' });
+    }
+    if (!EncryptionService.validateCardNumber(card_number)) {
+      return res.status(400).json({ error: 'Invalid card number' });
+    }
+
+    const planDetails = {
+      monthly: { amount: 2.99, name: 'Monthly Plan', billing_cycle: 'monthly', cycleMonths: 1 },
+      yearly: { amount: 29.99, name: 'Yearly Plan', billing_cycle: 'yearly', cycleMonths: 12 },
+    };
+    const plan = planDetails[plan_type];
+
+    const encryptedCardNumber = EncryptionService.encrypt(card_number);
+    const lastFour = String(card_number).replace(/\D/g, '').slice(-4);
+
+    // Insert payment method default
+    const pmRes = await new Promise((resolve, reject) => db.query(
+      'INSERT INTO payment_methods (user_id, payment_type, card_type, last_four, expiry_month, expiry_year, encrypted_card_number, billing_address, is_default, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [req.user.id, payment_method, 'visa', lastFour, Number(expiry_month), Number(expiry_year), encryptedCardNumber, billing_address || null, true, 'active'],
+      (err, result) => err ? reject(err) : resolve(result)
+    ));
+    const paymentMethodId = pmRes.insertId;
+
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + plan.cycleMonths);
+
+    await new Promise((resolve, reject) => db.query(
+      'INSERT INTO subscriptions (user_id, plan_name, plan_type, status, amount, currency, billing_cycle, current_period_start, current_period_end, payment_method_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [req.user.id, plan.name, plan_type, 'active', plan.amount, currency || 'USD', plan.billing_cycle, startDate.toISOString().slice(0,10), endDate.toISOString().slice(0,10), paymentMethodId],
+      (err) => err ? reject(err) : resolve()
+    ));
+
+    // Mark user as paid
+    await new Promise((resolve) => db.query('UPDATE users SET is_paid = TRUE WHERE id = ?', [req.user.id], () => resolve()));
+
+    res.json({ success: true, plan_type, payment_method_id: paymentMethodId });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Profile verification endpoints
+app.get('/api/user/verification', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    db.query('SELECT verified FROM users WHERE id = ?', [req.user.id], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!rows || rows.length === 0) return res.status(404).json({ error: 'User not found' });
+      res.json({ verified: !!rows[0].verified });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+app.post('/api/user/verify', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    // For MVP: mark verified true. In production, require email/code verification.
+    db.query('UPDATE users SET verified = TRUE WHERE id = ?', [req.user.id], (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ verified: true });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
 // API Keys APIs
 app.get('/api/api-keys', authenticateToken, async (req, res) => {
   try {

@@ -637,6 +637,19 @@ tempConnection.connect((err) => {
             }
           });
 
+          // Ensure users table has verified column
+          const alterUsersVerified = `
+            ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS verified BOOLEAN DEFAULT FALSE;
+          `;
+          connection.query(alterUsersVerified, (alterUsersVerifiedErr) => {
+            if (alterUsersVerifiedErr) {
+              console.error('Error altering users table (verified):', alterUsersVerifiedErr);
+            } else {
+              console.log('Users table verified column ensured');
+            }
+          });
+
           // Insert sample data if tables are empty
           const insertSampleData = `
             INSERT IGNORE INTO users (id, username, fullname, email, phone, address, country, currency, password, role, status, is_paid) VALUES
