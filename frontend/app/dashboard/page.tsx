@@ -190,6 +190,8 @@ export default function Dashboard() {
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
   const [userCurrency, setUserCurrency] = useState('USD');
+  const [userIsPaid, setUserIsPaid] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const [spendingByCategory, setSpendingByCategory] = useState<Record<string, number>>({});
 
@@ -200,6 +202,8 @@ export default function Dashboard() {
       if (res.ok) {
         const user = await res.json();
         setUserCurrency(user.currency || 'USD');
+        setUserIsPaid(Boolean(user.is_paid));
+        setUserRole(user.role || null);
       }
     } catch (e) {
       console.error('Error loading user profile:', e);
@@ -459,15 +463,17 @@ export default function Dashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-          <StatCard
-            title={t('dashboard.stats.totalExpenses')}
-            value={stats.totalExpenses}
-            change={stats.monthlyChange}
-            icon={DollarSign}
-            color="red"
-            prefix="$"
-            currency={userCurrency}
-          />
+          {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
+            <StatCard
+              title={t('dashboard.stats.totalExpenses')}
+              value={stats.totalExpenses}
+              change={stats.monthlyChange}
+              icon={DollarSign}
+              color="red"
+              prefix="$"
+              currency={userCurrency}
+            />
+          )}
           <StatCard
             title={t('dashboard.stats.goalsProgress')}
             value={stats.goalsProgress}
@@ -481,14 +487,16 @@ export default function Dashboard() {
             icon={CheckSquare}
             color="blue"
           />
-          <StatCard
-            title={t('dashboard.stats.vehicleExpenses')}
-            value={stats.vehicleExpenses}
-            icon={Car}
-            color="purple"
-            prefix="$"
-            currency={userCurrency}
-          />
+          {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
+            <StatCard
+              title={t('dashboard.stats.vehicleExpenses')}
+              value={stats.vehicleExpenses}
+              icon={Car}
+              color="purple"
+              prefix="$"
+              currency={userCurrency}
+            />
+          )}
         </div>
 
         {/* Charts and Insights Row */}
@@ -551,13 +559,15 @@ export default function Dashboard() {
           {/* Quick Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white mb-4 sm:col-span-2">{t('dashboard.quickActions')}</h3>
-            <QuickAction
-              icon={Plus}
-              title={t('dashboard.quickActionsItems.addExpense.title')}
-              description={t('dashboard.quickActionsItems.addExpense.description')}
-              onClick={() => router.push('/expenses')}
-              color="red"
-            />
+            {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
+              <QuickAction
+                icon={Plus}
+                title={t('dashboard.quickActionsItems.addExpense.title')}
+                description={t('dashboard.quickActionsItems.addExpense.description')}
+                onClick={() => router.push('/expenses')}
+                color="red"
+              />
+            )}
             <QuickAction
               icon={Target}
               title={t('dashboard.quickActionsItems.setGoal.title')}
@@ -572,17 +582,20 @@ export default function Dashboard() {
               onClick={() => router.push('/tasks')}
               color="blue"
             />
-            <QuickAction
-              icon={Calendar}
-              title={t('dashboard.quickActionsItems.schedulePayment.title')}
-              description={t('dashboard.quickActionsItems.schedulePayment.description')}
-              onClick={() => router.push('/expenses')}
-              color="purple"
-            />
+            {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
+              <QuickAction
+                icon={Calendar}
+                title={t('dashboard.quickActionsItems.schedulePayment.title')}
+                description={t('dashboard.quickActionsItems.schedulePayment.description')}
+                onClick={() => router.push('/expenses')}
+                color="purple"
+              />
+            )}
           </div>
         </div>
 
-        {/* Diary Section */}
+        {/* Diary Section (Pro only) */}
+        {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('dashboard.diaryTitle')}</h3>
@@ -639,6 +652,7 @@ export default function Dashboard() {
             <div className="text-powerbi-gray-500">{t('dashboard.loginToViewDiary')}</div>
           )}
         </div>
+        )}
 
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -657,7 +671,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Financial Insights */}
+          {/* Financial Insights (Pro only) */}
+          {(userIsPaid || (userRole === 'admin' || userRole === 'super_admin')) && (
           <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('dashboard.financialInsights')}</h3>
@@ -704,6 +719,7 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
     </DashboardLayout>
