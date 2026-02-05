@@ -432,13 +432,9 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
               </div>
 
               <div className="py-1">
-                <button suppressHydrationWarning className="flex items-center w-full px-4 py-2 text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 transition-colors">
+                <button suppressHydrationWarning onClick={() => { setShowUserMenu(false); router.push('/settings'); }} className="flex items-center w-full px-4 py-2 text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 transition-colors">
                   <User className="w-4 h-4 mr-3" />
                   {t('header.profileSettings')}
-                </button>
-                <button suppressHydrationWarning className="flex items-center w-full px-4 py-2 text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300 hover:bg-powerbi-gray-100 dark:hover:bg-powerbi-gray-700 transition-colors">
-                  <Settings className="w-4 h-4 mr-3" />
-                  {t('header.preferences')}
                 </button>
               </div>
 
