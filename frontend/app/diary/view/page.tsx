@@ -27,7 +27,7 @@ export default function DiaryList() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const [hasToken, setHasToken] = useState<boolean | null>(null);
 
   const filtered = entries.filter((e) =>
     [e.title, e.content, e.one_sentence].join(' ').toLowerCase().includes(query.toLowerCase())
@@ -46,11 +46,19 @@ export default function DiaryList() {
     }, 300);
   }, [isAnimating, currentPage, filtered.length]);
 
+  // Initialize token presence on client to avoid SSR hydration mismatch
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    const t = typeof window !== 'undefined' ? !!localStorage.getItem('token') : false;
+    setHasToken(t);
+  }, []);
+
+  useEffect(() => {
+    if (hasToken !== true) {
+      // If not logged in or unknown, stop loading state quickly
+      if (hasToken === false) setLoading(false);
       return;
     }
+    const token = localStorage.getItem('token');
     fetch('http://localhost:3001/api/diary', {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -58,13 +66,13 @@ export default function DiaryList() {
       .then((data) => {
         if (Array.isArray(data)) {
           const sorted = data
-            .filter(e => e.date) // Filter out entries without dates
+            .filter(e => e.date)
             .sort((a: DiaryEntry, b: DiaryEntry) => (a.date! < b.date! ? 1 : -1));
           setEntries(sorted);
         }
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [hasToken]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -82,7 +90,7 @@ export default function DiaryList() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-6 mt-16">
+      <div className="max-w-7xl mx-auto space-y-6 mt-16 px-4 sm:px-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-wrap min-w-0">
           <div className="min-w-0">
@@ -105,9 +113,11 @@ export default function DiaryList() {
         </div>
 
         {/* Diary Book */}
-        <div className="flex justify-center">
+        <div className="flex justify-center px-0 sm:px-2">
           <div className="relative w-full max-w-2xl">
-            {(!token) ? (
+            {hasToken === null ? (
+              <div className="text-gray-500 text-center py-20">Loading your diary...</div>
+            ) : hasToken === false ? (
               <div className="text-gray-500 text-center py-20">Log in to view your diary.</div>
             ) : loading ? (
               <div className="text-gray-500 text-center py-20">Loading your diary...</div>
@@ -117,7 +127,7 @@ export default function DiaryList() {
               <>
                 {/* Page Content */}
                 <div
-                  className={`relative bg-white dark:bg-powerbi-gray-800 p-6 sm:p-8 rounded-2xl shadow-2xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 min-h-[500px] transition-all duration-300 ${
+                  className={`relative bg-white dark:bg-powerbi-gray-800 p-4 sm:p-8 rounded-2xl shadow-2xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 min-h-[380px] sm:min-h-[500px] transition-all duration-300 ${
                     isAnimating ? 'opacity-50 scale-95' : 'opacity-100 scale-100'
                   }`}
                   style={{
@@ -126,10 +136,10 @@ export default function DiaryList() {
                   }}
                 >
                   {/* Decorative ribbon */}
-                  <div className="absolute -top-3 left-6 w-28 h-3 rounded-b-xl bg-gradient-to-r from-amber-500 to-amber-300 dark:from-amber-600 dark:to-amber-400" />
+                  <div className="absolute -top-3 left-6 w-28 h-3 rounded-b-xl bg-gradient-to-r from-amber-500 to-amber-300 dark:from-amber-600 dark:to-amber-400 mt-12" />
 
                   {/* Inner page tint */}
-                  <div className="rounded-xl p-4 sm:p-6 bg-amber-50 dark:bg-amber-900/10">
+                  <div className="rounded-xl p-4 sm:p-6 bg-amber-50 dark:bg-amber-900/10 overflow-y-auto max-h-[60vh] sm:max-h-[65vh]">
                   <div className="mb-6">
                     <div className="text-2xl font-light text-gray-900 dark:text-white mb-2" style={{ fontFamily: 'var(--font-kalam)' }}>
                       {(() => {
@@ -161,7 +171,7 @@ export default function DiaryList() {
                     </div>
                   )}
 
-                  <div className="text-base text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap" style={{ fontFamily: 'var(--font-kalam)', fontSize: '18px', lineHeight: '1.6' }}>
+                  <div className="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap break-words" style={{ fontFamily: 'var(--font-kalam)', lineHeight: '1.6' }}>
                     {currentEntry.content}
                   </div>
 
@@ -172,11 +182,11 @@ export default function DiaryList() {
                 </div>
 
                 {/* Navigation Buttons */}
-                <div className="flex justify-between mt-6">
+                <div className="flex flex-col sm:flex-row justify-between mt-6 gap-3 sm:gap-0">
                   <button
                     onClick={() => handlePageTurn('prev')}
                     disabled={currentPage === 0 || isAnimating}
-                    className="flex items-center px-4 py-2 bg-powerbi-primary hover:brightness-110 disabled:opacity-50 text-white rounded-xl transition-colors"
+                    className="flex items-center justify-center px-4 py-3 bg-powerbi-primary hover:brightness-110 disabled:opacity-50 text-white rounded-xl transition-colors w-full sm:w-auto"
                   >
                     <ChevronLeft size={20} className="mr-2" />
                     Previous
@@ -184,7 +194,7 @@ export default function DiaryList() {
                   <button
                     onClick={() => handlePageTurn('next')}
                     disabled={currentPage === filtered.length - 1 || isAnimating}
-                    className="flex items-center px-4 py-2 bg-powerbi-primary hover:brightness-110 disabled:opacity-50 text-white rounded-xl transition-colors"
+                    className="flex items-center justify-center px-4 py-3 bg-powerbi-primary hover:brightness-110 disabled:opacity-50 text-white rounded-xl transition-colors w-full sm:w-auto"
                   >
                     Next
                     <ChevronRight size={20} className="ml-2" />

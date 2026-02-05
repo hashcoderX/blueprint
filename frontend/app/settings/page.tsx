@@ -16,6 +16,7 @@ interface Profile {
   job_type?: string;
   job_subcategory?: string;
   is_paid?: boolean;
+  super_free?: boolean;
   created_at?: string;
   verified?: boolean;
 }
@@ -59,14 +60,8 @@ export default function Settings() {
             setSubscription(sub);
           }
         } catch {}
-        // Load verification status (fallback to profile.verified if present)
-        try {
-          const vRes = await fetch('http://localhost:3001/api/user/verification', { headers: { Authorization: `Bearer ${token}` } });
-          if (vRes.ok) {
-            const v = await vRes.json();
-            setProfile((p) => p ? { ...p, verified: v.verified } : p);
-          }
-        } catch {}
+        // Verification status is now included in profile
+        setProfile((p) => p ? { ...p, verified: Boolean(data.verified) } : p);
       }
     } catch (e) {
       console.error('Failed to load profile', e);
@@ -250,7 +245,14 @@ export default function Settings() {
               </span>
             )}
           </div>
-          {profile && !profile.is_paid ? (
+          {profile && profile.super_free ? (
+            <div>
+              <div className="p-4 rounded-xl border border-green-200 bg-green-50 dark:border-green-900/30 dark:bg-green-900/10 mb-4">
+                <p className="text-sm text-green-800 dark:text-green-300">Super Free is active for this account. Full access granted without payment. Managed by Super Admin.</p>
+              </div>
+              <div className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Payment and upgrade options are disabled while Super Free is active.</div>
+            </div>
+          ) : profile && !profile.is_paid ? (
             <div>
               <div className="p-4 rounded-xl border border-powerbi-blue-200 bg-powerbi-blue-50 dark:border-powerbi-gray-700 dark:bg-powerbi-gray-700/40 mb-4">
                 <p className="text-sm text-powerbi-gray-700 dark:text-powerbi-gray-300">You are on Free. Enjoy full access during your 7-day trial. Upgrade to Pro to keep all features.</p>

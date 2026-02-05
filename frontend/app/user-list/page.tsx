@@ -19,6 +19,7 @@ interface User {
   role: string;
   status: string;
   is_paid: boolean;
+  super_free?: boolean;
   created_at: string;
 }
 
@@ -145,6 +146,31 @@ export default function UserList() {
     }
   };
 
+  const toggleSuperFree = async (userId: number, currentSuperFree: boolean) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('No authentication token found');
+      return;
+    }
+    setUpdatingUserId(userId);
+    try {
+      const res = await fetch(`http://localhost:3001/api/users/${userId}/super-free`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ super_free: !currentSuperFree })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to update Super Free');
+      }
+      setUsers(users.map(u => u.id === userId ? { ...u, super_free: !currentSuperFree } : u));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update Super Free');
+    } finally {
+      setUpdatingUserId(null);
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -238,24 +264,36 @@ export default function UserList() {
                         const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
                         const isCurrentUser = user.id === currentUser.id;
                         return (
-                          <button
-                            onClick={() => toggleUserStatus(user.id, user.status)}
-                            disabled={updatingUserId === user.id || isCurrentUser}
-                            className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                              user.status === 'active'
-                                ? 'bg-red-100 hover:bg-red-200 text-red-800 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-300'
-                                : 'bg-green-100 hover:bg-green-200 text-green-800 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-300'
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
-                          >
-                            {updatingUserId === user.id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                            ) : user.status === 'active' ? (
-                              <PowerOff className="w-4 h-4 mr-2" />
-                            ) : (
-                              <Power className="w-4 h-4 mr-2" />
-                            )}
-                            {isCurrentUser ? 'Current User' : (user.status === 'active' ? 'Deactivate' : 'Activate')}
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => toggleUserStatus(user.id, user.status)}
+                              disabled={updatingUserId === user.id || isCurrentUser}
+                              className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                                user.status === 'active'
+                                  ? 'bg-red-100 hover:bg-red-200 text-red-800 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-300'
+                                  : 'bg-green-100 hover:bg-green-200 text-green-800 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-300'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                              {updatingUserId === user.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                              ) : user.status === 'active' ? (
+                                <PowerOff className="w-4 h-4 mr-2" />
+                              ) : (
+                                <Power className="w-4 h-4 mr-2" />
+                              )}
+                              {isCurrentUser ? 'Current User' : (user.status === 'active' ? 'Deactivate' : 'Activate')}
+                            </button>
+                            <button
+                              onClick={() => toggleSuperFree(user.id, Boolean(user.super_free))}
+                              disabled={updatingUserId === user.id}
+                              className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                                user.super_free ? 'bg-green-100 hover:bg-green-200 text-green-800 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-300' : 'bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-300'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                              {user.super_free ? <UserCheck className="w-4 h-4 mr-2" /> : <Crown className="w-4 h-4 mr-2" />}
+                              {user.super_free ? 'Remove Super Free' : 'Make Super Free'}
+                            </button>
+                          </div>
                         );
                       })()}
                     </td>

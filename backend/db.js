@@ -650,6 +650,19 @@ tempConnection.connect((err) => {
             }
           });
 
+          // Ensure users table has super_free column (grants full access without payment)
+          const alterUsersSuperFree = `
+            ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS super_free BOOLEAN DEFAULT FALSE;
+          `;
+          connection.query(alterUsersSuperFree, (alterUsersSuperFreeErr) => {
+            if (alterUsersSuperFreeErr) {
+              console.error('Error altering users table (super_free):', alterUsersSuperFreeErr);
+            } else {
+              console.log('Users table super_free column ensured');
+            }
+          });
+
           // Insert sample data if tables are empty
           const insertSampleData = `
             INSERT IGNORE INTO users (id, username, fullname, email, phone, address, country, currency, password, role, status, is_paid) VALUES

@@ -36,6 +36,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userIsPaid, setUserIsPaid] = useState<boolean>(false);
   const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
+  const [userSuperFree, setUserSuperFree] = useState<boolean>(false);
   const { t } = useI18n();
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
@@ -79,6 +80,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
           setUserJobSubcategory(userData.job_subcategory || null);
           setUserRole(userData.role || null);
           setUserIsPaid(Boolean(userData.is_paid));
+          setUserSuperFree(Boolean(userData.super_free));
           setUserCreatedAt(userData.created_at || null);
         }
       } catch (error) {
@@ -151,7 +153,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
     const isStaff = userRole === 'admin' || userRole === 'super_admin';
     const created = userCreatedAt ? new Date(userCreatedAt) : null;
     const trialActive = created ? (Date.now() - created.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
-    const hasFullAccess = userIsPaid || isStaff || trialActive;
+    const hasFullAccess = userIsPaid || isStaff || trialActive || userSuperFree;
     if (!hasFullAccess) {
       // Free plan: show only goals, achievements, tasks
       return baseItems.filter(item => ['goals', 'achievements', 'tasks'].includes(item.key));
@@ -163,7 +165,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
   const created = userCreatedAt ? new Date(userCreatedAt) : null;
   const trialActive = created ? (Date.now() - created.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
   const isStaff = userRole === 'admin' || userRole === 'super_admin';
-  const hasFullAccess = userIsPaid || isStaff || trialActive;
+  const hasFullAccess = userIsPaid || isStaff || trialActive || userSuperFree;
 
   return (
     <div className={`${mobile ? 'fixed left-0 top-0 h-screen w-72 z-30 flex flex-col' : 'hidden lg:flex lg:w-64 lg:h-screen lg:fixed lg:left-0 lg:top-0 z-10 flex flex-col'} bg-gradient-to-b from-white to-powerbi-gray-50 dark:from-powerbi-gray-800 dark:to-powerbi-gray-900 shadow-2xl border-r border-powerbi-gray-200/50 dark:border-powerbi-gray-700/50 backdrop-blur-sm ${className || ''}`}>

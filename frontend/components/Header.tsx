@@ -245,6 +245,12 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
             type="text"
             placeholder={t('header.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2 bg-powerbi-gray-100 dark:bg-powerbi-gray-700 border border-powerbi-gray-200 dark:border-powerbi-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-transparent transition-all duration-200"
+            onKeyDown={(e) => {
+              const val = (e.target as HTMLInputElement).value.trim();
+              if (e.key === 'Enter' && val) {
+                router.push(`/search?query=${encodeURIComponent(val)}`);
+              }
+            }}
           />
         </div>
       </div>

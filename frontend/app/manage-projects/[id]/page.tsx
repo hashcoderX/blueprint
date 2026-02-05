@@ -187,7 +187,7 @@ export default function ProjectDetailsPage() {
 
   return (
     <DashboardLayout>
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8 mt-16">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-powerbi-gray-900 dark:text-white flex items-center">

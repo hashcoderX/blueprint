@@ -193,6 +193,7 @@ export default function Dashboard() {
   const [userIsPaid, setUserIsPaid] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
+  const [userSuperFree, setUserSuperFree] = useState<boolean>(false);
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const [spendingByCategory, setSpendingByCategory] = useState<Record<string, number>>({});
 
@@ -205,6 +206,7 @@ export default function Dashboard() {
         setUserCurrency(user.currency || 'USD');
         setUserIsPaid(Boolean(user.is_paid));
         setUserRole(user.role || null);
+        setUserSuperFree(Boolean(user.super_free));
         setUserCreatedAt(user.created_at || null);
       }
     } catch (e) {
@@ -453,7 +455,7 @@ export default function Dashboard() {
   const created = userCreatedAt ? new Date(userCreatedAt) : null;
   const trialActive = created ? (Date.now() - created.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
   const isStaff = userRole === 'admin' || userRole === 'super_admin';
-  const hasFullAccess = userIsPaid || isStaff || trialActive;
+  const hasFullAccess = userIsPaid || isStaff || trialActive || userSuperFree;
 
   return (
     <DashboardLayout>

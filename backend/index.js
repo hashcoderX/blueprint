@@ -241,7 +241,7 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
   try {
     const db = await dbPromise;
     db.query(
-      'SELECT id, username, fullname, email, phone, address, country, currency, job_type, job_subcategory, role, status, is_paid, created_at FROM users WHERE id = ?',
+      'SELECT id, username, fullname, email, phone, address, country, currency, job_type, job_subcategory, role, status, is_paid, super_free, verified, created_at FROM users WHERE id = ?',
       [req.user.id],
       (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -293,7 +293,7 @@ app.put('/api/user/profile', authenticateToken, async (req, res) => {
 
       // Return updated profile
       db.query(
-        'SELECT id, username, fullname, email, phone, address, country, currency, job_type, job_subcategory, role, status, is_paid, created_at FROM users WHERE id = ?',
+        'SELECT id, username, fullname, email, phone, address, country, currency, job_type, job_subcategory, role, status, is_paid, super_free, verified, created_at FROM users WHERE id = ?',
         [req.user.id],
         (err2, results) => {
           if (err2) return res.status(500).json({ error: err2.message });
@@ -679,7 +679,7 @@ app.get('/api/users', authenticateToken, async (req, res) => {
 
         // Get paginated users
         db.query(
-          'SELECT id, username, fullname, email, phone, address, country, currency, job_type, job_subcategory, role, status, is_paid, created_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?',
+          'SELECT id, username, fullname, email, phone, address, country, currency, job_type, job_subcategory, role, status, is_paid, super_free, created_at FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?',
           [limit, offset],
           (err3, userResults) => {
             if (err3) return res.status(500).json({ error: err3.message });
@@ -725,6 +725,32 @@ app.put('/api/users/:id/status', authenticateToken, async (req, res) => {
         if (err2) return res.status(500).json({ error: err2.message });
         if (result.affectedRows === 0) return res.status(404).json({ error: 'User not found' });
         res.json({ message: 'User status updated successfully' });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Toggle Super Free (super_admin only): grants full access without payment
+app.post('/api/users/:id/super-free', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { id } = req.params;
+    const { super_free } = req.body || {};
+
+    // Check if requester is super_admin
+    db.query('SELECT role FROM users WHERE id = ?', [req.user.id], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0 || results[0].role !== 'super_admin') {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      const val = super_free === true || super_free === 'true';
+      db.query('UPDATE users SET super_free = ? WHERE id = ?', [val, id], (err2, result) => {
+        if (err2) return res.status(500).json({ error: err2.message });
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'User not found' });
+        res.json({ success: true, user_id: Number(id), super_free: val });
       });
     });
   } catch (err) {
@@ -3593,5 +3619,110 @@ app.post('/api/notifications/mark-read', authenticateToken, async (req, res) => 
     });
   } catch (err) {
     res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Advanced Search: expenses, goals, tasks
+app.get('/api/search', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const userId = req.user.id;
+    const {
+      q = '',
+      type = 'all',
+      page = 1,
+      limit = 10,
+      date_from,
+      date_to,
+      min_amount,
+      max_amount,
+      status
+    } = req.query;
+
+    const like = `%${String(q).trim()}%`;
+    const pg = Math.max(1, Number(page));
+    const lim = Math.max(1, Math.min(50, Number(limit)));
+    const offset = (pg - 1) * lim;
+
+    const dateRangeClause = (tableDateCol) => {
+      const clauses = [];
+      const params = [];
+      if (date_from) { clauses.push(`${tableDateCol} >= ?`); params.push(String(date_from)); }
+      if (date_to) { clauses.push(`${tableDateCol} <= ?`); params.push(String(date_to)); }
+      return { clause: clauses.length ? ' AND ' + clauses.join(' AND ') : '', params };
+    };
+
+    const buildExpensesQuery = () => {
+      const { clause, params } = dateRangeClause('date');
+      const amountClauses = [];
+      if (min_amount) { amountClauses.push('amount >= ?'); params.push(Number(min_amount)); }
+      if (max_amount) { amountClauses.push('amount <= ?'); params.push(Number(max_amount)); }
+      const amountClause = amountClauses.length ? ' AND ' + amountClauses.join(' AND ') : '';
+      const sql = `SELECT id, description, amount, date, category FROM expenses WHERE user_id = ? AND (description LIKE ? OR category LIKE ?)${clause}${amountClause} ORDER BY date DESC LIMIT ? OFFSET ?`;
+      const countSql = `SELECT COUNT(*) as total FROM expenses WHERE user_id = ? AND (description LIKE ? OR category LIKE ?)${clause}${amountClause}`;
+      const sqlParams = [userId, like, like, ...params, lim, offset];
+      const countParams = [userId, like, like, ...params];
+      return { sql, sqlParams, countSql, countParams };
+    };
+
+    const buildGoalsQuery = () => {
+      const { clause, params } = dateRangeClause('created_at');
+      const statusClause = status ? ' AND status = ?' : '';
+      const sql = `SELECT id, name, description, category, current, target, target_date, status, created_at FROM goals WHERE user_id = ? AND (name LIKE ? OR description LIKE ? OR category LIKE ?)${clause}${statusClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+      const countSql = `SELECT COUNT(*) as total FROM goals WHERE user_id = ? AND (name LIKE ? OR description LIKE ? OR category LIKE ?)${clause}${statusClause}`;
+      const sqlParams = [userId, like, like, like, ...params, ...(status ? [String(status)] : []), lim, offset];
+      const countParams = [userId, like, like, like, ...params, ...(status ? [String(status)] : [])];
+      return { sql, sqlParams, countSql, countParams };
+    };
+
+    const buildTasksQuery = () => {
+      const { clause, params } = dateRangeClause('created_at');
+      const statusClause = status ? ' AND status = ?' : '';
+      const sql = `SELECT id, title, status, priority, category, planned_date, created_at, updated_at FROM tasks WHERE user_id = ? AND (title LIKE ? OR category LIKE ?)${clause}${statusClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`;
+      const countSql = `SELECT COUNT(*) as total FROM tasks WHERE user_id = ? AND (title LIKE ? OR category LIKE ?)${clause}${statusClause}`;
+      const sqlParams = [userId, like, like, ...params, ...(status ? [String(status)] : []), lim, offset];
+      const countParams = [userId, like, like, ...params, ...(status ? [String(status)] : [])];
+      return { sql, sqlParams, countSql, countParams };
+    };
+
+    const runQuery = (queryObj) => new Promise((resolve, reject) => {
+      db.query(queryObj.countSql, queryObj.countParams, (cErr, cRows) => {
+        if (cErr) return reject(cErr);
+        const total = cRows && cRows[0] ? Number(cRows[0].total) : 0;
+        db.query(queryObj.sql, queryObj.sqlParams, (err, rows) => {
+          if (err) return reject(err);
+          resolve({ items: rows || [], pagination: { total, page: pg, limit: lim, totalPages: Math.ceil(total / lim) } });
+        });
+      });
+    });
+
+    if (type === 'expenses') {
+      const qObj = buildExpensesQuery();
+      const resData = await runQuery(qObj);
+      return res.json({ type: 'expenses', ...resData });
+    }
+    if (type === 'goals') {
+      const qObj = buildGoalsQuery();
+      const resData = await runQuery(qObj);
+      return res.json({ type: 'goals', ...resData });
+    }
+    if (type === 'tasks') {
+      const qObj = buildTasksQuery();
+      const resData = await runQuery(qObj);
+      return res.json({ type: 'tasks', ...resData });
+    }
+
+    // type = all: fetch top 5 each (no count)
+    const exObj = buildExpensesQuery();
+    const goObj = buildGoalsQuery();
+    const taObj = buildTasksQuery();
+    const topLimit = 5;
+    const quickRun = (sql, params) => new Promise((resolve, reject) => db.query(sql, params, (e, rows) => e ? reject(e) : resolve(rows || [])));
+    const expenses = await quickRun(exObj.sql.replace('LIMIT ? OFFSET ?', `LIMIT ${topLimit} OFFSET 0`), exObj.sqlParams.slice(0, -2));
+    const goals = await quickRun(goObj.sql.replace('LIMIT ? OFFSET ?', `LIMIT ${topLimit} OFFSET 0`), goObj.sqlParams.slice(0, -2));
+    const tasks = await quickRun(taObj.sql.replace('LIMIT ? OFFSET ?', `LIMIT ${topLimit} OFFSET 0`), taObj.sqlParams.slice(0, -2));
+    return res.json({ type: 'all', expenses, goals, tasks });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Search failed' });
   }
 });

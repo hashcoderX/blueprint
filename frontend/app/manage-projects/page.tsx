@@ -418,7 +418,7 @@ export default function ManageProjects() {
 
   return (
     <DashboardLayout>
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8 mt-16">
         {/* Header */}
         <div className="flex flex-wrap justify-between items-start sm:items-center gap-4">
           <div className="min-w-0">
