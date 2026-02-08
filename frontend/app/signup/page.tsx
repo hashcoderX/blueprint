@@ -143,7 +143,7 @@ export default function Signup() {
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/register', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -182,7 +182,7 @@ export default function Signup() {
     <div className="min-h-screen bg-gradient-to-br from-powerbi-blue-50 via-white to-powerbi-blue-100 dark:from-powerbi-gray-900 dark:via-powerbi-gray-800 dark:to-powerbi-blue-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-start">
         {/* Header */}
-        <div className="lg:text-left text-center mb-8">
+        <div className="lg:text-left text-center mb-8 order-2 lg:order-1">
           
           <h2 className="text-3xl sm:text-4xl font-bold text-powerbi-gray-900 dark:text-white mb-6">Control Your Money, Goals & Life — One System</h2>
           <div className="space-y-4 text-lg text-powerbi-gray-600 dark:text-powerbi-gray-300 leading-relaxed">
@@ -207,7 +207,7 @@ export default function Signup() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-2xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 overflow-hidden backdrop-blur-sm bg-white/95 dark:bg-powerbi-gray-800/95">
+        <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-2xl border border-powerbi-gray-200 dark:border-powerbi-gray-700 overflow-hidden backdrop-blur-sm bg-white/95 dark:bg-powerbi-gray-800/95 order-1 lg:order-2">
           <div className="p-4 sm:p-8 md:px-16 md:py-12">
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Step Indicator */}
@@ -236,6 +236,7 @@ export default function Signup() {
                         value={formData.username}
                         onChange={handleChange}
                         required
+                        autoFocus
                         className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white transition-all duration-200 hover:shadow-md"
                       />
                     </div>

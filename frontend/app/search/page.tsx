@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { useSearchParams } from 'next/navigation';
 import { Search as SearchIcon, Target, CheckSquare, DollarSign, Calendar, Filter } from 'lucide-react';
 
 type TypeOption = 'all' | 'expenses' | 'goals' | 'tasks';
 
-export default function AdvancedSearch() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+function SearchContent() {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
   const sp = useSearchParams();
   const initialQuery = sp.get('query') || '';
   const [q, setQ] = useState(initialQuery);
@@ -200,5 +200,13 @@ export default function AdvancedSearch() {
         )}
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function AdvancedSearch() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SearchContent />
+    </Suspense>
   );
 }

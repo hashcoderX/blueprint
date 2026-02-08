@@ -200,7 +200,7 @@ export default function Dashboard() {
   const fetchUserProfile = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/user/profile', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const user = await res.json();
         setUserCurrency(user.currency || 'USD');
@@ -240,11 +240,11 @@ export default function Dashboard() {
     if (!token) return;
     try {
       const [expRes, incRes, vehRes, taskRes, goalRes] = await Promise.all([
-        fetch('http://localhost:3001/api/expenses', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:3001/api/income', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:3001/api/vehicle-expenses', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:3001/api/tasks', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:3001/api/goals', { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/expenses`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/income`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicle-expenses`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
 
       const [expenses, income, vehicle, tasks, goals] = await Promise.all([
@@ -416,7 +416,7 @@ export default function Dashboard() {
       return;
     }
     const token = localStorage.getItem('token');
-    fetch('http://localhost:3001/api/diary', {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/diary`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())

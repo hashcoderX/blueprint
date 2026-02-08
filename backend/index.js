@@ -2,6 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+// Log startup context to ensure correct runtime paths
+console.log('Backend starting...');
+console.log('process.cwd():', process.cwd());
+console.log('__dirname:', __dirname);
+let dbResolvePath;
+try { dbResolvePath = require.resolve('./db'); } catch {}
+console.log('Resolved ./db to:', dbResolvePath);
+
 const dbPromise = require('./db');
 const EncryptionService = require('./encryption');
 const path = require('path');
@@ -9,8 +17,8 @@ const fs = require('fs');
 const webPush = require('web-push');
 
 const app = express();
-const port = 3001;
-const JWT_SECRET = 'your-secret-key'; // Change this in production
+const port = process.env.PORT || 3001;
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Change this in production
 
 app.use(cors());
 app.use(express.json());
@@ -32,6 +40,20 @@ if (!vapidKeys || !vapidKeys.publicKey || !vapidKeys.privateKey) {
 webPush.setVapidDetails('mailto:admin@example.com', vapidKeys.publicKey, vapidKeys.privateKey);
 // Store subscriptions per user (endpoint -> subscription)
 const userSubscriptions = new Map();
+
+// Lightweight health check to verify DB connectivity and active MySQL user
+app.get('/api/health', async (req, res) => {
+  const startedAt = Date.now();
+  try {
+    const db = await dbPromise;
+    const [result] = await new Promise((resolve, reject) => {
+      db.query('SELECT CURRENT_USER() AS user', (err, rows) => err ? reject(err) : resolve(rows));
+    });
+    res.json({ ok: true, uptime: process.uptime(), dbUser: result && result.user, startedMsAgo: Date.now() - startedAt });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err && err.message, uptime: process.uptime(), startedMsAgo: Date.now() - startedAt });
+  }
+});
 
 // Auth middleware
 const authenticateToken = (req, res, next) => {

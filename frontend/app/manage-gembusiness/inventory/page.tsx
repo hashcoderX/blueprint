@@ -149,7 +149,7 @@ export default function GemInventory() {
       if (colorFilter) params.append('color', colorFilter);
       if (statusFilter) params.append('status', statusFilter);
       
-      const res = await fetch(`http://localhost:3001/api/gem/inventory?${params.toString()}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/inventory?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -179,7 +179,7 @@ export default function GemInventory() {
     setExpensesLoading(true);
     setExpensesError(null);
     try {
-      const res = await fetch(`http://localhost:3001/api/gem/expenses?inventory_id=${inventoryId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/expenses?inventory_id=${inventoryId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) {
@@ -208,7 +208,7 @@ export default function GemInventory() {
     setTrackingLoading(true);
     setTrackingError(null);
     try {
-      const res = await fetch(`http://localhost:3001/api/gem/tracking?inventory_id=${inventoryId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/tracking?inventory_id=${inventoryId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) {
@@ -239,7 +239,7 @@ export default function GemInventory() {
     setTrackCompleteError(null);
     setTrackCompletingId(trackingId);
     try {
-      const res = await fetch(`http://localhost:3001/api/gem/tracking/${trackingId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/tracking/${trackingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status: 'completed' })
@@ -260,7 +260,7 @@ export default function GemInventory() {
   const fetchUserProfile = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/user/profile', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -313,7 +313,7 @@ export default function GemInventory() {
         Array.from(files).forEach(f => fd.append('images', f));
       }
       
-      const res = await fetch('http://localhost:3001/api/gem/inventory', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/inventory`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: fd
@@ -508,7 +508,7 @@ export default function GemInventory() {
                       <td className="px-3 py-3 sm:px-6 sm:py-4">
                         {item.images && item.images.length > 0 ? (
                           <img
-                            src={`http://localhost:3001${item.images[0].url}`}
+                            src={`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}${item.images[0].url}`}
                             alt={item.gem_name}
                             className="w-12 h-12 rounded-lg object-cover border border-powerbi-gray-200 dark:border-powerbi-gray-700"
                           />
@@ -753,7 +753,7 @@ export default function GemInventory() {
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Images</label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
                       {selectedItem.images.map(img => (
-                        <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-full h-24 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
+                        <img key={img.file_name} src={`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}${img.url}`} alt={img.original_name} className="w-full h-24 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
                       ))}
                     </div>
                   </div>
@@ -853,7 +853,7 @@ export default function GemInventory() {
                       description: expenseDesc || '',
                       category: expenseCategory || undefined
                     };
-                    const res = await fetch('http://localhost:3001/api/gem/expenses', {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/expenses`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                       body: JSON.stringify(payload)
@@ -944,7 +944,7 @@ export default function GemInventory() {
                       end_date: trackEndDate || undefined,
                       notes: trackNotes || ''
                     };
-                    const res = await fetch('http://localhost:3001/api/gem/tracking', {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/tracking`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                       body: JSON.stringify(payload)

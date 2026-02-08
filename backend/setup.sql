@@ -84,11 +84,6 @@ CREATE TABLE IF NOT EXISTS notes (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Migrate notes table: add missing columns if not exist
-ALTER TABLE notes ADD COLUMN IF NOT EXISTS user_id INT NOT NULL DEFAULT 1;
-ALTER TABLE notes ADD COLUMN IF NOT EXISTS mood VARCHAR(50);
-ALTER TABLE notes ADD COLUMN IF NOT EXISTS one_sentence VARCHAR(255);
-
 -- Projects table
 CREATE TABLE IF NOT EXISTS projects (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -199,9 +194,9 @@ INSERT INTO vehicle_expenses (description, amount, date, vehicle) VALUES
 ('Maintenance', 150.00, '2023-10-05', 'Toyota Camry'),
 ('Insurance', 120.00, '2023-10-10', 'Honda Civic');
 
-INSERT INTO notes (title, content, date) VALUES
-('Weekly Reflection', 'This week was productive...', '2023-10-01'),
-('Budget Notes', 'Remember to save for vacation...', '2023-10-02');
+INSERT INTO notes (user_id, title, content, date) VALUES
+(1, 'Weekly Reflection', 'This week was productive...', '2023-10-01'),
+(1, 'Budget Notes', 'Remember to save for vacation...', '2023-10-02');
 
 -- Gem Business: Purchases and Images tables
 CREATE TABLE IF NOT EXISTS gem_purchases (

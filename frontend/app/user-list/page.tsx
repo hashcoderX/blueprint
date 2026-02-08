@@ -58,7 +58,7 @@ export default function UserList() {
     setLoading(true);
     try {
       const limit = pagination?.limit || 10;
-      const response = await fetch(`http://localhost:3001/api/users?page=${page}&limit=${limit}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/users?page=${page}&limit=${limit}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -122,7 +122,7 @@ export default function UserList() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3001/api/users/${userId}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/users/${userId}/status`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -154,7 +154,7 @@ export default function UserList() {
     }
     setUpdatingUserId(userId);
     try {
-      const res = await fetch(`http://localhost:3001/api/users/${userId}/super-free`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/users/${userId}/super-free`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ super_free: !currentSuperFree })

@@ -110,7 +110,7 @@ export default function GemSales() {
   const loadSales = async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch('http://localhost:3001/api/gem/sales', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/sales`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -134,7 +134,7 @@ export default function GemSales() {
   const loadInventoryOptions = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/gem/inventory?status=available&limit=100', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/inventory?status=available&limit=100`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -156,7 +156,7 @@ export default function GemSales() {
   const fetchUserProfile = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/user/profile', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -195,7 +195,7 @@ export default function GemSales() {
         buyer: buyer || undefined,
         description: description || ''
       };
-      const res = await fetch('http://localhost:3001/api/gem/sales', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/sales`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload)
@@ -360,7 +360,7 @@ export default function GemSales() {
                         {s.images && s.images.length > 0 ? (
                           <div className="flex space-x-1">
                             {s.images.slice(0, 3).map(img => (
-                              <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-8 h-8 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
+                              <img key={img.file_name} src={`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}${img.url}`} alt={img.original_name} className="w-8 h-8 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
                             ))}
                             {s.images.length > 3 && (
                               <div className="w-8 h-8 bg-powerbi-gray-100 dark:bg-powerbi-gray-700 rounded flex items-center justify-center text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">+{s.images.length - 3}</div>
@@ -485,7 +485,7 @@ export default function GemSales() {
                       description: expenseDesc || '',
                       category: expenseCategory || undefined
                     };
-                    const res = await fetch('http://localhost:3001/api/gem/expenses', {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/expenses`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                       body: JSON.stringify(payload)
@@ -575,7 +575,7 @@ export default function GemSales() {
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Images</label>
                     <div className="flex space-x-2 mt-2">
                       {selectedSale.images.map(img => (
-                        <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-16 h-16 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
+                        <img key={img.file_name} src={`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}${img.url}`} alt={img.original_name} className="w-16 h-16 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
                       ))}
                     </div>
                   </div>

@@ -111,7 +111,7 @@ export default function Goals() {
     if (filters.priority !== 'all') queryParams.append('priority', filters.priority);
 
     try {
-      const res = await fetch(`http://localhost:3001/api/goals?${queryParams}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals?${queryParams}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -141,7 +141,7 @@ export default function Goals() {
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:3001/api/user/profile', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -167,7 +167,7 @@ export default function Goals() {
     if (!token) return;
 
     try {
-      const res = await fetch('http://localhost:3001/api/goals/stats/summary', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals/stats/summary`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -184,7 +184,7 @@ export default function Goals() {
     if (!token) return;
 
     try {
-      const res = await fetch('http://localhost:3001/api/goals', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -212,7 +212,7 @@ export default function Goals() {
     if (!token || !editingGoal) return;
 
     try {
-      const res = await fetch(`http://localhost:3001/api/goals/${editingGoal.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals/${editingGoal.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -246,7 +246,7 @@ export default function Goals() {
     if (!token) return;
 
     try {
-      const res = await fetch(`http://localhost:3001/api/goals/${goalId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals/${goalId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -270,7 +270,7 @@ export default function Goals() {
     if (!token) return;
 
     try {
-      const res = await fetch(`http://localhost:3001/api/goals/${goalId}/progress`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals/${goalId}/progress`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,12 +1,21 @@
 const mysql = require('mysql2');
+console.log('Loading DB module from:', __filename);
+
+// Read DB credentials from environment with sane defaults
+const DB_HOST = process.env.DB_HOST || 'localhost';
+const DB_USER = process.env.DB_USER || 'blueprint_app';
+const DB_PASSWORD = process.env.DB_PASSWORD || 'Bp_AppPass123';
+const DB_NAME = process.env.DB_NAME || 'blueprint';
 
 // Create connection without database to create it if needed
-const tempConnection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
+const tempConnConfig = {
+  host: DB_HOST,
+  user: DB_USER,
+  password: DB_PASSWORD,
   multipleStatements: true
-});
+};
+console.log('MySQL temp connection user:', tempConnConfig.user);
+const tempConnection = mysql.createConnection(tempConnConfig);
 
 tempConnection.connect((err) => {
   if (err) {
@@ -15,7 +24,7 @@ tempConnection.connect((err) => {
   }
 
   // Create database if it doesn't exist
-  tempConnection.query('CREATE DATABASE IF NOT EXISTS blueprint', (err) => {
+  tempConnection.query(`CREATE DATABASE IF NOT EXISTS ${DB_NAME}`,(err) => {
     if (err) {
       console.error('Error creating database:', err);
       tempConnection.end();
@@ -25,23 +34,25 @@ tempConnection.connect((err) => {
     console.log('Database blueprint created or already exists');
 
     // Now create the main connection with the database
-    const connection = mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'blueprint',
+    const mainConnConfig = {
+      host: DB_HOST,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      database: DB_NAME,
       multipleStatements: true,
       // Ensure DECIMAL fields are returned as Numbers
       decimalNumbers: true,
       supportBigNumbers: true
-    });
+    };
+    console.log('MySQL main connection user:', mainConnConfig.user);
+    const connection = mysql.createConnection(mainConnConfig);
 
     connection.connect((err) => {
       if (err) {
         console.error('Error connecting to blueprint database:', err);
         return;
       }
-      console.log('Connected to MySQL database blueprint');
+      console.log('Connected to MySQL database', DB_NAME);
 
       // Create tables if they don't exist
       const createTables = `
@@ -537,66 +548,6 @@ tempConnection.connect((err) => {
         } else {
           console.log('Tables created or already exist');
 
-          // Add category column to expenses table if it doesn't exist
-          const alterExpensesTable = `
-            ALTER TABLE expenses 
-            ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'general';
-          `;
-
-          connection.query(alterExpensesTable, (alterErr) => {
-            if (alterErr) {
-              console.error('Error altering expenses table:', alterErr);
-            } else {
-              console.log('Expenses table altered successfully');
-            }
-          });
-
-          // Ensure new planning/time fields exist on tasks
-          const alterTasksTable = `
-            ALTER TABLE tasks 
-              ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'general',
-              ADD COLUMN IF NOT EXISTS planned_date DATE NULL,
-              ADD COLUMN IF NOT EXISTS schedule_time TIME NULL,
-              ADD COLUMN IF NOT EXISTS allocated_hours DECIMAL(6,2) DEFAULT 0,
-              ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-              ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
-          `;
-
-          connection.query(alterTasksTable, (alterTasksErr) => {
-            if (alterTasksErr) {
-              console.error('Error altering tasks table:', alterTasksErr);
-            } else {
-              console.log('Tasks table altered successfully');
-            }
-          });
-
-          // Ensure planned_date supports date only (DATE)
-          const alterTasksPlannedDate = `
-            ALTER TABLE tasks 
-              MODIFY COLUMN planned_date DATE NULL
-          `;
-          connection.query(alterTasksPlannedDate, (alterPDSErr) => {
-            if (alterPDSErr) {
-              console.error('Error altering tasks.planned_date to DATE:', alterPDSErr);
-            } else {
-              console.log('tasks.planned_date column set to DATE');
-            }
-          });
-
-          // Add vehicle_no column to vehicles table if it doesn't exist
-          const alterVehiclesTable = `
-            ALTER TABLE vehicles 
-            ADD COLUMN IF NOT EXISTS vehicle_no VARCHAR(50);
-          `;
-
-          connection.query(alterVehiclesTable, (alterVehiclesErr) => {
-            if (alterVehiclesErr) {
-              console.error('Error altering vehicles table:', alterVehiclesErr);
-            } else {
-              console.log('Vehicles table altered successfully');
-            }
-          });
-
           // Ensure task_time_logs table exists
           const ensureLogsTable = `
             CREATE TABLE IF NOT EXISTS task_time_logs (
@@ -621,47 +572,67 @@ tempConnection.connect((err) => {
             }
           });
 
-          // Ensure notes table has required columns for diary
-          const alterNotesTable = `
-            ALTER TABLE notes 
-              ADD COLUMN IF NOT EXISTS user_id INT NOT NULL DEFAULT 1,
-              ADD COLUMN IF NOT EXISTS mood VARCHAR(50),
-              ADD COLUMN IF NOT EXISTS one_sentence VARCHAR(255);
-          `;
+          // MySQL 8 does not support "ADD COLUMN IF NOT EXISTS" in ALTER TABLE.
+          // Guard column additions via information_schema checks for idempotent migrations.
+          const ensureColumn = (table, column, ddl) => {
+            connection.query(
+              'SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+              [DB_NAME, table, column],
+              (chkErr, rows) => {
+                if (chkErr) {
+                  console.error(`Failed checking ${table}.${column}:`, chkErr);
+                  return;
+                }
+                const exists = rows && rows[0] && Number(rows[0].cnt) > 0;
+                if (exists) {
+                  console.log(`${table}.${column} already exists`);
+                } else {
+                  connection.query(`ALTER TABLE ${table} ADD COLUMN ${ddl}`, (alterErr) => {
+                    if (alterErr) {
+                      console.error(`Error adding ${table}.${column}:`, alterErr);
+                    } else {
+                      console.log(`${table}.${column} added`);
+                    }
+                  });
+                }
+              }
+            );
+          };
 
-          connection.query(alterNotesTable, (alterNotesErr) => {
-            if (alterNotesErr) {
-              console.error('Error altering notes table:', alterNotesErr);
-            } else {
-              console.log('Notes table altered successfully');
-            }
-          });
+          // Columns required by API queries
+          ensureColumn('expenses', 'category', "category VARCHAR(50) DEFAULT 'general'");
+          // Some older databases may lack income.category; ensure it's present
+          ensureColumn('income', 'category', "category VARCHAR(50) DEFAULT 'salary'");
+          // Ensure user ownership columns exist on legacy tables
+          ensureColumn('expenses', 'user_id', 'user_id INT');
+          ensureColumn('income', 'user_id', 'user_id INT');
+          ensureColumn('goals', 'user_id', 'user_id INT');
+          ensureColumn('tasks', 'user_id', 'user_id INT');
+          ensureColumn('vehicle_expenses', 'user_id', 'user_id INT');
 
-          // Ensure users table has verified column
-          const alterUsersVerified = `
-            ALTER TABLE users 
-            ADD COLUMN IF NOT EXISTS verified BOOLEAN DEFAULT FALSE;
-          `;
-          connection.query(alterUsersVerified, (alterUsersVerifiedErr) => {
-            if (alterUsersVerifiedErr) {
-              console.error('Error altering users table (verified):', alterUsersVerifiedErr);
-            } else {
-              console.log('Users table verified column ensured');
-            }
-          });
-
-          // Ensure users table has super_free column (grants full access without payment)
-          const alterUsersSuperFree = `
-            ALTER TABLE users 
-            ADD COLUMN IF NOT EXISTS super_free BOOLEAN DEFAULT FALSE;
-          `;
-          connection.query(alterUsersSuperFree, (alterUsersSuperFreeErr) => {
-            if (alterUsersSuperFreeErr) {
-              console.error('Error altering users table (super_free):', alterUsersSuperFreeErr);
-            } else {
-              console.log('Users table super_free column ensured');
-            }
-          });
+          // Tasks table fields used by API
+          ensureColumn('tasks', 'category', "category VARCHAR(50) DEFAULT 'general'");
+          ensureColumn('tasks', 'planned_date', 'planned_date DATE NULL');
+          ensureColumn('tasks', 'created_at', 'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+          ensureColumn('tasks', 'updated_at', 'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+          // Goals table often existed in minimal form; ensure all fields used by API
+          ensureColumn('goals', 'description', 'description TEXT');
+          ensureColumn('goals', 'category', "category VARCHAR(50) DEFAULT 'general'");
+          ensureColumn('goals', 'current', 'current DECIMAL(10,2) DEFAULT 0');
+          ensureColumn('goals', 'target', 'target DECIMAL(10,2) NOT NULL');
+          ensureColumn('goals', 'target_date', 'target_date DATE');
+          ensureColumn('goals', 'priority', "priority ENUM('low','medium','high','urgent') DEFAULT 'medium'");
+          ensureColumn('goals', 'status', "status ENUM('active','completed','paused','cancelled') DEFAULT 'active'");
+          ensureColumn('goals', 'progress_percentage', 'progress_percentage DECIMAL(5,2) DEFAULT 0');
+          ensureColumn('goals', 'created_at', 'created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+          ensureColumn('goals', 'updated_at', 'updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+          ensureColumn('goals', 'completed_at', 'completed_at TIMESTAMP NULL');
+          ensureColumn('goals', 'notes', 'notes TEXT');
+          ensureColumn('tasks', 'schedule_time', 'schedule_time TIME NULL');
+          ensureColumn('tasks', 'allocated_hours', 'allocated_hours DECIMAL(6,2) DEFAULT 0');
+          ensureColumn('vehicles', 'vehicle_no', 'vehicle_no VARCHAR(50)');
+          ensureColumn('users', 'verified', 'verified BOOLEAN DEFAULT FALSE');
+          ensureColumn('users', 'super_free', 'super_free BOOLEAN DEFAULT FALSE');
 
           // Insert sample data if tables are empty
           const insertSampleData = `
@@ -736,19 +707,21 @@ tempConnection.connect((err) => {
 module.exports = new Promise((resolve, reject) => {
   // Wait for connection to be established
   setTimeout(() => {
-    const conn = mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'blueprint',
+    const laterConnConfig = {
+      host: DB_HOST,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      database: DB_NAME,
       multipleStatements: true
-    });
+    };
+    console.log('MySQL later connection user:', laterConnConfig.user);
+    const conn = mysql.createConnection(laterConnConfig);
     conn.connect((err) => {
       if (err) {
         console.error('Failed to connect to database:', err.message);
         reject(err);
       } else {
-        console.log('Connected to MySQL database blueprint');
+        console.log('Connected to MySQL database', DB_NAME);
         resolve(conn);
       }
     });

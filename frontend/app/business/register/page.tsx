@@ -26,7 +26,7 @@ export default function BusinessRegisterPage() {
     if (!token) return;
     (async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/business', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/business`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -55,7 +55,7 @@ export default function BusinessRegisterPage() {
     setMessage('');
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3001/api/business/register', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/business/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

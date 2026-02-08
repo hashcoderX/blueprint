@@ -109,7 +109,7 @@ export default function Expenses() {
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:3001/api/user/profile', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -188,13 +188,13 @@ export default function Expenses() {
 
     try {
       const [expensesRes, incomeRes, vehicleRes] = await Promise.all([
-        fetch('http://localhost:3001/api/expenses', {
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/expenses`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch('http://localhost:3001/api/income', {
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/income`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch('http://localhost:3001/api/vehicle-expenses', {
+        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicle-expenses`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
       ]);
@@ -280,7 +280,7 @@ export default function Expenses() {
         ? { description, amount, date, category }
         : { description, amount, date, category };
 
-      const response = await fetch(`http://localhost:3001${endpoint}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}${endpoint}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -387,7 +387,7 @@ export default function Expenses() {
         throw new Error('Invalid transaction source');
       }
 
-      const response = await fetch(`http://localhost:3001/api/${endpoint}/${deleteModal.transactionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/${endpoint}/${deleteModal.transactionId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

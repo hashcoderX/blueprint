@@ -36,7 +36,7 @@ export default function Settings() {
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       if (!token) return;
-      const res = await fetch('http://localhost:3001/api/user/profile', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -54,7 +54,7 @@ export default function Settings() {
         });
         // Load subscription details
         try {
-          const subRes = await fetch('http://localhost:3001/api/subscription', { headers: { Authorization: `Bearer ${token}` } });
+          const subRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/subscription`, { headers: { Authorization: `Bearer ${token}` } });
           if (subRes.ok) {
             const sub = await subRes.json();
             setSubscription(sub);
@@ -81,7 +81,7 @@ export default function Settings() {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3001/api/user/profile', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -284,7 +284,7 @@ export default function Settings() {
                   onClick={async () => {
                     try {
                       const token = localStorage.getItem('token');
-                      const res = await fetch('http://localhost:3001/api/subscription/upgrade', {
+                      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/subscription/upgrade`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                         body: JSON.stringify({
@@ -345,7 +345,7 @@ export default function Settings() {
                     onClick={async () => {
                       try {
                         const token = localStorage.getItem('token');
-                        const res = await fetch('http://localhost:3001/api/payment-method', {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/payment-method`, {
                           method: 'PUT',
                           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                           body: JSON.stringify({
@@ -396,7 +396,7 @@ export default function Settings() {
                 setMessage('');
                 try {
                   const token = localStorage.getItem('token');
-                  const res = await fetch('http://localhost:3001/api/user/verify', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/verify`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
                   const data = await res.json();
                   if (res.ok) {
                     setProfile((p) => p ? { ...p, verified: true } : p);

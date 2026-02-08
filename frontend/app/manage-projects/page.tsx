@@ -95,7 +95,7 @@ export default function ManageProjects() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:3001/api/user/profile', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -226,7 +226,7 @@ export default function ManageProjects() {
   const loadProjects = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/projects', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/projects`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
@@ -241,7 +241,7 @@ export default function ManageProjects() {
   const loadPurchases = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/project-purchases', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-purchases`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
@@ -256,7 +256,7 @@ export default function ManageProjects() {
   const loadIncome = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/project-income', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-income`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
@@ -289,7 +289,7 @@ export default function ManageProjects() {
 
     try {
       const token = localStorage.getItem('token');
-      const url = editingProject ? `http://localhost:3001/api/projects/${editingProject.id}` : 'http://localhost:3001/api/projects';
+      const url = editingProject ? `${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/projects/${editingProject.id}` : `${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/projects`;
       const method = editingProject ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -331,7 +331,7 @@ export default function ManageProjects() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/project-purchases', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-purchases`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -367,7 +367,7 @@ export default function ManageProjects() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/project-income', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-income`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

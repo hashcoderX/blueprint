@@ -59,7 +59,7 @@ export default function DiaryList() {
       return;
     }
     const token = localStorage.getItem('token');
-    fetch('http://localhost:3001/api/diary', {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/diary`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())

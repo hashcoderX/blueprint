@@ -47,7 +47,7 @@ export default function ManageGemBusiness() {
   const loadPurchases = async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch('http://localhost:3001/api/gem/purchases', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/purchases`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -64,7 +64,7 @@ export default function ManageGemBusiness() {
   const loadInventoryCount = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/gem/inventory?limit=1', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/inventory?limit=1`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -79,7 +79,7 @@ export default function ManageGemBusiness() {
   const fetchUserProfile = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/user/profile', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {

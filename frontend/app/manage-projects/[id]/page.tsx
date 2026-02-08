@@ -73,7 +73,7 @@ export default function ProjectDetailsPage() {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
-      const response = await fetch('http://localhost:3001/api/user/profile', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -89,7 +89,7 @@ export default function ProjectDetailsPage() {
   const loadProjects = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/projects', { headers: { Authorization: `Bearer ${token}` } });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/projects`, { headers: { Authorization: `Bearer ${token}` } });
       if (response.ok) {
         const data: Project[] = await response.json();
         const found = data.find(p => p.id === projectId) || null;
@@ -103,7 +103,7 @@ export default function ProjectDetailsPage() {
   const loadPurchases = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/project-purchases', { headers: { Authorization: `Bearer ${token}` } });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-purchases`, { headers: { Authorization: `Bearer ${token}` } });
       if (response.ok) {
         const data: Purchase[] = await response.json();
         setPurchases(data.filter(p => p.project_id === projectId));
@@ -116,7 +116,7 @@ export default function ProjectDetailsPage() {
   const loadIncome = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/project-income', { headers: { Authorization: `Bearer ${token}` } });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-income`, { headers: { Authorization: `Bearer ${token}` } });
       if (response.ok) {
         const data: Income[] = await response.json();
         setIncome(data.filter(i => i.project_id === projectId));
@@ -129,7 +129,7 @@ export default function ProjectDetailsPage() {
   const loadDocuments = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/project-documents', { headers: { Authorization: `Bearer ${token}` } });
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-documents`, { headers: { Authorization: `Bearer ${token}` } });
       if (response.ok) {
         const data: Document[] = await response.json();
         setDocuments(data.filter(d => d.project_id === projectId));
@@ -598,7 +598,7 @@ function PurchaseForm({ projectId, onSaved, userCurrency, formatCurrency }: { pr
     e.preventDefault();
     const token = localStorage.getItem('token');
     const payload = { project_id: projectId, item_name: form.item_name, cost: parseFloat(form.cost) || 0, category: form.category, vendor: form.vendor, date: new Date().toISOString().split('T')[0] };
-    const res = await fetch('http://localhost:3001/api/project-purchases', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-purchases`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) });
     if (res.ok) {
       setForm({ item_name: '', cost: '', category: '', vendor: '' });
       onSaved();
@@ -636,7 +636,7 @@ function IncomeForm({ projectId, onSaved, userCurrency, formatCurrency }: { proj
     e.preventDefault();
     const token = localStorage.getItem('token');
     const payload = { project_id: projectId, description: form.description, amount: parseFloat(form.amount) || 0, category: form.category, date: new Date().toISOString().split('T')[0] };
-    const res = await fetch('http://localhost:3001/api/project-income', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-income`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) });
     if (res.ok) {
       setForm({ description: '', amount: '', category: '' });
       onSaved();
@@ -687,7 +687,7 @@ function DocumentUploadForm({ projectId, onSaved }: { projectId: number; onSaved
     formData.append('description', description);
 
     try {
-      const response = await fetch('http://localhost:3001/api/project-documents', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-documents`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -742,7 +742,7 @@ function DocumentUploadForm({ projectId, onSaved }: { projectId: number; onSaved
 function downloadDocument(docId: number, fileName: string) {
   const token = localStorage.getItem('token');
   const link = document.createElement('a');
-  link.href = `http://localhost:3001/api/project-documents/${docId}/download`;
+  link.href = `${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-documents/${docId}/download`;
   link.setAttribute('download', fileName);
   link.style.display = 'none';
 
@@ -766,7 +766,7 @@ function downloadDocument(docId: number, fileName: string) {
 
 function viewDocument(docId: number) {
   const token = localStorage.getItem('token');
-  const url = `http://localhost:3001/api/project-documents/${docId}/download`;
+  const url = `${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/project-documents/${docId}/download`;
   
   // Open in new tab with authorization
   const newWindow = window.open('', '_blank');

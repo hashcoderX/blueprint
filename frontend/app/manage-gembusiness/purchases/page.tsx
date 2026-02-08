@@ -85,7 +85,7 @@ export default function GemPurchases() {
   const loadPurchases = async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch('http://localhost:3001/api/gem/purchases', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/purchases`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -119,7 +119,7 @@ export default function GemPurchases() {
     setExpensesLoading(true);
     setExpensesError(null);
     try {
-      const res = await fetch(`http://localhost:3001/api/gem/expenses?inventory_id=${selected.inventory_id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/expenses?inventory_id=${selected.inventory_id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) {
@@ -178,7 +178,7 @@ export default function GemPurchases() {
         category: expCategory || 'general',
         description: expDesc || ''
       };
-      const res = await fetch('http://localhost:3001/api/gem/expenses', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/expenses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -201,7 +201,7 @@ export default function GemPurchases() {
   const fetchUserProfile = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/user/profile', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -256,7 +256,7 @@ export default function GemPurchases() {
       if (shape) fd.append('shape', shape.trim());
       if (origin) fd.append('origin', origin.trim());
       
-      const res = await fetch('http://localhost:3001/api/gem/purchases', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/purchases`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: fd
@@ -410,7 +410,7 @@ export default function GemPurchases() {
                             {p.images.slice(0, 3).map(img => (
                               <img
                                 key={img.file_name}
-                                src={`http://localhost:3001${img.url}`}
+                                src={`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}${img.url}`}
                                 alt={img.original_name}
                                 className="w-8 h-8 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700"
                               />
@@ -452,7 +452,7 @@ export default function GemPurchases() {
                                       {selected.images && selected.images.length > 0 ? (
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                           {selected.images.map(img => (
-                                            <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-full h-28 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
+                                            <img key={img.file_name} src={`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}${img.url}`} alt={img.original_name} className="w-full h-28 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
                                           ))}
                                         </div>
                                       ) : (
@@ -505,7 +505,7 @@ export default function GemPurchases() {
                                       {selected.images && selected.images.length > 0 ? (
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                           {selected.images.map(img => (
-                                            <img key={img.file_name} src={`http://localhost:3001${img.url}`} alt={img.original_name} className="w-full h-28 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
+                                            <img key={img.file_name} src={`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}${img.url}`} alt={img.original_name} className="w-full h-28 object-cover rounded border border-powerbi-gray-200 dark:border-powerbi-gray-700" />
                                           ))}
                                         </div>
                                       ) : (

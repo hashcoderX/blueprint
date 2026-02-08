@@ -7,7 +7,7 @@ import { Mail, MessageSquare, Send, Ticket, X, CheckCircle } from 'lucide-react'
 
 export default function HelpPage() {
   const { t } = useI18n();
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
   // Contact form state
   const [contactSubject, setContactSubject] = useState('');

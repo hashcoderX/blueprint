@@ -34,7 +34,7 @@ export default function Header({ onOpenSidebar }: { onOpenSidebar?: () => void }
   const [showNotifModal, setShowNotifModal] = useState(false);
   const [showNotifDetailModal, setShowNotifDetailModal] = useState(false);
   const [selectedNotif, setSelectedNotif] = useState<NotificationItem | null>(null);
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
   const parseJsonResponse = async (res: Response) => {
     const ct = res.headers.get('content-type') || '';

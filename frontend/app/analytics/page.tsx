@@ -54,12 +54,12 @@ export default function Analytics() {
     const fetchAll = async () => {
       try {
         const [expRes, incRes, goalsRes, goalsStatsRes, tasksRes, vehRes] = await Promise.all([
-          fetch('http://localhost:3001/api/expenses', { headers }),
-          fetch('http://localhost:3001/api/income', { headers }),
-          fetch('http://localhost:3001/api/goals', { headers }),
-          fetch('http://localhost:3001/api/goals/stats/summary', { headers }),
-          fetch('http://localhost:3001/api/tasks', { headers }),
-          fetch('http://localhost:3001/api/vehicle-expenses', { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/expenses`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/income`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals/stats/summary`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicle-expenses`, { headers }),
         ]);
 
         const safeJson = async (res: Response) => {

@@ -78,7 +78,7 @@ export default function VehicleExpenses() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3001/api/vehicle-expenses', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicle-expenses`, { headers: { Authorization: `Bearer ${token}` } });
       const data: VehicleEntry[] = await parseJsonResponse(res);
       if (Array.isArray(data)) setEntries(data);
     } catch (e) {
@@ -120,7 +120,7 @@ export default function VehicleExpenses() {
     e.preventDefault();
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/vehicle-expenses', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicle-expenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
@@ -145,7 +145,7 @@ export default function VehicleExpenses() {
     e.preventDefault();
     if (!token || !selected) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/vehicle-expenses/${selected.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicle-expenses/${selected.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
@@ -170,7 +170,7 @@ export default function VehicleExpenses() {
   const handleDelete = async (id: number) => {
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/vehicle-expenses/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicle-expenses/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         setMessage({ type: 'success', text: t('pages.vehicleExpenses.messages.entryDeleted') });
         fetchEntries();
@@ -188,7 +188,7 @@ export default function VehicleExpenses() {
   const fetchVehicles = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/vehicles', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicles`, { headers: { Authorization: `Bearer ${token}` } });
       const data: Vehicle[] = await parseJsonResponse(res);
       if (Array.isArray(data)) setVehicles(data);
     } catch (e) {
@@ -199,7 +199,7 @@ export default function VehicleExpenses() {
   const fetchUserProfile = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/user/profile', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/user/profile`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await parseJsonResponse(res);
       if (data.currency) setUserCurrency(data.currency);
     } catch (e) {
@@ -217,7 +217,7 @@ export default function VehicleExpenses() {
     e.preventDefault();
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/vehicles', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(vehicleForm),
@@ -243,7 +243,7 @@ export default function VehicleExpenses() {
     e.preventDefault();
     if (!token || !selectedVehicle) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/vehicles/${selectedVehicle.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicles/${selectedVehicle.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(vehicleForm),
@@ -268,7 +268,7 @@ export default function VehicleExpenses() {
   const handleDeleteVehicle = async (id: number) => {
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/vehicles/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicles/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         setMessage({ type: 'success', text: t('pages.vehicleExpenses.messages.vehicleDeleted') });
         fetchVehicles();

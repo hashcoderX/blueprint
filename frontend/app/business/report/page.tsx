@@ -28,7 +28,7 @@ export default function BusinessReportPage() {
     if (!token) return;
     (async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/business/report', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/business/report`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const json = await res.json();

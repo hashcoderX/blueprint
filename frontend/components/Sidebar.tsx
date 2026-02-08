@@ -39,7 +39,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
   const [userSuperFree, setUserSuperFree] = useState<boolean>(false);
   const { t } = useI18n();
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
   const parseJsonResponse = async (res: Response) => {
     const contentType = res.headers.get('content-type') || '';
@@ -56,13 +56,9 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 8000);
           const response = await fetch(`${API_BASE}/api/user/profile`, {
-            headers: { Authorization: `Bearer ${token}` },
-            signal: controller.signal
+            headers: { Authorization: `Bearer ${token}` }
           }).catch((err) => { throw err; });
-          clearTimeout(timeout);
           if (!response.ok) {
             // Handle invalid/expired token: clear and redirect to login
             if (response.status === 401 || response.status === 403) {

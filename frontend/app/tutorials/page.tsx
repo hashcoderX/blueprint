@@ -20,7 +20,7 @@ interface TutorialItem {
 
 export default function TutorialsPage() {
   const { t } = useI18n();
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
   const [items, setItems] = useState<TutorialItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<string | null>(null);

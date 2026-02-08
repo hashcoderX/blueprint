@@ -144,7 +144,7 @@ export default function Tasks() {
     if (!token) return;
     setLoading(true);
     try {
-      const url = new URL('http://localhost:3001/api/tasks');
+      const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks`);
       if (!showAll && selectedDate) url.searchParams.set('date', selectedDate);
       const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${token}` } });
       const data = await parseJsonResponse(res);
@@ -159,7 +159,7 @@ export default function Tasks() {
   const fetchActiveLogs = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/tasks/logs/active', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks/logs/active`, { headers: { Authorization: `Bearer ${token}` } });
       const data: ActiveLog[] = await parseJsonResponse(res);
       if (Array.isArray(data)) {
         const map: Record<number, string> = {};
@@ -174,7 +174,7 @@ export default function Tasks() {
   const fetchTimeSummary = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3001/api/tasks/time/summary', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks/time/summary`, { headers: { Authorization: `Bearer ${token}` } });
       const rows: { task_id: number; minutes: number }[] = await parseJsonResponse(res);
       if (Array.isArray(rows)) {
         const map: Record<number, number> = {};
@@ -190,7 +190,7 @@ export default function Tasks() {
     if (!token) return;
     const month = d.toISOString().slice(0, 7);
     try {
-      const res = await fetch(`http://localhost:3001/api/tasks/summary?month=${month}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks/summary?month=${month}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await parseJsonResponse(res);
       if (res.ok && !data.error) setSummary(data);
     } catch (e) {
@@ -205,7 +205,7 @@ export default function Tasks() {
     }
     try {
       console.log('Fetching time logs for task:', taskId);
-      const res = await fetch(`http://localhost:3001/api/tasks/${taskId}/logs`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks/${taskId}/logs`, { headers: { Authorization: `Bearer ${token}` } });
       console.log('Response status:', res.status, res.statusText);
       console.log('Response headers:', Object.fromEntries(res.headers.entries()));
       
@@ -369,7 +369,7 @@ export default function Tasks() {
         planned_date: form.planned_date || null,
         schedule_time: form.schedule_time || null,
       };
-      const res = await fetch('http://localhost:3001/api/tasks', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
@@ -395,7 +395,7 @@ export default function Tasks() {
   const handleUpdate = async (id: number, patch: Partial<Task>) => {
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/tasks/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(patch),
@@ -410,7 +410,7 @@ export default function Tasks() {
   const handleStart = async (id: number) => {
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/tasks/${id}/start`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks/${id}/start`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
       const data = await parseJsonResponse(res);
       if (!data.error) {
         setActiveLogs({ ...activeLogs, [id]: new Date().toISOString() });
@@ -425,7 +425,7 @@ export default function Tasks() {
   const handleStop = async (id: number) => {
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/tasks/${id}/stop`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks/${id}/stop`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
       const data = await parseJsonResponse(res);
       if (!data.error) {
         const map = { ...activeLogs };
@@ -488,7 +488,7 @@ export default function Tasks() {
   const confirmDelete = async () => {
     if (!taskToDelete || !token) return;
     try {
-      const res = await fetch(`http://localhost:3001/api/tasks/${taskToDelete}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks/${taskToDelete}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -749,7 +749,7 @@ export default function Tasks() {
                             <div className="flex flex-wrap gap-2 mt-2 items-center">
                               <span className={`inline-block px-2 py-1 text-xs rounded-full ${priorityColors[task.priority]}`}>{task.priority}</span>
                               <span className={`inline-block px-2 py-1 text-xs rounded-full ${categoryColors[task.category] || categoryColors.general}`}>{task.category}</span>
-                              {task.planned_date && <span className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-300">Plan: {formatDateOnly(task.planned_date)} {formatTime(task.schedule_time)}</span>}
+                              {task.planned_date && <span className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-300">Plan: {formatDateOnly(task.planned_date)} {task.schedule_time ? formatTime(task.schedule_time) : ''}</span>}
                               {typeof task.allocated_hours === 'number' && task.allocated_hours > 0 && (
                                 <span className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-300">Alloc: {task.allocated_hours}h</span>
                               )}
@@ -993,7 +993,7 @@ export default function Tasks() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div>
                     <h4 className="text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Planned Date & Time</h4>
-                    <p className="text-powerbi-gray-900 dark:text-white">{formatDateOnly(selectedTask.planned_date)} {formatTime(selectedTask.schedule_time)}</p>
+                    <p className="text-powerbi-gray-900 dark:text-white">{formatDateOnly(selectedTask.planned_date)} {selectedTask.schedule_time ? formatTime(selectedTask.schedule_time) : ''}</p>
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Allocated Hours</h4>

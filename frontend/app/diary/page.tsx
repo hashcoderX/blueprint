@@ -36,7 +36,7 @@ export default function Diary() {
       return;
     }
 
-    fetch('http://localhost:3001/api/diary', {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/diary`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -93,7 +93,7 @@ export default function Diary() {
     try {
       setIsSaving(true);
       const method = entry.id > 0 ? 'PUT' : 'POST';
-      const url = entry.id > 0 ? `http://localhost:3001/api/diary/${entry.id}` : 'http://localhost:3001/api/diary';
+      const url = entry.id > 0 ? `${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/diary/${entry.id}` : `${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/diary`;
 
       const requestBody = {
         title: entry.title,
