@@ -548,6 +548,43 @@ tempConnection.connect((err) => {
         } else {
           console.log('Tables created or already exist');
 
+          // Create chat tables for DB-backed instant messaging
+          const createChatTables = `
+            CREATE TABLE IF NOT EXISTS chat_conversations (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              user_id INT NOT NULL,
+              admin_id INT NULL,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+              UNIQUE KEY uniq_user_conversation (user_id),
+              INDEX idx_admin_id (admin_id),
+              FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+              FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE SET NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS chat_messages (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              conversation_id INT NOT NULL,
+              sender_id INT NOT NULL,
+              sender_type ENUM('user','admin') NOT NULL,
+              message TEXT NOT NULL,
+              read_at DATETIME NULL,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              INDEX idx_conversation_id (conversation_id),
+              INDEX idx_sender_id (sender_id),
+              FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE,
+              FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+          `;
+
+          connection.query(createChatTables, (chatErr) => {
+            if (chatErr) {
+              console.error('Error creating chat tables:', chatErr);
+            } else {
+              console.log('Chat tables created or already exist');
+            }
+          });
+
           // Ensure task_time_logs table exists
           const ensureLogsTable = `
             CREATE TABLE IF NOT EXISTS task_time_logs (

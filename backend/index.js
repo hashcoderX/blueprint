@@ -19,6 +19,10 @@ const webPush = require('web-push');
 const app = express();
 const port = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Change this in production
+// Google OAuth configuration via environment variables
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'https://blueprint.codemint.space/auth/google/callback';
 
 app.use(cors());
 app.use(express.json());
@@ -41,6 +45,24 @@ webPush.setVapidDetails('mailto:admin@example.com', vapidKeys.publicKey, vapidKe
 // Store subscriptions per user (endpoint -> subscription)
 const userSubscriptions = new Map();
 
+// SSE clients for real-time chat updates (conversation_id -> Set of res objects)
+const chatClients = new Map();
+
+// Function to broadcast message to SSE clients
+function broadcastChatMessage(convId, message) {
+  const clients = chatClients.get(convId);
+  if (clients) {
+    const data = `data: ${JSON.stringify(message)}\n\n`;
+    clients.forEach(res => {
+      try {
+        res.write(data);
+      } catch (e) {
+        // Client disconnected, will be cleaned up on close
+      }
+    });
+  }
+}
+
 // Lightweight health check to verify DB connectivity and active MySQL user
 app.get('/api/health', async (req, res) => {
   const startedAt = Date.now();
@@ -53,6 +75,46 @@ app.get('/api/health', async (req, res) => {
   } catch (err) {
     res.status(500).json({ ok: false, error: err && err.message, uptime: process.uptime(), startedMsAgo: Date.now() - startedAt });
   }
+});
+
+// SSE endpoint for real-time chat updates
+app.get('/api/chat/sse/:conversationId', (req, res) => {
+  const convId = Number(req.params.conversationId);
+  if (!Number.isFinite(convId)) return res.status(400).json({ error: 'Invalid conversation id' });
+
+  // Authenticate via query token
+  const token = req.query.token;
+  if (!token) return res.status(401).json({ error: 'Token required' });
+  let user;
+  try {
+    user = jwt.verify(token, JWT_SECRET);
+  } catch (e) {
+    return res.status(403).json({ error: 'Invalid token' });
+  }
+  req.user = user; // Set for consistency
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control',
+  });
+
+  if (!chatClients.has(convId)) {
+    chatClients.set(convId, new Set());
+  }
+  chatClients.get(convId).add(res);
+
+  req.on('close', () => {
+    const clients = chatClients.get(convId);
+    if (clients) {
+      clients.delete(res);
+      if (clients.size === 0) {
+        chatClients.delete(convId);
+      }
+    }
+  });
 });
 
 // Auth middleware
@@ -222,10 +284,11 @@ app.post('/api/login', async (req, res) => {
   try {
     const db = await dbPromise;
     const { identifier, password } = req.body; // identifier can be username, email, or phone
+    const trimmedIdentifier = identifier.toString().trim();
 
     db.query(
-      'SELECT * FROM users WHERE (username = ? OR email = ? OR phone = ?) AND status = "active"',
-      [identifier, identifier, identifier],
+      'SELECT * FROM users WHERE (username = ? OR LOWER(email) = LOWER(?) OR phone = ?) AND status = "active"',
+      [trimmedIdentifier, trimmedIdentifier, trimmedIdentifier],
       async (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         if (results.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
@@ -255,6 +318,117 @@ app.post('/api/login', async (req, res) => {
     );
   } catch (err) {
     res.status(500).json({ error: 'Database not ready' });
+  }
+});
+
+// Google OAuth: start authorization
+app.get('/api/auth/google', async (req, res) => {
+  try {
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI) {
+      return res.status(500).json({ error: 'Google OAuth is not configured' });
+    }
+    const params = new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      redirect_uri: GOOGLE_REDIRECT_URI,
+      response_type: 'code',
+      scope: 'openid email profile',
+      access_type: 'offline',
+      prompt: 'consent'
+    });
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    res.redirect(url);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to start Google OAuth' });
+  }
+});
+
+// Google OAuth: callback to exchange code and issue JWT
+app.post('/api/auth/google/callback', async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { code } = req.body || {};
+    if (!code) return res.status(400).json({ error: 'Missing authorization code' });
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REDIRECT_URI) {
+      return res.status(500).json({ error: 'Google OAuth is not configured' });
+    }
+
+    // Exchange code for tokens
+    const tokenResp = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: GOOGLE_REDIRECT_URI,
+        grant_type: 'authorization_code'
+      }).toString()
+    });
+    if (!tokenResp.ok) {
+      const txt = await tokenResp.text();
+      return res.status(400).json({ error: 'Token exchange failed', details: txt });
+    }
+    const tokens = await tokenResp.json();
+    const accessToken = tokens.access_token;
+
+    // Fetch user info
+    const userinfoResp = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    if (!userinfoResp.ok) {
+      const txt = await userinfoResp.text();
+      return res.status(400).json({ error: 'Failed to fetch user info', details: txt });
+    }
+    const info = await userinfoResp.json();
+    const email = info.email;
+    const fullname = info.name || info.given_name || '';
+    const googleId = info.sub;
+    if (!email) return res.status(400).json({ error: 'Google account has no email' });
+
+    // Find or create user
+    db.query('SELECT id, username, fullname, email, role, status, is_paid, country, currency FROM users WHERE email = ? LIMIT 1', [email], async (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const finish = (userRow) => {
+        const token = jwt.sign({ id: userRow.id, username: userRow.username, role: userRow.role }, JWT_SECRET, { expiresIn: '24h' });
+        res.json({ token, user: userRow });
+      };
+
+      if (rows && rows.length > 0) {
+        // Existing user
+        finish(rows[0]);
+      } else {
+        // Create a new user with generated username and password
+        const baseUsername = `google_${googleId}`.slice(0, 50);
+        const randomPass = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+        const hashed = await bcrypt.hash(randomPass, 10);
+
+        db.query(
+          'INSERT INTO users (username, fullname, email, password, role, status, is_paid, country, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [baseUsername, fullname || email.split('@')[0], email, hashed, 'user', 'active', false, null, 'USD'],
+          (insErr, result) => {
+            if (insErr) {
+              // Handle possible username uniqueness: retry with slightly different username
+              const fallback = `google_${Date.now()}`;
+              db.query(
+                'INSERT INTO users (username, fullname, email, password, role, status, is_paid, country, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [fallback, fullname || email.split('@')[0], email, hashed, 'user', 'active', false, null, 'USD'],
+                (insErr2, result2) => {
+                  if (insErr2) return res.status(500).json({ error: insErr2.message });
+                  const userRow = { id: result2.insertId, username: fallback, fullname: fullname || email.split('@')[0], email, role: 'user', status: 'active', is_paid: 0, country: null, currency: 'USD' };
+                  finish(userRow);
+                }
+              );
+            } else {
+              const userRow = { id: result.insertId, username: baseUsername, fullname: fullname || email.split('@')[0], email, role: 'user', status: 'active', is_paid: 0, country: null, currency: 'USD' };
+              finish(userRow);
+            }
+          }
+        );
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Google OAuth callback failed' });
   }
 });
 
@@ -582,6 +756,151 @@ app.post('/api/support/chat/reply', authenticateToken, (req, res) => {
     res.json(item);
   } catch (e) {
     res.status(500).json({ error: 'Failed to send reply' });
+  }
+});
+
+// --- DB-backed Chat API ---
+// Helper: get or create conversation for a user
+async function getOrCreateConversationForUser(db, userId) {
+  return await new Promise((resolve, reject) => {
+    db.query('SELECT * FROM chat_conversations WHERE user_id = ? LIMIT 1', [userId], (err, rows) => {
+      if (err) return reject(err);
+      if (rows && rows.length > 0) return resolve(rows[0]);
+      db.query('INSERT INTO chat_conversations (user_id) VALUES (?)', [userId], (insErr, result) => {
+        if (insErr) return reject(insErr);
+        resolve({ id: result.insertId, user_id: userId, admin_id: null });
+      });
+    });
+  });
+}
+
+// User/Admin: list chat conversations
+app.get('/api/chat/conversations', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const role = String(req.user.role);
+    if (['super_admin', 'admin'].includes(role)) {
+      // List all conversations with basic user info
+      db.query(
+        'SELECT c.id AS conversation_id, c.user_id, c.admin_id, u.username, u.fullname, c.updated_at, c.created_at FROM chat_conversations c JOIN users u ON u.id = c.user_id ORDER BY c.updated_at DESC, c.created_at DESC',
+        [],
+        (err, rows) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json(rows || []);
+        }
+      );
+    } else {
+      // Ensure a single conversation for the user exists
+      const conv = await getOrCreateConversationForUser(db, req.user.id);
+      res.json(conv);
+    }
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to load conversations' });
+  }
+});
+
+// Get messages for a conversation (user only sees own; admin sees any)
+app.get('/api/chat/conversations/:id/messages', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const convId = Number(req.params.id);
+    if (!Number.isFinite(convId)) return res.status(400).json({ error: 'Invalid conversation id' });
+    db.query('SELECT * FROM chat_conversations WHERE id = ? LIMIT 1', [convId], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!rows || rows.length === 0) return res.status(404).json({ error: 'Conversation not found' });
+      const conv = rows[0];
+      const role = String(req.user.role);
+      if (!['super_admin','admin'].includes(role) && conv.user_id !== req.user.id) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      const limit = Math.min(Number(req.query.limit) || 200, 500);
+      db.query(
+        'SELECT id, sender_id, sender_type, message, read_at, created_at FROM chat_messages WHERE conversation_id = ? ORDER BY created_at ASC, id ASC LIMIT ?',[convId, limit],
+        (mErr, mRows) => {
+          if (mErr) return res.status(500).json({ error: mErr.message });
+          // Map to legacy-friendly shape {id, type, message, created_at, user_id?}
+          const mapped = (mRows || []).map(r => ({ id: r.id, type: r.sender_type, message: r.message, created_at: r.created_at }));
+          res.json(mapped);
+        }
+      );
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to load messages' });
+  }
+});
+
+// Send a new chat message; user auto-creates conversation, admin can target by conversation_id or user_id
+app.post('/api/chat/messages', authenticateToken, async (req, res) => {
+  try {
+    const db = await dbPromise;
+    const { conversation_id, user_id, message } = req.body || {};
+    const text = (message || '').toString().trim();
+    if (!text) return res.status(400).json({ error: 'Message is required' });
+
+    const role = String(req.user.role);
+    let conv;
+    if (!['super_admin','admin'].includes(role)) {
+      conv = await getOrCreateConversationForUser(db, req.user.id);
+    } else {
+      if (conversation_id && Number.isFinite(Number(conversation_id))) {
+        const [c] = await new Promise((resolve, reject) => {
+          db.query('SELECT * FROM chat_conversations WHERE id = ? LIMIT 1', [Number(conversation_id)], (err, rows) => err ? reject(err) : resolve(rows || []));
+        });
+        if (!c) return res.status(404).json({ error: 'Conversation not found' });
+        conv = c;
+      } else if (user_id && Number.isFinite(Number(user_id))) {
+        conv = await getOrCreateConversationForUser(db, Number(user_id));
+      } else {
+        return res.status(400).json({ error: 'conversation_id or user_id is required for admin' });
+      }
+      // If admin replying, attach admin_id if not set
+      if (!conv.admin_id) {
+        await new Promise((resolve, reject) => {
+          db.query('UPDATE chat_conversations SET admin_id = ? WHERE id = ?', [req.user.id, conv.id], (e) => e ? reject(e) : resolve());
+        });
+      }
+    }
+
+    const senderType = ['super_admin','admin'].includes(role) ? 'admin' : 'user';
+    const ins = await new Promise((resolve, reject) => {
+      db.query(
+        'INSERT INTO chat_messages (conversation_id, sender_id, sender_type, message) VALUES (?, ?, ?, ?)',
+        [conv.id, req.user.id, senderType, text.slice(0, 2000)],
+        (err, result) => err ? reject(err) : resolve(result)
+      );
+    });
+
+    // Touch conversation updated_at
+    try { db.query('UPDATE chat_conversations SET updated_at = NOW() WHERE id = ?', [conv.id]); } catch {}
+
+    const out = { id: ins.insertId, type: senderType, message: text.slice(0, 2000), created_at: new Date().toISOString() };
+
+    // Broadcast to SSE clients
+    broadcastChatMessage(conv.id, out);
+
+    // If admin sent message, send push notification to user
+    if (senderType === 'admin') {
+      const userId = conv.user_id;
+      const subs = userSubscriptions.get(userId) || [];
+      const payload = JSON.stringify({
+        title: 'New Message from Admin',
+        body: `Admin: ${text.slice(0, 100)}${text.length > 100 ? '...' : ''}`,
+        icon: '/icon.png',
+        badge: '/badge.png',
+        data: { url: '/help' }
+      });
+      subs.forEach(sub => {
+        try {
+          webPush.sendNotification(sub, payload);
+        } catch (e) {
+          console.error('Push notification failed:', e);
+        }
+      });
+    }
+
+    res.json(out);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to send message' });
   }
 });
 

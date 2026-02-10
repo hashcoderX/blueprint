@@ -18,6 +18,7 @@ export default function HelpPage() {
 
   // Chat state
   const [chatMessages, setChatMessages] = useState<Array<{ id: number; type: 'user' | 'admin'; message: string; created_at: string }>>([]);
+  const [conversationId, setConversationId] = useState<number | null>(null);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
 
@@ -35,9 +36,16 @@ export default function HelpPage() {
   const loadChat = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_BASE}/api/support/chat`, { headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json();
-      if (Array.isArray(data)) setChatMessages(data);
+      // Ensure a conversation exists and fetch its messages
+      const convRes = await fetch(`${API_BASE}/api/chat/conversations`, { headers: { Authorization: `Bearer ${token}` } });
+      const conv = await convRes.json();
+      const cid = conv && (conv.id || conv.conversation_id) ? Number(conv.id || conv.conversation_id) : null;
+      if (cid) {
+        setConversationId(cid);
+        const msgRes = await fetch(`${API_BASE}/api/chat/conversations/${cid}/messages`, { headers: { Authorization: `Bearer ${token}` } });
+        const msgs = await msgRes.json();
+        if (Array.isArray(msgs)) setChatMessages(msgs);
+      }
     } catch {}
   };
 
@@ -54,6 +62,26 @@ export default function HelpPage() {
     loadChat();
     loadTickets();
   }, []);
+
+  useEffect(() => {
+    if (conversationId && token) {
+      const eventSource = new EventSource(`${API_BASE}/api/chat/sse/${conversationId}?token=${encodeURIComponent(token)}`);
+      eventSource.onmessage = (event) => {
+        try {
+          const newMsg = JSON.parse(event.data);
+          setChatMessages((prev) => [...prev, newMsg]);
+        } catch (e) {
+          console.error('SSE parse error:', e);
+        }
+      };
+      eventSource.onerror = (err) => {
+        console.error('SSE error:', err);
+      };
+      return () => {
+        eventSource.close();
+      };
+    }
+  }, [conversationId, token]);
 
   const submitContact = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,10 +113,18 @@ export default function HelpPage() {
     if (!token || !chatInput.trim()) return;
     try {
       setChatLoading(true);
-      const res = await fetch(`${API_BASE}/api/support/chat`, {
+      // if conversation not known yet, create it by fetching once
+      let cid = conversationId;
+      if (!cid) {
+        const convRes = await fetch(`${API_BASE}/api/chat/conversations`, { headers: { Authorization: `Bearer ${token}` } });
+        const conv = await convRes.json();
+        cid = conv && (conv.id || conv.conversation_id) ? Number(conv.id || conv.conversation_id) : null;
+        if (cid) setConversationId(cid);
+      }
+      const res = await fetch(`${API_BASE}/api/chat/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ message: chatInput })
+        body: JSON.stringify({ conversation_id: cid || undefined, message: chatInput })
       });
       if (res.ok) {
         const msg = await res.json();

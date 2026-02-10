@@ -18,7 +18,7 @@ interface ChatThread {
   messages: ChatMessage[];
 }
 
-type ViewMode = 'chat' | 'tickets';
+type ViewMode = 'chat' | 'dbchat' | 'tickets';
 
 interface TicketItem {
   id: number;
@@ -44,6 +44,12 @@ export default function SupportDeskPage() {
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [ticketsLoading, setTicketsLoading] = useState(false);
 
+  // DB-backed chat state
+  const [dbConversations, setDbConversations] = useState<Array<{ conversation_id: number; user_id: number; username?: string; fullname?: string }>>([]);
+  const [selectedConvId, setSelectedConvId] = useState<number | null>(null);
+  const [dbMessages, setDbMessages] = useState<Array<{ id: number; type: 'user' | 'admin'; message: string; created_at: string }>>([]);
+  const [dbReplyText, setDbReplyText] = useState('');
+
   const loadThreads = async () => {
     if (!token) return;
     try {
@@ -62,6 +68,33 @@ export default function SupportDeskPage() {
   };
 
   useEffect(() => { loadThreads(); }, []);
+
+  const loadDbConversations = async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/api/chat/conversations`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setDbConversations(data);
+        if (data.length > 0 && selectedConvId === null) setSelectedConvId(Number(data[0].conversation_id));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadDbMessages = async (convId: number) => {
+    if (!token || !convId) return;
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/api/chat/conversations/${convId}/messages`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (Array.isArray(data)) setDbMessages(data);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadTickets = async () => {
     if (!token) return;
@@ -83,7 +116,30 @@ export default function SupportDeskPage() {
     if (viewMode === 'tickets' && tickets.length === 0) {
       loadTickets();
     }
+    if (viewMode === 'dbchat' && dbConversations.length === 0) {
+      loadDbConversations();
+    }
   }, [viewMode]);
+
+  useEffect(() => {
+    if (selectedConvId && token && viewMode === 'dbchat') {
+      const eventSource = new EventSource(`${API_BASE}/api/chat/sse/${selectedConvId}?token=${encodeURIComponent(token)}`);
+      eventSource.onmessage = (event) => {
+        try {
+          const newMsg = JSON.parse(event.data);
+          setDbMessages((prev) => [...prev, newMsg]);
+        } catch (e) {
+          console.error('SSE parse error:', e);
+        }
+      };
+      eventSource.onerror = (err) => {
+        console.error('SSE error:', err);
+      };
+      return () => {
+        eventSource.close();
+      };
+    }
+  }, [selectedConvId, token, viewMode]);
 
   const sendReply = async () => {
     if (!token || !selectedUserId || !replyText.trim()) return;
@@ -105,6 +161,26 @@ export default function SupportDeskPage() {
   };
 
   const currentThread = threads.find(t => t.user_id === selectedUserId);
+  const currentDbConv = dbConversations.find(c => c.conversation_id === selectedConvId);
+
+  const sendDbReply = async () => {
+    if (!token || !selectedConvId || !dbReplyText.trim()) return;
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/api/chat/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ conversation_id: selectedConvId, message: dbReplyText })
+      });
+      if (res.ok) {
+        const msg = await res.json();
+        setDbMessages((prev) => [...prev, msg]);
+        setDbReplyText('');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -121,6 +197,13 @@ export default function SupportDeskPage() {
               className={`px-4 py-2 text-sm flex items-center gap-2 ${viewMode === 'chat' ? 'bg-powerbi-primary text-white' : 'bg-white dark:bg-powerbi-gray-800 text-powerbi-gray-900 dark:text-white'}`}
             >
               <MessageSquare className="w-4 h-4" /> Chats
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('dbchat')}
+              className={`px-4 py-2 text-sm flex items-center gap-2 ${viewMode === 'dbchat' ? 'bg-powerbi-primary text-white' : 'bg-white dark:bg-powerbi-gray-800 text-powerbi-gray-900 dark:text-white'}`}
+            >
+              <MessageSquare className="w-4 h-4" /> DB Chats
             </button>
             <button
               type="button"
@@ -188,6 +271,65 @@ export default function SupportDeskPage() {
                 </>
               ) : (
                 <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Select a user thread to view conversation.</p>
+              )}
+            </div>
+          </div>
+        ) : viewMode === 'dbchat' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Conversations list */}
+            <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4">
+              <div className="flex items-center mb-3">
+                <Users className="w-5 h-5 text-powerbi-gray-600 dark:text-powerbi-gray-400 mr-2" />
+                <h3 className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">DB Conversations</h3>
+              </div>
+              <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+                {dbConversations.length === 0 && (
+                  <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">No conversations yet.</p>
+                )}
+                {dbConversations.map((c) => (
+                  <button key={c.conversation_id} onClick={() => { setSelectedConvId(c.conversation_id); loadDbMessages(c.conversation_id); }} className={`w-full text-left px-3 py-2 rounded-lg border ${selectedConvId === c.conversation_id ? 'border-powerbi-primary bg-powerbi-blue-50 dark:bg-powerbi-blue-900/20' : 'border-powerbi-gray-200 dark:border-powerbi-gray-700'} hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-powerbi-gray-900 dark:text-white">User #{c.user_id}{c.username ? ` - ${c.username}` : ''}</span>
+                      <span className="text-xs text-powerbi-gray-600 dark:text-powerbi-gray-400">ID {c.conversation_id}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Conversation messages */}
+            <div className="lg:col-span-2 bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4">
+              {currentDbConv ? (
+                <>
+                  <div className="flex items-center mb-3">
+                    <MessageSquare className="w-5 h-5 text-powerbi-gray-600 dark:text-powerbi-gray-400 mr-2" />
+                    <h3 className="text-sm font-semibold text-powerbi-gray-900 dark:text-white">Conversation with User #{currentDbConv.user_id}{currentDbConv.username ? ` - ${currentDbConv.username}` : ''}</h3>
+                  </div>
+                  <div className="border border-powerbi-gray-200 dark:border-powerbi-gray-700 rounded-xl p-4 max-h-[55vh] overflow-y-auto space-y-3">
+                    {dbMessages.map((m) => (
+                      <div key={m.id} className={`flex ${m.type === 'admin' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`px-3 py-2 rounded-lg text-sm ${m.type === 'admin' ? 'bg-blue-600 text-white' : 'bg-powerbi-gray-100 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white'}`}>
+                          <p>{m.message}</p>
+                          <span className="block mt-1 text-[10px] opacity-70">{new Date(m.created_at).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      type="text"
+                      value={dbReplyText}
+                      onChange={(e) => setDbReplyText(e.target.value)}
+                      placeholder="Type a reply"
+                      className="flex-1 px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                    />
+                    <button onClick={sendDbReply} disabled={loading || !dbReplyText.trim()} className="inline-flex items-center gap-2 bg-powerbi-primary text-white px-4 py-2 rounded-xl hover:brightness-110 disabled:opacity-50">
+                      <Send className="w-4 h-4" /> Send
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Select a conversation to view messages.</p>
               )}
             </div>
           </div>

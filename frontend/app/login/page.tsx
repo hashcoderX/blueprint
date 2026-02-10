@@ -21,7 +21,7 @@ export default function Login() {
     const remembered = localStorage.getItem('rememberMe');
     if (remembered) {
       const creds = JSON.parse(remembered);
-      setIdentifier(creds.identifier);
+      setIdentifier(creds.identifier.trim());
       setRememberMe(true);
     }
   }, []);
@@ -90,7 +90,10 @@ export default function Login() {
           {/* Social Login Options */}
           <div className="px-4 sm:px-8 pt-8 pb-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-              <button className="flex items-center justify-center px-4 py-3 bg-white dark:bg-powerbi-gray-700 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-xl hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-600 transition-all duration-200 transform hover:scale-105 shadow-sm">
+              <button onClick={() => {
+                const base = process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+                window.location.href = `${base}/api/auth/google`;
+              }} className="flex items-center justify-center px-4 py-3 bg-white dark:bg-powerbi-gray-700 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-xl hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-600 transition-all duration-200 transform hover:scale-105 shadow-sm">
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -99,12 +102,7 @@ export default function Login() {
                 </svg>
                 <span className="text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300">Google</span>
               </button>
-              <button className="flex items-center justify-center px-4 py-3 bg-white dark:bg-powerbi-gray-700 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-xl hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-600 transition-all duration-200 transform hover:scale-105 shadow-sm">
-                <svg className="w-5 h-5 mr-2 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                <span className="text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300">Facebook</span>
-              </button>
+              
             </div>
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
@@ -126,7 +124,7 @@ export default function Login() {
                   <input
                     type="text"
                     value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
+                    onChange={(e) => setIdentifier(e.target.value.trim())}
                     required
                     className="w-full px-4 py-4 pl-14 border-2 border-powerbi-gray-200 dark:border-powerbi-gray-600 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-powerbi-primary/20 focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white transition-all duration-200 group-hover:border-powerbi-primary/50"
                     placeholder="Enter your username, email, or phone"
