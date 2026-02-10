@@ -29,7 +29,7 @@ interface Task {
 }
 
 interface ActiveLog { task_id: number; start_time: string; }
-type ActiveTabType = 'overview' | 'planner' | 'kanban' | 'analytics';
+type ActiveTabType = 'overview' | 'planner' | 'kanban' | 'analytics' | 'calendar';
 interface TaskTimeLog { task_id: number; start_time: string; end_time?: string | null; minutes?: number; }
 
 const formatTime = (timeStr: string): string => {
@@ -91,6 +91,80 @@ const serverToLocalInputDatetime = (serverStr: string): string => {
   return toLocalInputDatetime(d);
 };
 
+const CalendarView: React.FC<{ tasks: Task[]; currentDate: Date; onTaskClick: (task: Task) => void }> = ({ tasks, currentDate, onTaskClick }) => {
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startDate = new Date(firstDay);
+  startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+  const days = [];
+  const current = new Date(startDate);
+  for (let i = 0; i < 42; i++) { // 6 weeks
+    days.push(new Date(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  const tasksByDate = tasks.reduce((acc, task) => {
+    if (task.planned_date) {
+      const date = task.planned_date;
+      if (!acc[date]) acc[date] = [];
+      acc[date].push(task);
+    }
+    return acc;
+  }, {} as Record<string, Task[]>);
+
+  return (
+    <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-6">
+      <div className="grid grid-cols-7 gap-1">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          <div key={day} className="p-2 text-center font-semibold text-powerbi-gray-700 dark:text-powerbi-gray-300">
+            {day}
+          </div>
+        ))}
+        {days.map((day, index) => {
+          const dateStr = day.toISOString().slice(0, 10);
+          const dayTasks = tasksByDate[dateStr] || [];
+          const isCurrentMonth = day.getMonth() === month;
+          return (
+            <div
+              key={index}
+              className={`min-h-24 p-2 border border-powerbi-gray-200 dark:border-powerbi-gray-600 ${
+                isCurrentMonth ? 'bg-white dark:bg-powerbi-gray-800' : 'bg-powerbi-gray-50 dark:bg-powerbi-gray-700'
+              }`}
+            >
+              <div className="text-sm font-medium text-powerbi-gray-900 dark:text-white mb-1">
+                {day.getDate()}
+              </div>
+              <div className="space-y-1">
+                {dayTasks.slice(0, 3).map(task => (
+                  <div
+                    key={task.id}
+                    onClick={() => onTaskClick(task)}
+                    className={`text-xs p-1 rounded cursor-pointer ${
+                      task.priority === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                      task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    }`}
+                  >
+                    {task.title.length > 15 ? task.title.substring(0, 15) + '...' : task.title}
+                  </div>
+                ))}
+                {dayTasks.length > 3 && (
+                  <div className="text-xs text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                    +{dayTasks.length - 3} more
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export default function Tasks() {
   const { t } = useI18n();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -128,6 +202,7 @@ export default function Tasks() {
     schedule_time: '',
     allocated_hours: 0,
   });
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -684,7 +759,8 @@ export default function Tasks() {
               { id: 'overview', label: t('pages.tasks.tabs.overview') },
               { id: 'planner', label: t('pages.tasks.tabs.planner') },
               { id: 'kanban', label: t('pages.tasks.tabs.kanban') },
-              { id: 'analytics', label: t('pages.tasks.tabs.analytics') }
+              { id: 'analytics', label: t('pages.tasks.tabs.analytics') },
+              { id: 'calendar', label: 'Calendar' }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -812,6 +888,29 @@ export default function Tasks() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'calendar' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}
+                  className="px-4 py-2 bg-powerbi-gray-100 dark:bg-powerbi-gray-700 text-powerbi-gray-700 dark:text-powerbi-gray-300 rounded-lg hover:bg-powerbi-gray-200 dark:hover:bg-powerbi-gray-600"
+                >
+                  Previous
+                </button>
+                <h2 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">
+                  {calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </h2>
+                <button
+                  onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}
+                  className="px-4 py-2 bg-powerbi-gray-100 dark:bg-powerbi-gray-700 text-powerbi-gray-700 dark:text-powerbi-gray-300 rounded-lg hover:bg-powerbi-gray-200 dark:hover:bg-powerbi-gray-600"
+                >
+                  Next
+                </button>
+              </div>
+              <CalendarView tasks={tasks} currentDate={calendarDate} onTaskClick={(task) => { setSelectedTask(task); setShowTaskDetailModal(true); }} />
             </div>
           )}
         </div>
