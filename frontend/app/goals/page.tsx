@@ -89,6 +89,8 @@ export default function Goals() {
   const [showConfirmDelete, setShowConfirmDelete] = useState<{ show: boolean; goalId: number | null }>({ show: false, goalId: null });
   const [showErrorModal, setShowErrorModal] = useState<{ show: boolean; message: string }>({ show: false, message: '' });
   const [formError, setFormError] = useState<string | null>(null);
+  const [isCreatingGoal, setIsCreatingGoal] = useState(false);
+  const [isUpdatingGoal, setIsUpdatingGoal] = useState(false);
   const [filters, setFilters] = useState({
     category: 'all',
     status: 'all',
@@ -180,8 +182,12 @@ export default function Goals() {
   };
 
   const handleCreateGoal = async (goalData: Partial<Goal>) => {
+    setIsCreatingGoal(true);
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      setIsCreatingGoal(false);
+      return;
+    }
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals`, {
@@ -204,12 +210,18 @@ export default function Goals() {
     } catch (err) {
       console.error('Error creating goal:', err);
       setFormError('Error creating goal: Network error');
+    } finally {
+      setIsCreatingGoal(false);
     }
   };
 
   const handleUpdateGoal = async (goalData: Partial<Goal>) => {
+    setIsUpdatingGoal(true);
     const token = localStorage.getItem('token');
-    if (!token || !editingGoal) return;
+    if (!token || !editingGoal) {
+      setIsUpdatingGoal(false);
+      return;
+    }
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/goals/${editingGoal.id}`, {
@@ -231,6 +243,8 @@ export default function Goals() {
     } catch (err) {
       console.error('Error updating goal:', err);
       setShowErrorModal({ show: true, message: 'Error updating goal' });
+    } finally {
+      setIsUpdatingGoal(false);
     }
   };
 
@@ -536,6 +550,7 @@ export default function Goals() {
               setFormError(null);
             }}
             error={formError}
+            isLoading={editingGoal ? isUpdatingGoal : isCreatingGoal}
           />
         )}
 
@@ -608,11 +623,12 @@ export default function Goals() {
 }
 
 // Goal Form Component
-function GoalForm({ goal, onSave, onCancel, error }: {
+function GoalForm({ goal, onSave, onCancel, error, isLoading }: {
   goal?: Goal | null;
   onSave: (data: Partial<Goal>) => void;
   onCancel: () => void;
   error?: string | null;
+  isLoading?: boolean;
 }) {
   const [formData, setFormData] = useState({
     name: goal?.name || '',
@@ -653,9 +669,10 @@ function GoalForm({ goal, onSave, onCancel, error }: {
                 <input
                   type="text"
                   required
+                  disabled={isLoading}
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="e.g., Emergency Fund"
                 />
               </div>
@@ -666,8 +683,9 @@ function GoalForm({ goal, onSave, onCancel, error }: {
                 </label>
                 <select
                   value={formData.category}
+                  disabled={isLoading}
                   onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {['Savings', 'Investment', 'Debt Payoff', 'Emergency Fund', 'Vacation', 'Car', 'Home', 'Education', 'Health', 'Other'].map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
@@ -682,9 +700,10 @@ function GoalForm({ goal, onSave, onCancel, error }: {
               </label>
               <textarea
                 value={formData.description}
+                disabled={isLoading}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Describe your goal..."
               />
             </div>
@@ -698,9 +717,10 @@ function GoalForm({ goal, onSave, onCancel, error }: {
                   type="number"
                   min="0"
                   step="0.01"
+                  disabled={isLoading}
                   value={formData.current}
                   onChange={(e) => setFormData({...formData, current: parseFloat(e.target.value) || 0})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -713,9 +733,10 @@ function GoalForm({ goal, onSave, onCancel, error }: {
                   min="0"
                   step="0.01"
                   required
+                  disabled={isLoading}
                   value={formData.target}
                   onChange={(e) => setFormData({...formData, target: parseFloat(e.target.value) || 0})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -725,8 +746,9 @@ function GoalForm({ goal, onSave, onCancel, error }: {
                 </label>
                 <select
                   value={formData.priority}
+                  disabled={isLoading}
                   onChange={(e) => setFormData({...formData, priority: e.target.value as 'low' | 'medium' | 'high'})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -742,9 +764,10 @@ function GoalForm({ goal, onSave, onCancel, error }: {
               <input
                 type="date"
                 required
+                disabled={isLoading}
                 value={formData.target_date}
                 onChange={(e) => setFormData({...formData, target_date: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -754,9 +777,10 @@ function GoalForm({ goal, onSave, onCancel, error }: {
               </label>
               <textarea
                 value={formData.notes}
+                disabled={isLoading}
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Additional notes..."
               />
             </div>
@@ -765,14 +789,19 @@ function GoalForm({ goal, onSave, onCancel, error }: {
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                disabled={isLoading}
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+                disabled={isLoading}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg transition-colors disabled:cursor-not-allowed flex items-center gap-2"
               >
+                {isLoading && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                )}
                 {goal ? 'Update Goal' : 'Create Goal'}
               </button>
             </div>

@@ -43,6 +43,8 @@ export default function VehicleExpenses() {
   const [userCurrency, setUserCurrency] = useState('USD');
   const [showDetails, setShowDetails] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<VehicleEntry | null>(null);
+  const [isAddingEntry, setIsAddingEntry] = useState(false);
+  const [isAddingVehicle, setIsAddingVehicle] = useState(false);
   const [form, setForm] = useState({
     description: '',
     vehicle: '',
@@ -119,6 +121,7 @@ export default function VehicleExpenses() {
   const submitAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
+    setIsAddingEntry(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicle-expenses`, {
         method: 'POST',
@@ -137,6 +140,7 @@ export default function VehicleExpenses() {
       console.error('Add entry error:', e);
       setMessage({ type: 'error', text: t('pages.vehicleExpenses.messages.failedToAdd') });
     } finally {
+      setIsAddingEntry(false);
       setTimeout(() => setMessage(null), 2500);
     }
   };
@@ -216,6 +220,7 @@ export default function VehicleExpenses() {
   const submitAddVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
+    setIsAddingVehicle(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicles`, {
         method: 'POST',
@@ -235,6 +240,7 @@ export default function VehicleExpenses() {
       console.error('Add vehicle error:', e);
       setMessage({ type: 'error', text: t('pages.vehicleExpenses.messages.failedToAddVehicle') });
     } finally {
+      setIsAddingVehicle(false);
       setTimeout(() => setMessage(null), 2500);
     }
   };
@@ -466,35 +472,38 @@ export default function VehicleExpenses() {
                 <form onSubmit={submitAdd} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.type')}</label>
-                    <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value as EntryType })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white">
+                    <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value as EntryType })} disabled={isAddingEntry} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50">
                       <option value="expense">{t('pages.vehicleExpenses.types.expense')}</option>
                       <option value="income">{t('pages.vehicleExpenses.types.income')}</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.description')}</label>
-                    <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
+                    <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} required disabled={isAddingEntry} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.vehicle')}</label>
-                      <select value={form.vehicle} onChange={e => setForm({ ...form, vehicle: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white">
+                      <select value={form.vehicle} onChange={e => setForm({ ...form, vehicle: e.target.value })} required disabled={isAddingEntry} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50">
                         <option value="">{t('pages.vehicleExpenses.labels.selectVehicle')}</option>
                         {vehicleOptions.map(v => (<option key={v} value={v}>{v}</option>))}
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.amount')}</label>
-                      <input type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: Number(e.target.value) })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
+                      <input type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: Number(e.target.value) })} required disabled={isAddingEntry} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.date')}</label>
-                    <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
+                    <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required disabled={isAddingEntry} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
                     <button type="button" onClick={() => setShowAdd(false)} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200">{t('buttons.cancel')}</button>
-                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl">{t('buttons.add')}</button>
+                    <button type="submit" disabled={isAddingEntry} className="bg-powerbi-primary hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2">
+                      {isAddingEntry && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                      {t('buttons.add')}
+                    </button>
                   </div>
                 </form>
               </div>
@@ -556,29 +565,32 @@ export default function VehicleExpenses() {
                 <form onSubmit={submitAddVehicle} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.name')}</label>
-                    <input value={vehicleForm.name} onChange={e => setVehicleForm({ ...vehicleForm, name: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
+                    <input value={vehicleForm.name} onChange={e => setVehicleForm({ ...vehicleForm, name: e.target.value })} required disabled={isAddingVehicle} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.make')}</label>
-                      <input value={vehicleForm.make} onChange={e => setVehicleForm({ ...vehicleForm, make: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
+                      <input value={vehicleForm.make} onChange={e => setVehicleForm({ ...vehicleForm, make: e.target.value })} required disabled={isAddingVehicle} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.model')}</label>
-                      <input value={vehicleForm.model} onChange={e => setVehicleForm({ ...vehicleForm, model: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
+                      <input value={vehicleForm.model} onChange={e => setVehicleForm({ ...vehicleForm, model: e.target.value })} required disabled={isAddingVehicle} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.year')}</label>
-                    <input type="number" min="1900" max={new Date().getFullYear() + 1} value={vehicleForm.year} onChange={e => setVehicleForm({ ...vehicleForm, year: Number(e.target.value) })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
+                    <input type="number" min="1900" max={new Date().getFullYear() + 1} value={vehicleForm.year} onChange={e => setVehicleForm({ ...vehicleForm, year: Number(e.target.value) })} required disabled={isAddingVehicle} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.vehicleNo')}</label>
-                    <input value={vehicleForm.vehicle_no} onChange={e => setVehicleForm({ ...vehicleForm, vehicle_no: e.target.value })} placeholder="e.g. ABC-123" className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
+                    <input value={vehicleForm.vehicle_no} onChange={e => setVehicleForm({ ...vehicleForm, vehicle_no: e.target.value })} placeholder="e.g. ABC-123" disabled={isAddingVehicle} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
                     <button type="button" onClick={() => setShowAddVehicle(false)} className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200">{t('buttons.cancel')}</button>
-                    <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl">{t('buttons.add')}</button>
+                    <button type="submit" disabled={isAddingVehicle} className="bg-powerbi-primary hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2">
+                      {isAddingVehicle && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                      {t('buttons.add')}
+                    </button>
                   </div>
                 </form>
               </div>

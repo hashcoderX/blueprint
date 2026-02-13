@@ -90,6 +90,7 @@ export default function Expenses() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formType, setFormType] = useState<'income' | 'expense'>('expense');
   const [userCurrency, setUserCurrency] = useState<string>('USD');
+  const [isAddingTransaction, setIsAddingTransaction] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     transactionId: number | null;
@@ -264,6 +265,7 @@ export default function Expenses() {
 
   const handleAddTransaction = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsAddingTransaction(true);
     const formData = new FormData(e.currentTarget);
     
     const description = formData.get('description') as string;
@@ -272,7 +274,10 @@ export default function Expenses() {
     const category = formData.get('category') as string || 'general';
 
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      setIsAddingTransaction(false);
+      return;
+    }
 
     try {
       const endpoint = formType === 'income' ? '/api/income' : '/api/expenses';
@@ -311,6 +316,8 @@ export default function Expenses() {
         errorMessage = msg;
       }
       alert(errorMessage);
+    } finally {
+      setIsAddingTransaction(false);
     }
   };
 
@@ -976,8 +983,9 @@ export default function Expenses() {
                     </label>
                     <select
                       value={formType}
+                      disabled={isAddingTransaction}
                       onChange={(e) => setFormType(e.target.value as 'income' | 'expense')}
-                      className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="expense">Expense</option>
                       <option value="income">Income</option>
@@ -991,7 +999,8 @@ export default function Expenses() {
                       type="text"
                       name="description"
                       required
-                      className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                      disabled={isAddingTransaction}
+                      className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="Enter description"
                     />
                   </div>
@@ -1004,7 +1013,8 @@ export default function Expenses() {
                       name="amount"
                       step="0.01"
                       required
-                      className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                      disabled={isAddingTransaction}
+                      className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="0.00"
                     />
                   </div>
@@ -1016,7 +1026,8 @@ export default function Expenses() {
                       type="date"
                       name="date"
                       required
-                      className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                      disabled={isAddingTransaction}
+                      className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div>
@@ -1025,7 +1036,8 @@ export default function Expenses() {
                     </label>
                     <select
                       name="category"
-                      className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                      disabled={isAddingTransaction}
+                      className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {formType === 'income' ? (
                         <>
@@ -1057,14 +1069,19 @@ export default function Expenses() {
                     <button
                       type="button"
                       onClick={() => setShowAddForm(false)}
-                      className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors"
+                      disabled={isAddingTransaction}
+                      className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl transition-colors"
+                      disabled={isAddingTransaction}
+                      className="bg-powerbi-primary hover:brightness-110 disabled:bg-powerbi-primary/70 text-white px-6 py-2 rounded-xl transition-colors disabled:cursor-not-allowed flex items-center gap-2"
                     >
+                      {isAddingTransaction && (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      )}
                       Add {formType === 'income' ? 'Income' : 'Expense'}
                     </button>
                   </div>

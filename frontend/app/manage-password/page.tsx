@@ -867,7 +867,8 @@ export default function ManagePassword() {
                       type="text"
                       value={platform}
                       onChange={(e) => setPlatform(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                      disabled={saving}
+                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50"
                       placeholder="e.g. Facebook, Gmail, GitHub"
                     />
                   </div>
@@ -877,7 +878,8 @@ export default function ManagePassword() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                      disabled={saving}
+                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50"
                       placeholder="e.g. user@example.com"
                     />
                   </div>
@@ -887,7 +889,8 @@ export default function ManagePassword() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                      disabled={saving}
+                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50"
                       placeholder="e.g. sudharma1993"
                     />
                   </div>
@@ -897,7 +900,8 @@ export default function ManagePassword() {
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                      disabled={saving}
+                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50"
                       placeholder="Enter password for platform"
                     />
                   </div>
@@ -907,7 +911,8 @@ export default function ManagePassword() {
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    disabled={saving}
+                    className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50"
                     placeholder="Optional notes or additional information"
                     rows={3}
                   />
@@ -922,12 +927,13 @@ export default function ManagePassword() {
                   <button
                     onClick={handleSave}
                     disabled={saving || !canSubmit}
-                    className={`px-4 py-2 rounded-xl shadow ${
+                    className={`px-4 py-2 rounded-xl shadow flex items-center gap-2 ${
                       saving || !canSubmit
                         ? 'opacity-70 cursor-not-allowed bg-powerbi-gray-400'
                         : 'bg-amber-600 hover:bg-amber-700 text-white'
                     }`}
                   >
+                    {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                     {saving ? 'Saving…' : 'Save Entry'}
                   </button>
                 </div>
@@ -968,7 +974,10 @@ export default function ManagePassword() {
                       type="text"
                       value={apiName}
                       onChange={(e) => setApiName(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      disabled={savingApi}
+                      className={`w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                        savingApi ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                       placeholder="e.g. Stripe API Key, AWS Access Key"
                     />
                   </div>
@@ -978,7 +987,10 @@ export default function ManagePassword() {
                       type="text"
                       value={projectName}
                       onChange={(e) => setProjectName(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      disabled={savingApi}
+                      className={`w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                        savingApi ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                       placeholder="e.g. E-commerce App, Blog Platform"
                     />
                   </div>
@@ -988,7 +1000,10 @@ export default function ManagePassword() {
                       type="text"
                       value={provider}
                       onChange={(e) => setProvider(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      disabled={savingApi}
+                      className={`w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                        savingApi ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                       placeholder="e.g. AWS, Stripe, Google, GitHub"
                     />
                   </div>
@@ -997,7 +1012,10 @@ export default function ManagePassword() {
                     <select
                       value={environment}
                       onChange={(e) => setEnvironment(e.target.value as 'development' | 'staging' | 'production')}
-                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      disabled={savingApi}
+                      className={`w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                        savingApi ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
                       <option value="development">Development</option>
                       <option value="staging">Staging</option>
@@ -1010,7 +1028,10 @@ export default function ManagePassword() {
                       type="password"
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                      disabled={savingApi}
+                      className={`w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono ${
+                        savingApi ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                       placeholder="Enter your API key"
                     />
                   </div>
@@ -1020,7 +1041,10 @@ export default function ManagePassword() {
                       type="password"
                       value={apiSecret}
                       onChange={(e) => setApiSecret(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                      disabled={savingApi}
+                      className={`w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono ${
+                        savingApi ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                       placeholder="Enter your API secret or leave empty"
                     />
                   </div>
@@ -1030,7 +1054,10 @@ export default function ManagePassword() {
                   <textarea
                     value={apiNotes}
                     onChange={(e) => setApiNotes(e.target.value)}
-                    className="w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    disabled={savingApi}
+                    className={`w-full p-3 rounded-lg bg-white dark:bg-powerbi-gray-900 border border-powerbi-gray-200 dark:border-powerbi-gray-700 outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      savingApi ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                     placeholder="Optional notes about this API key"
                     rows={3}
                   />
@@ -1051,7 +1078,14 @@ export default function ManagePassword() {
                         : 'bg-purple-600 hover:bg-purple-700 text-white'
                     }`}
                   >
-                    {savingApi ? 'Saving…' : 'Save API Key'}
+                    {savingApi ? (
+                      <>
+                        <div className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Saving…
+                      </>
+                    ) : (
+                      'Save API Key'
+                    )}
                   </button>
                 </div>
               </div>

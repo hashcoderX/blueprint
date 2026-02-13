@@ -65,6 +65,7 @@ export default function Achievements() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [showConfirmDelete, setShowConfirmDelete] = useState<{ show: boolean; achievementId: string | number | null }>({ show: false, achievementId: null });
+  const [isCreatingAchievement, setIsCreatingAchievement] = useState(false);
 
   useEffect(() => {
     fetchAchievements();
@@ -90,9 +91,13 @@ export default function Achievements() {
   };
 
   const createAchievement = async (data: Partial<Achievement>) => {
+    setIsCreatingAchievement(true);
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        setIsCreatingAchievement(false);
+        return;
+      }
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/achievements`, {
         method: 'POST',
         headers: {
@@ -124,6 +129,8 @@ export default function Achievements() {
       console.error('Error creating achievement:', err);
       const message = err instanceof Error ? err.message : 'Error creating achievement';
       setFormError(message);
+    } finally {
+      setIsCreatingAchievement(false);
     }
   };
 
@@ -424,6 +431,7 @@ export default function Achievements() {
             onSave={createAchievement}
             onCancel={() => { setShowCreateForm(false); setFormError(null); }}
             error={formError}
+            isLoading={isCreatingAchievement}
           />
         )}
 
@@ -462,11 +470,13 @@ export default function Achievements() {
 function AchievementForm({
   onSave,
   onCancel,
-  error
+  error,
+  isLoading
 }: {
   onSave: (data: Partial<Achievement>) => void;
   onCancel: () => void;
   error?: string | null;
+  isLoading?: boolean;
 }) {
   const iconOptions = [
     'PiggyBank', 'DollarSign', 'Target', 'CheckSquare', 'Car', 'Heart', 'Users', 'BookOpen',
@@ -510,9 +520,10 @@ function AchievementForm({
                 <input
                   type="text"
                   required
+                  disabled={isLoading}
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="e.g., Budget Master"
                 />
               </div>
@@ -520,8 +531,9 @@ function AchievementForm({
                 <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Icon *</label>
                 <select
                   value={formData.icon}
+                  disabled={isLoading}
                   onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {iconOptions.map(i => <option key={i} value={i}>{i}</option>)}
                 </select>
@@ -532,9 +544,10 @@ function AchievementForm({
               <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Description</label>
               <textarea
                 value={formData.description}
+                disabled={isLoading}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Describe the achievement..."
               />
             </div>
@@ -544,8 +557,9 @@ function AchievementForm({
                 <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Category *</label>
                 <select
                   value={formData.category}
+                  disabled={isLoading}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -556,17 +570,19 @@ function AchievementForm({
                   type="number"
                   min={1}
                   required
+                  disabled={isLoading}
                   value={formData.max_progress}
                   onChange={(e) => setFormData({ ...formData, max_progress: parseInt(e.target.value || '1', 10) })}
-                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Rarity *</label>
                 <select
                   value={formData.rarity}
+                  disabled={isLoading}
                   onChange={(e) => setFormData({ ...formData, rarity: e.target.value as Achievement['rarity'] })}
-                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {rarityOptions.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
@@ -579,9 +595,10 @@ function AchievementForm({
                 <input
                   type="text"
                   required
+                  disabled={isLoading}
                   value={formData.requirement}
                   onChange={(e) => setFormData({ ...formData, requirement: e.target.value })}
-                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="e.g., Save $100 total"
                 />
               </div>
@@ -590,9 +607,10 @@ function AchievementForm({
                 <input
                   type="text"
                   required
+                  disabled={isLoading}
                   value={formData.reward}
                   onChange={(e) => setFormData({ ...formData, reward: e.target.value })}
-                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="e.g., 100 points"
                 />
               </div>
@@ -602,14 +620,19 @@ function AchievementForm({
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors"
+                disabled={isLoading}
+                className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl transition-colors"
+                disabled={isLoading}
+                className="bg-powerbi-primary hover:brightness-110 disabled:bg-powerbi-primary/70 text-white px-6 py-2 rounded-xl transition-colors disabled:cursor-not-allowed flex items-center gap-2"
               >
+                {isLoading && (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                )}
                 Create Achievement
               </button>
             </div>

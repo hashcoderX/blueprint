@@ -3419,8 +3419,14 @@ app.delete('/api/project-documents/:id', authenticateToken, async (req, res) => 
   }
 });
 
-app.listen(port, () => {
-  console.log(`Backend server running on port ${port}`);
+// Wait for database to be ready before starting server
+dbPromise.then(() => {
+  app.listen(port, () => {
+    console.log(`Backend server running on port ${port}`);
+  });
+}).catch((err) => {
+  console.error('Failed to initialize database:', err);
+  process.exit(1);
 });
 
 // Gem Business: Sales - list

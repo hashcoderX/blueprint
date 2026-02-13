@@ -315,7 +315,9 @@ export default function GemInventory() {
       
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/gem/inventory`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          'Authorization': `Bearer ${token}`
+        },
         body: fd
       });
       if (!res.ok) {
@@ -601,52 +603,52 @@ export default function GemInventory() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Gem Name *</label>
-                    <input value={gemName} onChange={e => setGemName(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Sapphire" />
+                    <input value={gemName} onChange={e => setGemName(e.target.value)} disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="e.g. Sapphire" />
                   </div>
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Weight (ct) *</label>
-                    <input value={weight} onChange={e => setWeight(e.target.value)} type="number" step="0.001" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 2.5" />
+                    <input value={weight} onChange={e => setWeight(e.target.value)} type="number" step="0.001" disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="e.g. 2.5" />
                   </div>
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Color</label>
-                    <input value={color} onChange={e => setColor(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Blue" />
+                    <input value={color} onChange={e => setColor(e.target.value)} disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="e.g. Blue" />
                   </div>
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Clarity</label>
-                    <input value={clarity} onChange={e => setClarity(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. VS" />
+                    <input value={clarity} onChange={e => setClarity(e.target.value)} disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="e.g. VS" />
                   </div>
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Cut</label>
-                    <input value={cut} onChange={e => setCut(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Round" />
+                    <input value={cut} onChange={e => setCut(e.target.value)} disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="e.g. Round" />
                   </div>
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Shape</label>
-                    <input value={shape} onChange={e => setShape(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Oval" />
+                    <input value={shape} onChange={e => setShape(e.target.value)} disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="e.g. Oval" />
                   </div>
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Origin</label>
-                    <input value={origin} onChange={e => setOrigin(e.target.value)} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. Sri Lanka" />
+                    <input value={origin} onChange={e => setOrigin(e.target.value)} disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="e.g. Sri Lanka" />
                   </div>
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Purchase Price *</label>
-                    <input value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} type="number" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 500.00" />
+                    <input value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} type="number" step="0.01" disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="e.g. 500.00" />
                   </div>
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Current Value</label>
-                    <input value={currentValue} onChange={e => setCurrentValue(e.target.value)} type="number" step="0.01" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="e.g. 600.00" />
+                    <input value={currentValue} onChange={e => setCurrentValue(e.target.value)} type="number" step="0.01" disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="e.g. 600.00" />
                   </div>
                   <div>
                     <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Quantity</label>
-                    <input value={quantity} onChange={e => setQuantity(e.target.value)} type="number" min="1" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="1" />
+                    <input value={quantity} onChange={e => setQuantity(e.target.value)} type="number" min="1" disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="1" />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Description</label>
-                  <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" placeholder="Additional notes about this gem" />
+                  <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} placeholder="Additional notes about this gem" />
                 </div>
                 <div>
                   <label className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-1 block">Images</label>
-                  <input onChange={e => setFiles(e.target.files)} type="file" multiple accept="image/*" className="w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2" />
+                  <input onChange={e => setFiles(e.target.files)} type="file" multiple accept="image/*" disabled={isSubmitting} className={`w-full rounded-lg border border-powerbi-gray-300 dark:border-powerbi-gray-700 bg-white dark:bg-powerbi-gray-900 px-3 py-2 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`} />
                 </div>
               </div>
               {submitError && (
@@ -659,7 +661,14 @@ export default function GemInventory() {
                   Cancel
                 </button>
                 <button onClick={handleAddItem} disabled={isSubmitting} className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-60 disabled:cursor-not-allowed">
-                  {isSubmitting ? 'Saving...' : 'Add Item'}
+                  {isSubmitting ? (
+                    <>
+                      <div className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Saving…
+                    </>
+                  ) : (
+                    'Add Item'
+                  )}
                 </button>
               </div>
             </div>

@@ -171,6 +171,7 @@ export default function Tasks() {
   const [activeLogs, setActiveLogs] = useState<Record<number, string>>({});
   const [accumulatedMinutes, setAccumulatedMinutes] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(false);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [showAll, setShowAll] = useState(false);
   const [form, setForm] = useState({
@@ -438,6 +439,7 @@ export default function Tasks() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || !form.title.trim()) return;
+    setIsCreatingTask(true);
     try {
       const payload = {
         ...form,
@@ -464,6 +466,8 @@ export default function Tasks() {
       console.error('Error creating task:', e);
       setMessage({ type: 'error', text: 'Failed to add task' });
       setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setIsCreatingTask(false);
     }
   };
 
@@ -989,14 +993,14 @@ export default function Tasks() {
                 <form onSubmit={handleCreate} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Title</label>
-                    <input type="text" required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
-                           className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white" />
+                    <input type="text" required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} disabled={isCreatingTask}
+                           className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Category</label>
-                      <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-                              className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white">
+                      <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} disabled={isCreatingTask}
+                              className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50">
                         <option value="job">Job</option>
                         <option value="farming">Farming</option>
                         <option value="personal">Personal</option>
@@ -1007,8 +1011,8 @@ export default function Tasks() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Priority</label>
-                      <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value as Task['priority'] })}
-                              className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white">
+                      <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value as Task['priority'] })} disabled={isCreatingTask}
+                              className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50">
                         <option value="high">High</option>
                         <option value="medium">Medium</option>
                         <option value="low">Low</option>
@@ -1018,27 +1022,30 @@ export default function Tasks() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Planned Date</label>
-                      <input type="date" value={form.planned_date} onChange={e => setForm({ ...form, planned_date: e.target.value })}
-                             className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white" />
+                      <input type="date" value={form.planned_date} onChange={e => setForm({ ...form, planned_date: e.target.value })} disabled={isCreatingTask}
+                             className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Schedule Time</label>
-                      <input type="time" value={form.schedule_time} onChange={e => setForm({ ...form, schedule_time: e.target.value })}
-                             className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white" />
+                      <input type="time" value={form.schedule_time} onChange={e => setForm({ ...form, schedule_time: e.target.value })} disabled={isCreatingTask}
+                             className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Allocated Hours</label>
                       <input type="number" min={0} step={0.25} value={form.allocated_hours}
-                             onChange={e => setForm({ ...form, allocated_hours: Number(e.target.value) })}
-                             className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white" />
+                             onChange={e => setForm({ ...form, allocated_hours: Number(e.target.value) })} disabled={isCreatingTask}
+                             className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                     </div>
                   </div>
                   <div className="flex justify-end gap-3 pt-4">
                         <button type="button" onClick={() => setShowAddForm(false)}
                           className="px-4 py-2 text-powerbi-gray-600 dark:text-powerbi-gray-400 hover:text-powerbi-gray-800 dark:hover:text-powerbi-gray-200 transition-colors">{t('buttons.cancel')}</button>
-                        <button type="submit" className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl transition-colors">{t('pages.tasks.addTask')}</button>
+                        <button type="submit" disabled={isCreatingTask} className="bg-powerbi-primary hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2">
+                          {isCreatingTask && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                          {t('pages.tasks.addTask')}
+                        </button>
                   </div>
                 </form>
               </div>

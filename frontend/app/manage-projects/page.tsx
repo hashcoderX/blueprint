@@ -12,7 +12,8 @@ import {
   CheckCircle,
   FolderOpen,
   BarChart3,
-  TrendingUp
+  TrendingUp,
+  Trash2
 } from 'lucide-react';
 
 interface Project {
@@ -55,6 +56,9 @@ export default function ManageProjects() {
   const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'budgeting' | 'purchases' | 'income'>('overview');
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [isAddingIncome, setIsAddingIncome] = useState(false);
+  const [isAddingPurchase, setIsAddingPurchase] = useState(false);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [income, setIncome] = useState<Income[]>([]);
   const [userCurrency, setUserCurrency] = useState<string>('USD');
@@ -87,6 +91,10 @@ export default function ManageProjects() {
     amount: '',
     category: 'project_revenue'
   });
+
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
   // Effects are declared after functions to satisfy lint rules
 
@@ -280,6 +288,7 @@ export default function ManageProjects() {
 
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsCreatingProject(true);
 
     const projectData = {
       ...projectForm,
@@ -317,11 +326,34 @@ export default function ManageProjects() {
       }
     } catch (error) {
       console.error('Error saving project:', error);
+    } finally {
+      setIsCreatingProject(false);
+    }
+  };
+
+  const deleteProject = async (projectId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/projects/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        loadProjects();
+        setShowDeleteModal(false);
+        setProjectToDelete(null);
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error);
     }
   };
 
   const handlePurchaseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsAddingPurchase(true);
 
     const purchaseData = {
       ...purchaseForm,
@@ -353,11 +385,14 @@ export default function ManageProjects() {
       }
     } catch (error) {
       console.error('Error saving purchase:', error);
+    } finally {
+      setIsAddingPurchase(false);
     }
   };
 
   const handleIncomeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsAddingIncome(true);
 
     const incomeData = {
       ...incomeForm,
@@ -388,6 +423,8 @@ export default function ManageProjects() {
       }
     } catch (error) {
       console.error('Error saving income:', error);
+    } finally {
+      setIsAddingIncome(false);
     }
   };
 
@@ -447,7 +484,7 @@ export default function ManageProjects() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm font-medium">Total Projects</p>
-                <p className="text-2xl sm:text-3xl font-bold">{projects.length}</p>
+                <p className="text-xl sm:text-2xl font-bold">{projects.length}</p>
               </div>
               <span className="text-blue-200">📁</span>
             </div>
@@ -456,7 +493,7 @@ export default function ManageProjects() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-sm font-medium">Active Projects</p>
-                <p className="text-2xl sm:text-3xl font-bold">{projects.filter(p => p.status === 'active').length}</p>
+                <p className="text-xl sm:text-2xl font-bold">{projects.filter(p => p.status === 'active').length}</p>
               </div>
               <span className="text-green-200">✅</span>
             </div>
@@ -465,7 +502,7 @@ export default function ManageProjects() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Total Budget</p>
-                <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(projects.reduce((total, project) => total + (Number(project.budget) || 0), 0))}</p>
+                <p className="text-xl sm:text-2xl font-bold">{formatCurrency(projects.reduce((total, project) => total + (Number(project.budget) || 0), 0))}</p>
               </div>
               <span className="text-purple-200">💰</span>
             </div>
@@ -474,7 +511,7 @@ export default function ManageProjects() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-amber-100 text-sm font-medium">Completed</p>
-                <p className="text-2xl sm:text-3xl font-bold">{projects.filter(p => p.status === 'completed').length}</p>
+                <p className="text-xl sm:text-2xl font-bold">{projects.filter(p => p.status === 'completed').length}</p>
               </div>
               <span className="text-amber-200">🏆</span>
             </div>
@@ -483,7 +520,7 @@ export default function ManageProjects() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-rose-100 text-sm font-medium">On Hold</p>
-                <p className="text-2xl sm:text-3xl font-bold">{projects.filter(p => p.status === 'on-hold').length}</p>
+                <p className="text-xl sm:text-2xl font-bold">{projects.filter(p => p.status === 'on-hold').length}</p>
               </div>
               <span className="text-rose-200">⏸️</span>
             </div>
@@ -598,6 +635,15 @@ export default function ManageProjects() {
                             className="p-2 text-powerbi-gray-400 hover:text-powerbi-primary transition-colors"
                           >
                             <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setProjectToDelete(project);
+                              setShowDeleteModal(true);
+                            }}
+                            className="p-2 text-powerbi-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -716,7 +762,8 @@ export default function ManageProjects() {
                           value={purchaseForm.project_id}
                           onChange={(e) => setPurchaseForm({ ...purchaseForm, project_id: e.target.value })}
                           required
-                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                          disabled={isAddingPurchase}
+                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                         >
                           <option value="">Select Project</option>
                           {projects.map((project) => (
@@ -735,7 +782,8 @@ export default function ManageProjects() {
                           value={purchaseForm.item_name}
                           onChange={(e) => setPurchaseForm({ ...purchaseForm, item_name: e.target.value })}
                           required
-                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                          disabled={isAddingPurchase}
+                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                           placeholder="e.g., Software License, Hardware, etc."
                         />
                       </div>
@@ -749,7 +797,8 @@ export default function ManageProjects() {
                           value={purchaseForm.cost}
                           onChange={(e) => setPurchaseForm({ ...purchaseForm, cost: e.target.value })}
                           required
-                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                          disabled={isAddingPurchase}
+                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                           placeholder="0.00"
                         />
                       </div>
@@ -761,7 +810,8 @@ export default function ManageProjects() {
                           value={purchaseForm.category}
                           onChange={(e) => setPurchaseForm({ ...purchaseForm, category: e.target.value })}
                           required
-                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                          disabled={isAddingPurchase}
+                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                         >
                           <option value="">Select Category</option>
                           <option value="Software">Software</option>
@@ -781,14 +831,17 @@ export default function ManageProjects() {
                         type="text"
                         value={purchaseForm.vendor}
                         onChange={(e) => setPurchaseForm({ ...purchaseForm, vendor: e.target.value })}
-                        className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                        disabled={isAddingPurchase}
+                        className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                         placeholder="e.g., Adobe, AWS, etc."
                       />
                     </div>
                     <button
                       type="submit"
-                      className="bg-powerbi-primary hover:brightness-110 text-white px-6 py-2 rounded-xl transition-colors"
+                      disabled={isAddingPurchase}
+                      className="bg-powerbi-primary hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2"
                     >
+                      {isAddingPurchase && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                       Add Purchase
                     </button>
                   </form>
@@ -848,7 +901,8 @@ export default function ManageProjects() {
                           value={incomeForm.project_id}
                           onChange={(e) => setIncomeForm({ ...incomeForm, project_id: e.target.value })}
                           required
-                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                          disabled={isAddingIncome}
+                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                         >
                           <option value="">Select Project</option>
                           {projects.map((project) => (
@@ -867,7 +921,8 @@ export default function ManageProjects() {
                           value={incomeForm.description}
                           onChange={(e) => setIncomeForm({ ...incomeForm, description: e.target.value })}
                           required
-                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                          disabled={isAddingIncome}
+                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                           placeholder="e.g., Client Payment, Milestone Payment, etc."
                         />
                       </div>
@@ -881,7 +936,8 @@ export default function ManageProjects() {
                           value={incomeForm.amount}
                           onChange={(e) => setIncomeForm({ ...incomeForm, amount: e.target.value })}
                           required
-                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                          disabled={isAddingIncome}
+                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                           placeholder="0.00"
                         />
                       </div>
@@ -893,7 +949,8 @@ export default function ManageProjects() {
                           value={incomeForm.category}
                           onChange={(e) => setIncomeForm({ ...incomeForm, category: e.target.value })}
                           required
-                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                          disabled={isAddingIncome}
+                          className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                         >
                           <option value="project_revenue">Project Revenue</option>
                           <option value="milestone_payment">Milestone Payment</option>
@@ -905,8 +962,10 @@ export default function ManageProjects() {
                     </div>
                     <button
                       type="submit"
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl transition-colors"
+                      disabled={isAddingIncome}
+                      className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2"
                     >
+                      {isAddingIncome && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                       {t('pages.manageProjectDetails.income.add')}
                     </button>
                   </form>
@@ -989,7 +1048,8 @@ export default function ManageProjects() {
                       value={projectForm.name}
                       onChange={(e) => setProjectForm({ ...projectForm, name: e.target.value })}
                       required
-                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                      disabled={isCreatingProject}
+                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                       placeholder="Enter project name"
                     />
                   </div>
@@ -1003,7 +1063,8 @@ export default function ManageProjects() {
                       onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
                       required
                       rows={3}
-                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                      disabled={isCreatingProject}
+                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                       placeholder="Describe the project"
                     />
                   </div>
@@ -1018,7 +1079,8 @@ export default function ManageProjects() {
                       value={projectForm.budget}
                       onChange={(e) => setProjectForm({ ...projectForm, budget: e.target.value })}
                       required
-                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                      disabled={isCreatingProject}
+                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                       placeholder="0.00"
                     />
                   </div>
@@ -1030,7 +1092,8 @@ export default function ManageProjects() {
                     <select
                       value={projectForm.priority}
                       onChange={(e) => setProjectForm({ ...projectForm, priority: e.target.value as 'low' | 'medium' | 'high' })}
-                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                      disabled={isCreatingProject}
+                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                     >
                       <option value="low">Low</option>
                       <option value="medium">Medium</option>
@@ -1046,7 +1109,8 @@ export default function ManageProjects() {
                       type="date"
                       value={projectForm.start_date}
                       onChange={(e) => setProjectForm({ ...projectForm, start_date: e.target.value })}
-                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                      disabled={isCreatingProject}
+                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                     />
                   </div>
 
@@ -1058,7 +1122,8 @@ export default function ManageProjects() {
                       type="date"
                       value={projectForm.end_date}
                       onChange={(e) => setProjectForm({ ...projectForm, end_date: e.target.value })}
-                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                      disabled={isCreatingProject}
+                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                     />
                   </div>
 
@@ -1070,7 +1135,8 @@ export default function ManageProjects() {
                       type="text"
                       value={projectForm.client_name}
                       onChange={(e) => setProjectForm({ ...projectForm, client_name: e.target.value })}
-                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white"
+                      disabled={isCreatingProject}
+                      className="w-full px-4 py-3 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-powerbi-primary focus:border-powerbi-primary dark:bg-powerbi-gray-700 dark:text-white disabled:opacity-50"
                       placeholder="Enter client name"
                     />
                   </div>
@@ -1098,8 +1164,10 @@ export default function ManageProjects() {
                   </button>
                   <button
                     type="submit"
-                    className="bg-powerbi-primary hover:brightness-110 text-white px-4 py-2 rounded-xl transition-colors"
+                    disabled={isCreatingProject}
+                    className="bg-powerbi-primary hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl transition-colors flex items-center gap-2"
                   >
+                    {isCreatingProject && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                     {editingProject ? 'Update Project' : 'Create Project'}
                   </button>
                 </div>
@@ -1108,6 +1176,37 @@ export default function ManageProjects() {
           </div>
         )}
       </section>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && projectToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white mb-4">
+              Delete Project
+            </h3>
+            <p className="text-powerbi-gray-600 dark:text-powerbi-gray-400 mb-6">
+              Are you sure you want to delete "{projectToDelete.name}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setProjectToDelete(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-powerbi-gray-200 dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white hover:bg-powerbi-gray-300 dark:hover:bg-powerbi-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteProject(projectToDelete.id)}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
