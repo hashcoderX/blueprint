@@ -92,6 +92,9 @@ const serverToLocalInputDatetime = (serverStr: string): string => {
 };
 
 const CalendarView: React.FC<{ tasks: Task[]; currentDate: Date; onTaskClick: (task: Task) => void }> = ({ tasks, currentDate, onTaskClick }) => {
+  const tasksWithDates = tasks.filter(t => t.planned_date);
+  console.log('CalendarView: total tasks:', tasks.length, 'tasks with dates:', tasksWithDates.length);
+
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDay = new Date(year, month, 1);
@@ -106,9 +109,20 @@ const CalendarView: React.FC<{ tasks: Task[]; currentDate: Date; onTaskClick: (t
     current.setDate(current.getDate() + 1);
   }
 
+  // Normalize planned_date to 'YYYY-MM-DD' strings to match local day formatting
+  const normalizeDate = (d: string | Date | null | undefined): string | null => {
+    if (!d) return null;
+    if (typeof d === 'string') return d.slice(0, 10);
+    try {
+      return new Date(d as any).toISOString().slice(0, 10);
+    } catch {
+      return null;
+    }
+  };
+
   const tasksByDate = tasks.reduce((acc, task) => {
-    if (task.planned_date) {
-      const date = task.planned_date;
+    const date = normalizeDate(task.planned_date as any);
+    if (date) {
       if (!acc[date]) acc[date] = [];
       acc[date].push(task);
     }
@@ -124,8 +138,9 @@ const CalendarView: React.FC<{ tasks: Task[]; currentDate: Date; onTaskClick: (t
           </div>
         ))}
         {days.map((day, index) => {
-          const dateStr = day.toISOString().slice(0, 10);
+          const dateStr = day.getFullYear() + '-' + String(day.getMonth() + 1).padStart(2, '0') + '-' + String(day.getDate()).padStart(2, '0');
           const dayTasks = tasksByDate[dateStr] || [];
+          console.log('Day:', day.getDate(), 'dateStr:', dateStr, 'tasks:', dayTasks.length);
           const isCurrentMonth = day.getMonth() === month;
           return (
             <div
@@ -161,6 +176,18 @@ const CalendarView: React.FC<{ tasks: Task[]; currentDate: Date; onTaskClick: (t
           );
         })}
       </div>
+      {/* Empty state for current month */}
+      {(() => {
+        const hasAny = days.some(d => {
+          const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          return (tasksByDate[ds] || []).length > 0;
+        });
+        return !hasAny ? (
+          <div className="mt-4 text-sm text-powerbi-gray-600 dark:text-powerbi-gray-300">
+            No planned tasks in this month.
+          </div>
+        ) : null;
+      })()}
     </div>
   );
 };
@@ -180,7 +207,7 @@ export default function Tasks() {
     category: 'job',
     planned_date: new Date().toISOString().slice(0, 10), // date only
     schedule_time: '09:00', // default time
-    allocated_hours: 1,
+    allocated_hours: '',
   });
   const [summary, setSummary] = useState<{ month: string; data: { category: string; hours: number }[] }>({ month: '', data: [] });
   const [activeTab, setActiveTab] = useState<ActiveTabType>('overview');
@@ -201,7 +228,7 @@ export default function Tasks() {
     category: 'job',
     planned_date: '',
     schedule_time: '',
-    allocated_hours: 0,
+    allocated_hours: '',
   });
   const [calendarDate, setCalendarDate] = useState(new Date());
 
@@ -216,15 +243,25 @@ export default function Tasks() {
     return res.json();
   };
 
-  const fetchTasks = async () => {
-    if (!token) return;
+  const fetchTasks = async (forceShowAll = false) => {
+    console.log('fetchTasks called, forceShowAll:', forceShowAll, 'token exists:', !!token);
+    if (!token) {
+      console.log('No token, skipping fetch');
+      return;
+    }
     setLoading(true);
     try {
       const url = new URL(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks`);
-      if (!showAll && selectedDate) url.searchParams.set('date', selectedDate);
+      if (!forceShowAll && !showAll && selectedDate) url.searchParams.set('date', selectedDate);
+      console.log('Fetching from URL:', url.toString());
       const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${token}` } });
       const data = await parseJsonResponse(res);
-      if (res.ok && !data.error) setTasks(data);
+      if (res.ok && !data.error) {
+        console.log('Tasks fetched successfully:', data.length, 'tasks');
+        setTasks(data);
+      } else {
+        console.log('API error:', data.error);
+      }
     } catch (e) {
       console.error('Error fetching tasks:', e);
     } finally {
@@ -394,12 +431,12 @@ export default function Tasks() {
   };
 
   useEffect(() => {
-    fetchTasks();
+    fetchTasks(activeTab === 'calendar');
     fetchActiveLogs();
     fetchTimeSummary();
     fetchSummary(new Date(selectedDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate, showAll]);
+  }, [selectedDate, showAll, activeTab]);
 
   // lightweight ticking for running timers
   useEffect(() => {
@@ -445,6 +482,7 @@ export default function Tasks() {
         ...form,
         planned_date: form.planned_date || null,
         schedule_time: form.schedule_time || null,
+        allocated_hours: form.allocated_hours ? Number(form.allocated_hours) : 0,
       };
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/tasks`, {
         method: 'POST',
@@ -453,7 +491,7 @@ export default function Tasks() {
       });
       const data = await parseJsonResponse(res);
       if (!data.error) {
-        setForm({ ...form, title: '', planned_date: new Date().toISOString().slice(0, 10), schedule_time: '09:00', allocated_hours: 1 });
+        setForm({ ...form, title: '', planned_date: new Date().toISOString().slice(0, 10), schedule_time: '09:00', allocated_hours: '' });
         setShowAddForm(false);
         setMessage({ type: 'success', text: 'Task added successfully!' });
         fetchTasks();
@@ -480,7 +518,7 @@ export default function Tasks() {
         body: JSON.stringify(patch),
       });
       const data = await parseJsonResponse(res);
-      if (!data.error) fetchTasks();
+      if (!data.error) fetchTasks(activeTab === 'calendar');
     } catch (e) {
       console.error('Error updating task:', e);
     }
@@ -493,7 +531,7 @@ export default function Tasks() {
       const data = await parseJsonResponse(res);
       if (!data.error) {
         setActiveLogs({ ...activeLogs, [id]: new Date().toISOString() });
-        fetchTasks();
+        fetchTasks(activeTab === 'calendar');
         // keep accumulated minutes; no need to refresh here
       }
     } catch (e) {
@@ -510,7 +548,7 @@ export default function Tasks() {
         const map = { ...activeLogs };
         delete map[id];
         setActiveLogs(map);
-        fetchTasks();
+        fetchTasks(activeTab === 'calendar');
         fetchSummary(new Date(selectedDate));
         // refresh accumulated minutes from DB so paused time is held
         fetchTimeSummary();
@@ -543,7 +581,7 @@ export default function Tasks() {
       category: task.category,
       planned_date: task.planned_date ? task.planned_date.split(' ')[0] : '', // date part
       schedule_time: task.schedule_time || '', // time part
-      allocated_hours: typeof task.allocated_hours === 'number' ? task.allocated_hours : 0,
+      allocated_hours: task.allocated_hours ? task.allocated_hours.toString() : '',
     });
     setShowEditModal(true);
   };
@@ -557,7 +595,7 @@ export default function Tasks() {
       category: editForm.category,
       planned_date: editForm.planned_date || null,
       schedule_time: editForm.schedule_time || null,
-      allocated_hours: editForm.allocated_hours,
+      allocated_hours: editForm.allocated_hours ? Number(editForm.allocated_hours) : 0,
     };
     await handleUpdate(editTask.id, patch);
     setShowEditModal(false);
@@ -573,7 +611,7 @@ export default function Tasks() {
       });
       if (res.ok) {
         setMessage({ type: 'success', text: 'Task deleted successfully!' });
-        fetchTasks();
+        fetchTasks(activeTab === 'calendar');
         setTimeout(() => setMessage(null), 3000);
       } else {
         setMessage({ type: 'error', text: 'Failed to delete task' });
@@ -663,7 +701,7 @@ export default function Tasks() {
             {data.map((task) => (
               <tr key={task.id} className="hover:bg-powerbi-gray-50 dark:hover:bg-powerbi-gray-700 cursor-pointer" onClick={() => handleTaskClick(task)}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-900 dark:text-white">{task.title}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-powerbi-gray-500 dark:text-powerbi-gray-400">
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <span className={`px-2 py-1 rounded-full text-xs ${categoryColors[task.category] || categoryColors.general}`}>{task.category}</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -913,6 +951,12 @@ export default function Tasks() {
                 >
                   Next
                 </button>
+                <button
+                  onClick={() => fetchTasks(true)}
+                  className="ml-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                >
+                  Refresh Calendar
+                </button>
               </div>
               <CalendarView tasks={tasks} currentDate={calendarDate} onTaskClick={(task) => { setSelectedTask(task); setShowTaskDetailModal(true); }} />
             </div>
@@ -969,8 +1013,8 @@ export default function Tasks() {
                   <div className="grid grid-cols-1 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Allocated Hours</label>
-                      <input type="number" min={0} step={0.25} value={editForm.allocated_hours}
-                             onChange={e => setEditForm({ ...editForm, allocated_hours: Number(e.target.value) })}
+                      <input type="number" min={0} step={0.25} placeholder="0.00" value={editForm.allocated_hours}
+                             onChange={e => setEditForm({ ...editForm, allocated_hours: e.target.value })}
                              className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white" />
                     </div>
                   </div>
@@ -1034,8 +1078,8 @@ export default function Tasks() {
                   <div className="grid grid-cols-1 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">Allocated Hours</label>
-                      <input type="number" min={0} step={0.25} value={form.allocated_hours}
-                             onChange={e => setForm({ ...form, allocated_hours: Number(e.target.value) })} disabled={isCreatingTask}
+                      <input type="number" min={0} step={0.25} placeholder="0.00" value={form.allocated_hours}
+                             onChange={e => setForm({ ...form, allocated_hours: e.target.value })} disabled={isCreatingTask}
                              className="w-full px-3 py-2 border border-powerbi-gray-300 dark:border-powerbi-gray-600 rounded-lg bg-white dark:bg-powerbi-gray-700 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                     </div>
                   </div>

@@ -451,11 +451,12 @@ export default function Dashboard() {
 
   
 
-  // Access gating: Pro or staff, or Free within 7-day trial
+  // Access gating: Pro or staff, or Free within 30-day trial
   const created = userCreatedAt ? new Date(userCreatedAt) : null;
-  const trialActive = created ? (Date.now() - created.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+  const trialActive = created ? (Date.now() - created.getTime()) < 30 * 24 * 60 * 60 * 1000 : false;
   const isStaff = userRole === 'admin' || userRole === 'super_admin';
   const hasFullAccess = userIsPaid || isStaff || trialActive || userSuperFree;
+  const showProBanner = !hasFullAccess && created && !trialActive;
 
   return (
     <DashboardLayout>
@@ -471,19 +472,37 @@ export default function Dashboard() {
           {/* Removed Quick Add and Bell action buttons */}
         </div>
 
+        {/* Pro Version Banner */}
+        {showProBanner && (
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Upgrade to Pro Version</h3>
+                <p className="text-blue-100">
+                  Your free trial has ended. Get full access to all features with our Pro plan.
+                </p>
+              </div>
+              <button
+                onClick={() => router.push('/settings')}
+                className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+              >
+                Get Pro Now
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-          {hasFullAccess && (
-            <StatCard
-              title={t('dashboard.stats.totalExpenses')}
-              value={stats.totalExpenses}
-              change={stats.monthlyChange}
-              icon={DollarSign}
-              color="red"
-              prefix="$"
-              currency={userCurrency}
-            />
-          )}
+          <StatCard
+            title={t('dashboard.stats.totalExpenses')}
+            value={stats.totalExpenses}
+            change={stats.monthlyChange}
+            icon={DollarSign}
+            color="red"
+            prefix="$"
+            currency={userCurrency}
+          />
           <StatCard
             title={t('dashboard.stats.goalsProgress')}
             value={stats.goalsProgress}
@@ -497,16 +516,14 @@ export default function Dashboard() {
             icon={CheckSquare}
             color="blue"
           />
-          {hasFullAccess && (
-            <StatCard
-              title={t('dashboard.stats.vehicleExpenses')}
-              value={stats.vehicleExpenses}
-              icon={Car}
-              color="purple"
-              prefix="$"
-              currency={userCurrency}
-            />
-          )}
+          <StatCard
+            title={t('dashboard.stats.vehicleExpenses')}
+            value={stats.vehicleExpenses}
+            icon={Car}
+            color="purple"
+            prefix="$"
+            currency={userCurrency}
+          />
         </div>
 
         {/* Charts and Insights Row */}
@@ -569,15 +586,13 @@ export default function Dashboard() {
           {/* Quick Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white mb-4 sm:col-span-2">{t('dashboard.quickActions')}</h3>
-            {hasFullAccess && (
-              <QuickAction
-                icon={Plus}
-                title={t('dashboard.quickActionsItems.addExpense.title')}
-                description={t('dashboard.quickActionsItems.addExpense.description')}
-                onClick={() => router.push('/expenses')}
-                color="red"
-              />
-            )}
+            <QuickAction
+              icon={Plus}
+              title={t('dashboard.quickActionsItems.addExpense.title')}
+              description={t('dashboard.quickActionsItems.addExpense.description')}
+              onClick={() => router.push('/expenses')}
+              color="red"
+            />
             <QuickAction
               icon={Target}
               title={t('dashboard.quickActionsItems.setGoal.title')}
@@ -592,20 +607,17 @@ export default function Dashboard() {
               onClick={() => router.push('/tasks')}
               color="blue"
             />
-            {hasFullAccess && (
-              <QuickAction
-                icon={Calendar}
-                title={t('dashboard.quickActionsItems.schedulePayment.title')}
-                description={t('dashboard.quickActionsItems.schedulePayment.description')}
-                onClick={() => router.push('/expenses')}
-                color="purple"
-              />
-            )}
+            <QuickAction
+              icon={Calendar}
+              title={t('dashboard.quickActionsItems.schedulePayment.title')}
+              description={t('dashboard.quickActionsItems.schedulePayment.description')}
+              onClick={() => router.push('/expenses')}
+              color="purple"
+            />
           </div>
         </div>
 
-        {/* Diary Section (Pro only) */}
-        {hasFullAccess && (
+        {/* Diary Section */}
         <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('dashboard.diaryTitle')}</h3>
@@ -662,7 +674,6 @@ export default function Dashboard() {
             <div className="text-powerbi-gray-500">{t('dashboard.loginToViewDiary')}</div>
           )}
         </div>
-        )}
 
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -681,8 +692,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Financial Insights (Pro only) */}
-          {hasFullAccess && (
+          {/* Financial Insights */}
           <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-powerbi-gray-900 dark:text-white">{t('dashboard.financialInsights')}</h3>
@@ -729,7 +739,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          )}
         </div>
       </div>
     </DashboardLayout>

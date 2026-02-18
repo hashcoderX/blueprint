@@ -502,7 +502,7 @@ export default function ManageProjects() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm font-medium">Total Budget</p>
-                <p className="text-xl sm:text-2xl font-bold">{formatCurrency(projects.reduce((total, project) => total + (Number(project.budget) || 0), 0))}</p>
+                <p className="text-xl sm:text-1xl font-bold">{formatCurrency(projects.reduce((total, project) => total + (Number(project.budget) || 0), 0))}</p>
               </div>
               <span className="text-purple-200">💰</span>
             </div>

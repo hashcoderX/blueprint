@@ -21,6 +21,9 @@ yarn-error.log*
 # Env files
 .env
 .env.*
+!*.env.example
+frontend/.env.local
+backend/.env
 
 # OS / Editor
 .DS_Store
@@ -28,9 +31,16 @@ Thumbs.db
 .vscode/
 
 # Uploads and generated assets
-backend/uploads/
-uploads/
 
 # Misc
 *.pem
 *.key
+.next/cache/
+frontend/.next/
+frontend/out/
+# Ignore backend uploads contents, but keep a placeholder
+backend/uploads/*
+!backend/uploads/.gitkeep
+# Ignore only root-level uploads directory
+/uploads/
+backend/vapid.json

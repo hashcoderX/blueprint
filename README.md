@@ -11,6 +11,22 @@ This guide will help you deploy the Blueprint application to a VPS server.
 - PM2 installed globally (`npm install -g pm2`)
 - Domain name pointing to your VPS
 
+## Environment Files
+
+Use the provided templates to configure environments without committing secrets:
+
+- Frontend: copy [frontend/.env.example](frontend/.env.example) to [frontend/.env.local](frontend/.env.example).
+- Backend: copy [backend/.env.example](backend/.env.example) to [backend/.env](backend/.env.example).
+
+Frontend variables:
+- `NEXT_PUBLIC_API_BASE_URL`: Base URL for the backend API (e.g., `http://localhost:3001` locally or `https://your-domain.com`).
+
+Backend variables:
+- `PORT`, `JWT_SECRET`, `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
+- Optional Google OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`.
+
+> Note: `.gitignore` already excludes env files, uploads and machine-local artifacts so secrets and local data won’t be pushed.
+
 ## Backend Setup
 
 1. **Clone and setup backend:**
@@ -34,6 +50,11 @@ This guide will help you deploy the Blueprint application to a VPS server.
    DB_USER=your_db_user
    DB_PASSWORD=your_db_password
    DB_NAME=blueprint
+   ```
+
+   Or use the template directly:
+   ```bash
+   cp .env.example .env
    ```
 
 3. **Setup database:**
@@ -60,6 +81,11 @@ This guide will help you deploy the Blueprint application to a VPS server.
    Set:
    ```
    NEXT_PUBLIC_API_BASE_URL=http://your-domain.com/api
+   ```
+
+   You can also use the template directly:
+   ```bash
+   cp .env.example .env.local
    ```
 
 2. **Build for production:**
@@ -135,6 +161,28 @@ systemctl reload nginx
 ```bash
 apt install certbot python3-certbot-nginx
 certbot --nginx -d your-domain.com -d www.your-domain.com
+```
+
+## Protect Server-Local Files (Uploads & Config)
+
+Ensure previously tracked local-only files are untracked so pulls don’t overwrite live data:
+
+```bash
+# In your dev repo before pushing
+git rm -r --cached backend/uploads
+git rm --cached backend/vapid.json
+git add backend/uploads/.gitkeep .gitignore
+git commit -m "chore: ignore uploads & vapid.json; add env templates"
+git push origin main
+```
+
+On the server, you can additionally protect any remaining local-only files:
+
+```bash
+cd /var/www/blueprint
+git update-index --skip-worktree backend/vapid.json
+git update-index --skip-worktree backend/uploads/*
+git pull origin main
 ```
 
 ## Firewall

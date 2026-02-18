@@ -48,7 +48,7 @@ export default function VehicleExpenses() {
   const [form, setForm] = useState({
     description: '',
     vehicle: '',
-    amount: 0,
+    amount: '',
     date: new Date().toISOString().slice(0, 10),
     type: 'expense' as EntryType,
   });
@@ -103,13 +103,13 @@ export default function VehicleExpenses() {
   }, [filtered]);
 
   const openAdd = () => {
-    setForm({ description: '', vehicle: '', amount: 0, date: new Date().toISOString().slice(0, 10), type: 'expense' });
+    setForm({ description: '', vehicle: '', amount: '', date: new Date().toISOString().slice(0, 10), type: 'expense' });
     setShowAdd(true);
   };
 
   const openEdit = (entry: VehicleEntry) => {
     setSelected(entry);
-    setForm({ description: entry.description, vehicle: entry.vehicle, amount: entry.amount, date: entry.date, type: entry.type });
+    setForm({ description: entry.description, vehicle: entry.vehicle, amount: entry.amount.toString(), date: entry.date, type: entry.type });
     setShowEdit(true);
   };
 
@@ -123,10 +123,11 @@ export default function VehicleExpenses() {
     if (!token) return;
     setIsAddingEntry(true);
     try {
+      const formData = { ...form, amount: parseFloat(form.amount) || 0 };
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicle-expenses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       });
       const data = await parseJsonResponse(res);
       if (!data.error) {
@@ -149,10 +150,11 @@ export default function VehicleExpenses() {
     e.preventDefault();
     if (!token || !selected) return;
     try {
+      const formData = { ...form, amount: parseFloat(form.amount) || 0 };
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/api/vehicle-expenses/${selected.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       });
       const data = await parseJsonResponse(res);
       if (!data.error) {
@@ -491,7 +493,7 @@ export default function VehicleExpenses() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.amount')}</label>
-                      <input type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: Number(e.target.value) })} required disabled={isAddingEntry} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
+                      <input type="number" step="0.01" min="0" placeholder="0.00" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} required disabled={isAddingEntry} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white disabled:opacity-50" />
                     </div>
                   </div>
                   <div>
@@ -539,7 +541,7 @@ export default function VehicleExpenses() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-powerbi-gray-700 dark:text-powerbi-gray-300 mb-2">{t('pages.vehicleExpenses.labels.amount')}</label>
-                      <input type="number" step="0.01" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: Number(e.target.value) })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
+                      <input type="number" step="0.01" min="0" placeholder="0.00" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} required className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-powerbi-gray-700 border-powerbi-gray-300 dark:border-powerbi-gray-600 text-powerbi-gray-900 dark:text-white" />
                     </div>
                   </div>
                   <div>

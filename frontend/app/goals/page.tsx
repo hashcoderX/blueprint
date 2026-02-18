@@ -634,8 +634,8 @@ function GoalForm({ goal, onSave, onCancel, error, isLoading }: {
     name: goal?.name || '',
     description: goal?.description || '',
     category: goal?.category || 'Savings',
-    current: goal?.current || 0,
-    target: goal?.target || 0,
+    current: goal ? goal.current.toString() : '',
+    target: goal ? goal.target.toString() : '',
     target_date: goal?.target_date ? goal.target_date.split('T')[0] : '',
     priority: goal?.priority || 'medium',
     notes: goal?.notes || ''
@@ -643,7 +643,12 @@ function GoalForm({ goal, onSave, onCancel, error, isLoading }: {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    const submitData = {
+      ...formData,
+      current: parseFloat(formData.current) || 0,
+      target: parseFloat(formData.target) || 0
+    };
+    onSave(submitData);
   };
 
   return (
@@ -718,8 +723,9 @@ function GoalForm({ goal, onSave, onCancel, error, isLoading }: {
                   min="0"
                   step="0.01"
                   disabled={isLoading}
+                  placeholder="0.00"
                   value={formData.current}
-                  onChange={(e) => setFormData({...formData, current: parseFloat(e.target.value) || 0})}
+                  onChange={(e) => setFormData({...formData, current: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
@@ -734,8 +740,9 @@ function GoalForm({ goal, onSave, onCancel, error, isLoading }: {
                   step="0.01"
                   required
                   disabled={isLoading}
+                  placeholder="0.00"
                   value={formData.target}
-                  onChange={(e) => setFormData({...formData, target: parseFloat(e.target.value) || 0})}
+                  onChange={(e) => setFormData({...formData, target: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>

@@ -148,18 +148,15 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
 
     const isStaff = userRole === 'admin' || userRole === 'super_admin';
     const created = userCreatedAt ? new Date(userCreatedAt) : null;
-    const trialActive = created ? (Date.now() - created.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+    const trialActive = created ? (Date.now() - created.getTime()) < 30 * 24 * 60 * 60 * 1000 : false;
     const hasFullAccess = userIsPaid || isStaff || trialActive || userSuperFree;
-    if (!hasFullAccess) {
-      // Free plan: show only goals, achievements, tasks
-      return baseItems.filter(item => ['goals', 'achievements', 'tasks'].includes(item.key));
-    }
+    // Show all items - trial users get full access for 30 days
     return baseItems;
   };
 
-  // Compute access level (Pro/staff or within 7-day trial)
+  // Compute access level (Pro/staff or within 30-day trial)
   const created = userCreatedAt ? new Date(userCreatedAt) : null;
-  const trialActive = created ? (Date.now() - created.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+  const trialActive = created ? (Date.now() - created.getTime()) < 30 * 24 * 60 * 60 * 1000 : false;
   const isStaff = userRole === 'admin' || userRole === 'super_admin';
   const hasFullAccess = userIsPaid || isStaff || trialActive || userSuperFree;
 
@@ -238,7 +235,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
             {t('sidebar.more')}
           </h3>
           <ul className="space-y-2">
-            {hasFullAccess ? secondaryItemsBase.map((item) => {
+            {secondaryItemsBase.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <li key={item.key}>
@@ -268,7 +265,7 @@ export default function Sidebar({ className, mobile = false, onClose }: { classN
                   </Link>
                 </li>
               );
-            }) : null}
+            })}
           </ul>
         </div>
       </nav>
