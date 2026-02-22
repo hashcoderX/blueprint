@@ -31,6 +31,70 @@ type GemExpense = {
   description?: string | null;
 };
 
+async function compressImage(
+  file: File,
+  options: { maxWidth?: number; maxHeight?: number; quality?: number } = {}
+): Promise<File> {
+  const { maxWidth = 1600, maxHeight = 1600, quality = 0.8 } = options;
+
+  // Skip compression for very small files
+  if (file.size < 200 * 1024) {
+    return file;
+  }
+
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const url = URL.createObjectURL(file);
+
+    image.onload = () => {
+      try {
+        let { width, height } = image;
+
+        const scale = Math.min(maxWidth / width, maxHeight / height, 1);
+        const targetWidth = Math.round(width * scale);
+        const targetHeight = Math.round(height * scale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          URL.revokeObjectURL(url);
+          return reject(new Error('Failed to get canvas context'));
+        }
+
+        ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(url);
+            if (!blob) {
+              return reject(new Error('Image compression failed'));
+            }
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          'image/jpeg',
+          quality
+        );
+      } catch (err) {
+        URL.revokeObjectURL(url);
+        reject(err instanceof Error ? err : new Error('Image compression error'));
+      }
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image for compression'));
+    };
+
+    image.src = url;
+  });
+}
+
 export default function GemPurchases() {
   const router = useRouter();
   const [purchases, setPurchases] = useState<GemPurchase[]>([]);
@@ -245,7 +309,12 @@ export default function GemPurchases() {
       fd.append('amount', String(amt));
       if (date) fd.append('date', date);
       if (vendor) fd.append('vendor', vendor);
-      Array.from(files).forEach(f => fd.append('images', f));
+      const optimizedFiles = await Promise.all(
+        Array.from(files).map((file) =>
+          compressImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.8 })
+        )
+      );
+      optimizedFiles.forEach((f) => fd.append('images', f));
       
       // Inventory fields
       fd.append('gem_name', gemName.trim());

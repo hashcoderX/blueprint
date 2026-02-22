@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../components/DashboardLayout';
-import { ShoppingCart, DollarSign, Gem, Layers } from 'lucide-react';
+import { ShoppingCart, DollarSign, Gem, Layers, BarChart3 } from 'lucide-react';
 
 type GemImage = {
   id?: number;
@@ -147,7 +147,7 @@ export default function ManageGemBusiness() {
         </div>
 
         {/* Panels */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Inventory */}
           <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
@@ -187,6 +187,24 @@ export default function ManageGemBusiness() {
             </div>
             <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">Track sales, auctions, and consignments.</p>
             <div className="mt-4 text-powerbi-gray-500 dark:text-powerbi-gray-400 text-sm">Click &quot;View Sales&quot; to manage your sales.</div>
+          </div>
+
+          {/* Analysis */}
+          <div className="bg-white dark:bg-powerbi-gray-800 rounded-2xl shadow-lg border border-powerbi-gray-200 dark:border-powerbi-gray-700 p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                <h3 className="text-lg font-semibold text-powerbi-gray-900 dark:text-white">Analysis</h3>
+              </div>
+              <button
+                onClick={() => router.push('/manage-gembusiness/analysis')}
+                className="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                View Analysis
+              </button>
+            </div>
+            <p className="text-sm text-powerbi-gray-600 dark:text-powerbi-gray-400">See profit &amp; loss for your gem trades.</p>
+            <div className="mt-4 text-powerbi-gray-500 dark:text-powerbi-gray-400 text-sm">Includes purchase cost, expenses, sales, and net results.</div>
           </div>
         </div>
       </div>

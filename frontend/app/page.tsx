@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Home() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+  const API_BASE =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    (typeof window !== 'undefined' ? window.location.origin : '');
   
   // Login form states
   const [identifier, setIdentifier] = useState('');
